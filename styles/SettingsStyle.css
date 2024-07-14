@@ -1,0 +1,5 @@
+.volume-meter {
+    margin-left: 150px;
+    color: var(--glow-color);
+    font-size: x-large;
+}

@@ -11,6 +11,9 @@ import LocalView from '@/views/play/LocalView.vue'
 import MultiplayerView from '@/views/play/MultiplayerView.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 
+import SettingsGeneralView from '@/views/settings/SettingsGeneralView.vue'
+import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -63,6 +66,16 @@ const router = createRouter({
       path: '/settings',
       name: 'SettingsView',
       component: SettingsView
+    },
+    {
+      path: '/settings/settings_general',
+      name: 'SettingsGeneralView',
+      component: SettingsGeneralView
+    },
+    {
+      path: '/settings/settings_audio',
+      name: 'SettingsAudioView',
+      component: SettingsAudioView
     }
   ]
 })

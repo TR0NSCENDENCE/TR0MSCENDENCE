@@ -8,8 +8,8 @@
         </div>
       </nav>
     </header>
-    <main>
-        <section class="main_buttons">
+  <main>
+        <section class="main-buttons">
           <router-link to="/play/solo" class="glowing-btn">
             <span class="glowing-txt">SOLO<span class="faulty-letter"> VS </span>IA</span>
           </router-link>
@@ -38,7 +38,7 @@
 
 <style scoped>
 
-@import '../styles/style.css';
+@import '../styles/MainStyle.css';
 
 
 </style>

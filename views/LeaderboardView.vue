@@ -54,7 +54,7 @@ export default {
 
 <style scoped>
 
-@import '../styles/style.css';
+@import '../styles/MainStyle.css';
 
 
 .leaderboard {

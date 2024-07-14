@@ -24,7 +24,5 @@
 </script>
 
 <style scoped>
-
-@import '../styles/style.css';
-
+  @import '../styles/MainStyle.css';
 </style>

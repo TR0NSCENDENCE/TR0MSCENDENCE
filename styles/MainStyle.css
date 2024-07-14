@@ -45,11 +45,18 @@ header, footer {
 	perspective: 2em;
 }
 
-.main_buttons {
+.main-buttons {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 	gap: 15px;
+}
+
+.settings-buttons {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+  margin: 70px;
 }
 
 *,
@@ -60,7 +67,7 @@ header, footer {
 
 .title {
 	flex: 1;
-  	color: var(--glow-color);
+  color: var(--glow-color);
 	padding: 0.35em 1em;
 	border: 0.15em solid var(--glow-color);
 	border-radius: 0.45em;
