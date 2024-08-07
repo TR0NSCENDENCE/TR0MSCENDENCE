@@ -35,5 +35,8 @@ export default createStore({
 	actions: {
 	},
 	getters: {
+		isAuthenticated(state) {
+			return (state.isAuthenticated);
+		}
 	}
 });
