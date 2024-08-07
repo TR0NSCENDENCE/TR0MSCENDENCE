@@ -13,9 +13,9 @@ import { makeApiQuery } from '@utils'
  * }
  * ```
  */
-export function authentificate(username, password) {
+export async function authentificate(username, password) {
 	let result = undefined;
-	axios
+	let _ = await axios
 		.post(store.state.endpoints.obtainJWT, {
 			username: username,
 			password: password
