@@ -1,26 +1,46 @@
 <template>
 	<nav class="header">
-	<router-link to="/">
-		<TranscendenceLogo />
-	</router-link>
-	<div class="sub-header">
-		<router-link to="/login" class="signIn-link">
-			<h1 class="header-box signIn">login</h1>
+		<router-link to="/">
+			<TranscendenceLogo />
 		</router-link>
-		<h1 class="header-box title">{{ title }}</h1>
-	</div>
+		<div class="sub-header">
+			<div v-if="store.getters.isAuthenticated">
+				<h1
+					class="header-box signIn signIn-link"
+					@click="logout"
+					>
+					logout
+				</h1>
+			</div>
+			<router-link v-else
+				:to="'/login'" class="signIn-link"
+				>
+				<h1 class="header-box signIn"> login </h1>
+			</router-link>
+			<h1 class="header-box title">{{ title }}</h1>
+		</div>
 	</nav>
 </template>
 
 <script setup>
 import TranscendenceLogo from '@components/TranscendenceLogo.vue';
 import { ref, onMounted, onUnmounted } from 'vue'
+import store from '@store';
 
 let mutation_observer;
 const title = ref(0);
 
 function updateTitle() {
 	title.value = document.title
+}
+
+function logout() {
+	store.commit('removeToken');
+	store.commit('setAuthUser', {
+		authUser: undefined,
+		isAuthenticated: false
+    	}
+	);
 }
 
 onMounted(() => {
@@ -84,6 +104,12 @@ onUnmounted(() => {
 	cursor: pointer;
 }
 
+.signIn {
+	flex: 1 0 40%;
+	text-align: center;
+	margin-right: 1em;
+	letter-spacing: 0.1em;
+}
 
 .signIn::after {
 	content: "";
@@ -116,13 +142,6 @@ onUnmounted(() => {
 	animation: none;
 	text-shadow: none;
 	opacity: 1;
-}
-
-.signIn {
-	flex: 1 0 40%;
-	text-align: center;
-	margin-right: 1em;
-	letter-spacing: 0.1em;
 }
 
 .signIn:hover:before {

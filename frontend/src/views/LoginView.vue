@@ -3,24 +3,45 @@
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
 				<label for="login">login:</label>
-				<input type="text" id="login" v-model="login">
+				<input type="text" id="login" ref="username">
 			</div>
 			<div class="form-group">
 				<label for="password">password:</label>
-				<input type="password" id="password" v-model="password">
+				<input type="password" id="password" ref="password">
 			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'login'"/>
-				<GlowingButton class="small-button" :type="'submit'" :text="'register'"/>
+				<GlowingButton class="small-button" :text="'login'" @click="login"/>
+				<GlowingButton class="small-button" :text="'register'"/>
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
+		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
 
-
 <script setup>
-import GlowingButton from '@/components/GlowingButton.vue'
+import GlowingButton from '@/components/GlowingButton.vue';
+import { ref } from 'vue';
+import store from '@store';
+import router from '@router/index';
+
+const username = ref(null);
+const password = ref(null);
+const exists = ref(false);
+const payload = {
+ username: 'bite',
+ password: 'bitebite'
+};
+
+async function login() {
+	let response = await store.dispatch('authentificate', payload);
+	if (response === undefined)
+	{
+		router.push('/');
+		return ;
+	}
+	exists.value = true;
+}
 </script>
 
 <style scoped>
@@ -64,6 +85,7 @@ import GlowingButton from '@/components/GlowingButton.vue'
 	justify-content: space-between;
 	width: 100%;
 	margin-top: 2vh;
+	
 }
 
 .button-group .small-button {
@@ -74,7 +96,6 @@ import GlowingButton from '@/components/GlowingButton.vue'
 .button-group .small-button:last-child {
 	margin-right: 0;
 }
-
 
 form {
 	width: 50vh;
@@ -94,5 +115,13 @@ label {
 .go-back-button {
 	margin-top: 2vh;
 	width: 45.7vh;
+}
+
+p {
+	margin-top: 5vh;
+	letter-spacing: 0.2em;
+	font-size: larger;
+	font-weight: bolder;
+	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 </style>
