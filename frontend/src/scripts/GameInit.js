@@ -14,6 +14,7 @@ const FOV = 75;
 const ZNEAR = 0.1;
 const ZFAR = 1000;
 
+
 export class Game {
 	constructor(showCounter, config, renderer) {
 		const ASPECT_RATIO = window.innerWidth / window.innerHeight;
@@ -94,8 +95,10 @@ export class Game {
 
 		window.addEventListener('keydown', (event) => {
 			if (event.key !== ' ')
-				return;
-			this.isGamePaused() ? this.resumeGame() : this.pauseGame();
+				return ;
+			this.isGamePaused()
+				? this.resumeGame()
+				: this.pauseGame();
 		});
 
 		const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
