@@ -1,14 +1,55 @@
+import { makeApiQuery } from '@utils';
 import { createStore } from 'vuex'
 import axios from 'axios';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
 
+async function authentificate(context, {username, password}) {
+	let result = undefined;
+	let _ = await axios
+		.post(context.state.endpoints.obtainJWT, {
+			username: username,
+			password: password
+		})
+		.then((response) => {
+			context.commit('updateToken', response.data.access);
+			// Even though the authentication returned a user object that can be
+			// decoded, we fetch it again. This way we aren't super dependant on
+			// JWT and can plug in something else.
+			makeApiQuery(
+				'/me', 'get', {},
+				(response) => {
+					const payload = {
+						authUser: response.data.user.username,
+						isAuthenticated: true,
+					};
+					context.commit('setAuthUser', payload);
+				},
+				(error) => {
+					result = error;
+				}
+			);
+		}).catch((error) => {
+			result = error;
+		});
+	return (result);
+}
+
+function deauthentificate(context) {
+	const payload = {
+		authUser: undefined,
+		isAuthenticated: false,
+	}
+	context.commit('removeToken');
+	context.commit('setAuthUser', payload);
+}
+
 export default createStore({
 	state: {
-		authUser: {},
-		isAuthenticated: false,
-		jwt: localStorage.getItem("token"),
+		authUser: localStorage.getItem('authUser') ?? {},
+		isAuthenticated: localStorage.getItem('isAuthenticated') ?? false,
+		jwt: localStorage.getItem('token') ?? null,
 		endpoints: {
 			// TODO: Remove hardcoding of dev endpoints and use ENV
 			obtainJWT:  import.meta.env.VITE_API_BASE_URL + 'token/',
@@ -18,6 +59,8 @@ export default createStore({
 	},
 	mutations: {
 		setAuthUser(state, { authUser, isAuthenticated }) {
+			localStorage.setItem('authUser', authUser);
+			localStorage.setItem('isAuthenticated', isAuthenticated);
 			state.authUser = authUser;
 			state.isAuthenticated = isAuthenticated;
 		},
@@ -28,15 +71,20 @@ export default createStore({
 		},
 		removeToken(state) {
 			// TODO: For security purposes, take localStorage out of the project.
-			localStorage.removeItem("token");
+			localStorage.removeItem('token');
 			state.jwt = null;
 		},
 	},
 	actions: {
+		authentificate: authentificate,
+		deauthentificate: deauthentificate
 	},
 	getters: {
 		isAuthenticated(state) {
 			return (state.isAuthenticated);
+		},
+		authUser(state) {
+			return (state.authUser);
 		}
 	}
 });
