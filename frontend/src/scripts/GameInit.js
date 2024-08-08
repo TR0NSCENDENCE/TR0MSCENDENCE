@@ -26,17 +26,17 @@ export class Game {
 		this.camera = new THREE.PerspectiveCamera(FOV, ASPECT_RATIO, ZNEAR, ZFAR);
 		this.textureLoader = new THREE.TextureLoader();
 
-		this.sphTexture = this.textureLoader.load(utils.loadAsset('texture/cyberSphere.png'));
+		this.sphTexture = this.textureLoader.load('/ressources/texture/cyberSphere.png');
 		this.sphTexture.minFilter = THREE.LinearFilter;
 
-		this.padTexture = this.textureLoader.load(utils.loadAsset('texture/cyberPaddle.png'));
+		this.padTexture = this.textureLoader.load('/ressources/texture/cyberPaddle.png');
 		this.padTexture.minFilter = THREE.LinearFilter;
 
 		const dracoLoader = new DRACOLoader();
 		this.mapScene = new GLTFLoader();
 		this.mapScene.setDRACOLoader(dracoLoader);
 		this.mapScene.load(
-			utils.loadAsset('map_scene/tronStadium1.glb'),
+			'/ressources/map_scene/tronStadium1.glb',
 			(gltf) => {
 				this.scene.add(gltf.scene);
 				gltf.scene.scale.set(20, 20, 20);
@@ -101,7 +101,7 @@ export class Game {
 				: this.pauseGame();
 		});
 
-		const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
+		const backgroundTexture = this.textureLoader.load('/ressources/landscape/zizi.jpg');
 		const backgroundMaterial = new THREE.MeshBasicMaterial({ 
 			map: backgroundTexture,
 			opacity: 0.3,

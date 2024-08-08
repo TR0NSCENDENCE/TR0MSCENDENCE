@@ -7,7 +7,7 @@
 				<p>Email - {{ data.profile.email }}</p>
 			</div>
 			<div class="profile-photo">
-				<img class="photo" :src="utils.loadAsset(data.profile.profile_picture_path)"/>
+				<img class="photo" :src="data.profile.profile_picture_path"/>
 			</div>
 		</div>
 		<div class="profile-container">
@@ -45,7 +45,7 @@ const data = {
 		fullname: 'Simon Carpentier',
 		username: 'Auror',
 		email: 'scarpent@student.42lehavre.fr',
-		profile_picture_path: 'dev_pp/simon.webp' // TODO: Replace hard path by API call.
+		profile_picture_path: '/ressources/dev_pp/simon.webp' // TODO: Replace hard path by API call.
 	},
 	match_history: [
 		{

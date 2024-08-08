@@ -2,7 +2,7 @@
 	<div class="portrait-container">
 		<img
 			class="portrait"
-			v-bind:src="url"
+			v-bind:src="src"
 			v-bind:alt="alt"
 			/>
 		<p class="name"> {{ name }} </p>
@@ -12,10 +12,7 @@
 </template>
 
 <script setup>
-import utils from '@utils';
-
 const props = defineProps([ 'name', 'nickname', 'src', 'alt' ]);
-const url = utils.loadAsset(props.src);
 </script>
 
 <style scoped>
