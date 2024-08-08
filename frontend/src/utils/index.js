@@ -1,8 +1,6 @@
 import store from '@store';
 import axios from 'axios';
 
-const	ASSETS_ROOT = new URL('@assets/', import.meta.url) + '/';
-
 function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 	const REQUEST_CONFIG = method.toUpperCase() === 'POST'
 		? {
@@ -19,10 +17,6 @@ function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 	axios.create(defaults)(REQUEST_CONFIG)
 		.then(onSuccess)
 		.catch(onError);
-}
-
-export function loadAsset(asset) {
-	return (ASSETS_ROOT + asset);
 }
 
 export function makeAuthApiQuery(url, method, payload, onSuccess, onError) {
@@ -53,7 +47,6 @@ export function makeApiQuery(url, method, payload, onSuccess, onError) {
 }
 
 const utils = {
-	loadAsset,
 	makeAuthApiQuery,
 	makeApiQuery
 };

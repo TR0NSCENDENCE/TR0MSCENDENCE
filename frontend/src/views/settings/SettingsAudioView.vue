@@ -61,7 +61,7 @@ const slider = ref(null);
 const sliderShadow = ref(null);
 
 const playMusic = (track) => {
-	audioSrc.value = utils.loadAsset(`music/${track}.mp3`);
+	audioSrc.value = `/ressources/music/${track}.mp3`;
 	if (audioElement.value) {
 		audioElement.value.load();
 		audioElement.value.addEventListener('canplaythrough', () => {
