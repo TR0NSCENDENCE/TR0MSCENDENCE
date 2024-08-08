@@ -3,22 +3,22 @@
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
 				<label for="email">email:</label>
-				<input type="email" id="email" v-model="email">
+				<input type="email" id="email" ref="email">
 			</div>
 			<div class="form-group">
 				<label for="login">login:</label>
-				<input type="text" id="login" v-model="login">
+				<input type="text" id="login" ref="login">
 			</div>
 			<div class="form-group">
 				<label for="password">password:</label>
-				<input type="password" id="password" v-model="password">
+				<input type="password" id="password" ref="password">
 			</div>
 			<div class="form-group">
 				<label for="repassword">retype password:</label>
-				<input type="password" id="repassword" v-model="repassword">
+				<input type="password" id="repassword" ref="repassword">
 			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'register'"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register"/>
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
@@ -28,6 +28,33 @@
 
 <script setup>
 import GlowingButton from '@/components/GlowingButton.vue'
+import { ref } from 'vue';
+import utils from '@utils';
+import router from '@router/index';
+import store from '@store';
+
+const email = ref(null);
+const login = ref(null);
+const password = ref(null);
+const repassword = ref(null);
+
+// TODO: Do the error handling.
+async function register() {
+	if (password.value.value !== repassword.value.value)
+		return ;
+	const payload = {
+		email: email.value.value,
+		password: password.value.value,
+		username: login.value.value,
+	};
+	utils.makeApiQuery('/users/', 'post', payload,
+		async (result) => {
+			await store.dispatch('authentificate', payload);
+			router.push('/');
+		},
+		(error) => console.error('Could not create user.')
+	)
+}
 </script>
 
 <style scoped>
