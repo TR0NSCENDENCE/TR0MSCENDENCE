@@ -10,7 +10,7 @@
 				<input type="password" id="password" ref="password">
 			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'login'"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'login'" @click="login"/>
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
@@ -27,12 +27,12 @@ import router from '@router/index';
 const username = ref(null);
 const password = ref(null);
 const exists = ref(false);
-const payload = {
- username: 'bite',
- password: 'bitebite'
-};
 
 async function login() {
+	const payload = {
+		username: username.value.value,
+		password: password.value.value
+	};
 	let response = await store.dispatch('authentificate', payload);
 	if (response === undefined)
 	{
