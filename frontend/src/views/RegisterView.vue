@@ -2,6 +2,10 @@
 	<div id="register_page">
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
+				<label for="email">email:</label>
+				<input type="email" id="email" v-model="email">
+			</div>
+			<div class="form-group">
 				<label for="login">login:</label>
 				<input type="text" id="login" v-model="login">
 			</div>
@@ -9,8 +13,12 @@
 				<label for="password">password:</label>
 				<input type="password" id="password" v-model="password">
 			</div>
+			<div class="form-group">
+				<label for="repassword">retype password:</label>
+				<input type="password" id="repassword" v-model="repassword">
+			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'login'"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'register'"/>
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
@@ -39,7 +47,7 @@ import GlowingButton from '@/components/GlowingButton.vue'
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-#login, #password {
+.form-group > input {
 	width: 100%;
 	padding: 1vh;
 	background-color: black;

@@ -4,8 +4,11 @@
 		<TranscendenceLogo />
 	</router-link>
 	<div class="sub-header">
-		<router-link to="/login" class="signIn-link">
-			<h1 class="header-box signIn">login</h1>
+		<router-link to="/login" class="signInUp-link">
+			<h1 class="header-box signInUp">login</h1>
+		</router-link>
+		<router-link to="/register" class="signInUp-link">
+			<h1 class="header-box signInUp">register</h1>
 		</router-link>
 		<h1 class="header-box title">{{ title }}</h1>
 	</div>
@@ -79,13 +82,13 @@ onUnmounted(() => {
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-.signIn-link {
+.signInUp-link {
 	text-decoration: none;
 	cursor: pointer;
 }
 
 
-.signIn::after {
+.signInUp::after {
 	content: "";
 	position: absolute;
 	top: 0;
@@ -100,37 +103,37 @@ onUnmounted(() => {
 	transition: opacity 100ms linear;
 }
 
-.signIn:hover {
+.signInUp:hover {
 	color: rgba(0, 0, 0, 0.8);
 	text-shadow: none;
 	animation: none;
 }
 
-.signIn:hover .glowing-txt {
+.signInUp:hover .glowing-txt {
 	color: rgba(0, 0, 0, 0.8);
 	animation: none;
 }
 
-.signIn:hover .faulty-letter {
+.signInUp:hover .faulty-letter {
 	color: rgba(0, 0, 0, 0.8);
 	animation: none;
 	text-shadow: none;
 	opacity: 1;
 }
 
-.signIn {
+.signInUp {
 	flex: 1 0 40%;
 	text-align: center;
 	margin-right: 1em;
 	letter-spacing: 0.1em;
 }
 
-.signIn:hover:before {
+.signInUp:hover:before {
 	filter: blur(1.5em);
 	opacity: 1;
 }
 
-.signIn:hover:after {
+.signInUp:hover:after {
 	opacity: 1;
 }
 
