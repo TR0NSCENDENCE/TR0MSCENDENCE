@@ -21,6 +21,9 @@ import HeaderBar from '@components/HeaderBar.vue';
 <style>
 :root {
 	--glow-color: hsl(0, 100%, 59%);
+	--background-color: hsl(0, 100%, 7%);
+	--logo-filter: sepia(100%) saturate(1000%) hue-rotate(-35deg) contrast(180%) brightness(1.2);
+	--mesh-color: #ff0000;
 }
 
 @font-face {

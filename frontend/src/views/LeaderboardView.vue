@@ -45,25 +45,25 @@ table {
 	width: 100%;
 	overflow: hidden;
 	font-family: "SpaceTron", sans-serif;
-	-webkit-box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-		0px 0px 0.5em 0px hsl(0, 100%, 59%);
-	-moz-box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-		0px 0px 0.5em 0px hsl(0, 100%, 59%);
-	box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-		0px 0px 0.5em 0px hsl(0, 100%, 59%);
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
 }
 
 
 th,
 td {
-	background-color: rgba(104, 0, 0, 0.274);
+	background-color: var(--background-color);
 	padding: 10px;
-	-webkit-box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-	0px 0px 0.5em 0px hsl(0, 100%, 59%);
-	-moz-box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-	0px 0px 0.5em 0px hsl(0, 100%, 59%);
-	box-shadow: inset 0px 0px 0.5em 0px hsl(0, 100%, 59%),
-	0px 0px 0.5em 0px hsl(0, 100%, 59%);
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+	0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+	0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+	0px 0px 0.5em 0px var(--glow-color);
 }
 
 th {

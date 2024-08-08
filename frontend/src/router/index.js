@@ -17,7 +17,7 @@ import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 /* ************************************************************************** */
 import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
-import SettingsGeneralView from '@/views/settings/SettingsGeneralView.vue'
+import SettingsColorView from '@/views/settings/SettingsColorView.vue'
 import SettingsGraphicsView from '@/views/settings/SettingsGraphicsView.vue'
 import CreditsView from '@/views/settings/CreditsView.vue'
 /* ************************************************************************** */
@@ -125,10 +125,10 @@ const router = createRouter({
 		},
 		{
 			path: '/settings/settings_general',
-			name: 'SettingsGeneralView',
-			component: SettingsGeneralView,
+			name: 'SettingsColorView',
+			component: SettingsColorView,
 			meta: {
-				title: 'general - settings'
+				title: 'color - settings'
 			}
 		},
 		{

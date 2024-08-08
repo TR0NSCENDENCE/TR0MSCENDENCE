@@ -57,7 +57,7 @@ watch(() => props.active, (newValue, oldValue) => {
 
 .counter {
 	position: relative;
-	background-color: hsl(0, 100%, 59%);
+	background-color: var(--glow-color);
 	margin: 0 auto;
 	width: 40%;
 	height: 60%;

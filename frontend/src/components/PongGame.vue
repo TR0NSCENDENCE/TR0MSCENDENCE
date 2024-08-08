@@ -88,7 +88,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px;
-	color: hsl(0, 100%, 59%);
+	color: var(--glow-color);
 	height: 10vh;
 	font-family: 'SpaceTron', sans-serif;
 }
@@ -106,9 +106,9 @@ onUnmounted(() => {
 	padding: 10px;
 }
 
-.pong_game_container {
+/* .pong_game_container {
 	border: 2px solid red;
-}
+} */
 
 .pong_game_commands {
 	font-size: 0.5em;
