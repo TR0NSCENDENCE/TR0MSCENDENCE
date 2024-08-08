@@ -4,11 +4,18 @@ import axios from 'axios';
 const	ASSETS_ROOT = new URL('@assets/', import.meta.url) + '/';
 
 function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
-	const REQUEST_CONFIG = {
-		url: url,
-		method: method,
-		params: payload,
-	};
+	const REQUEST_CONFIG = method.toUpperCase() === 'POST'
+		? {
+			url: url,
+			method: method,
+			data: payload,
+		}
+		: {
+			url: url,
+			method: method,
+			params: payload,
+		};
+	console.log(payload);
 	axios.create(defaults)(REQUEST_CONFIG)
 		.then(onSuccess)
 		.catch(onError);
