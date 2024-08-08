@@ -150,7 +150,7 @@ const router = createRouter({
 			// juste pour les tests ca va changer -> component et non View
 			path: '/play/match_found',
 			name: 'MatchFound',
-			component : MatchFound,
+			component: MatchFound,
 			meta: {
 				title: 'match found'
 			}
@@ -159,7 +159,7 @@ const router = createRouter({
 			// juste pour les tests ca va changer -> component et non View
 			path: '/play/match_won',
 			name: 'MatchWon',
-			component : MatchWon,
+			component: MatchWon,
 			meta: {
 				title: 'match won'
 			}
