@@ -48,7 +48,7 @@ function deauthentificate(context) {
 export default createStore({
 	state: {
 		authUser: localStorage.getItem('authUser') ?? {},
-		isAuthenticated: localStorage.getItem('isAuthenticated') ?? false,
+		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),
 		jwt: localStorage.getItem('token') ?? null,
 		endpoints: {
 			obtainJWT:  import.meta.env.VITE_API_BASE_URL + 'token/',
@@ -59,7 +59,7 @@ export default createStore({
 	mutations: {
 		setAuthUser(state, { authUser, isAuthenticated }) {
 			localStorage.setItem('authUser', authUser);
-			localStorage.setItem('isAuthenticated', isAuthenticated);
+			localStorage.setItem('isAuthenticated', JSON.stringify(isAuthenticated));
 			state.authUser = authUser;
 			state.isAuthenticated = isAuthenticated;
 		},
