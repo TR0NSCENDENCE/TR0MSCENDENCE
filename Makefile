@@ -53,6 +53,6 @@ re: down run
 
 rebuild: down build run
 
-rebuild-nocache: down build run
+rebuild-nocache: down-volumes build-nocache run
 
 .PHONY: all run build build-nocache down down-volumes re rebuild rebuild-nocache
