@@ -1,8 +1,6 @@
 import store from '@store';
 import axios from 'axios';
 
-const	ASSETS_ROOT = new URL('@assets/', import.meta.url) + '/';
-
 function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 	const REQUEST_CONFIG = {
 		url: url,
@@ -15,7 +13,7 @@ function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 }
 
 export function loadAsset(asset) {
-	return (ASSETS_ROOT + asset);
+	return ('/assets/' + asset);
 }
 
 export function makeAuthApiQuery(url, method, payload, onSuccess, onError) {
