@@ -37,7 +37,7 @@ function updateTitle() {
 	title.value = document.title
 }
 
-function logout() {
+async function logout() {
 	store.dispatch('deauthentificate');
 	router.push('/');
 }
