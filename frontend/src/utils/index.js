@@ -12,13 +12,6 @@ function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 		.catch(onError);
 }
 
-<<<<<<< Updated upstream
-export function loadAsset(asset) {
-	return ('/assets/' + asset);
-}
-
-=======
->>>>>>> Stashed changes
 export function makeAuthApiQuery(url, method, payload, onSuccess, onError) {
 	const DEFAULTS = {
 		baseURL: store.state.endpoints.baseUrl,
