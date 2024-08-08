@@ -3,11 +3,22 @@ import axios from 'axios';
 
 const	ASSETS_ROOT = new URL('@assets/', import.meta.url) + '/';
 
+function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
+	const REQUEST_CONFIG = {
+		url: url,
+		method: method,
+		params: payload,
+	};
+	axios.create(defaults)(REQUEST_CONFIG)
+		.then(onSuccess)
+		.catch(onError);
+}
+
 export function loadAsset(asset) {
 	return (ASSETS_ROOT + asset);
 }
 
-export function makeApiQuery(url, method, payload, successCallback, errorCallback) {
+export function makeAuthApiQuery(url, method, payload, onSuccess, onError) {
 	const DEFAULTS = {
 		baseURL: store.state.endpoints.baseUrl,
 		headers: {
@@ -16,20 +27,27 @@ export function makeApiQuery(url, method, payload, successCallback, errorCallbac
 		},
 		xhrFields: {
 			withCredentials: true,
+		}
+	};
+	_makeApiQuery(DEFAULTS, url, method, payload, onSuccess, onError);
+}
+
+export function makeApiQuery(url, method, payload, onSuccess, onError) {
+	const DEFAULTS = {
+		baseURL: store.state.endpoints.baseUrl,
+		headers: {
+			'Content-Type': 'application/json',
 		},
+		xhrFields: {
+			withCredentials: false,
+		}
 	};
-	const REQUEST_CONFIG = {
-		url: url,
-		method: method,
-		params: payload,
-	};
-	axios.create(DEFAULTS)(REQUEST_CONFIG)
-		.then(successCallback)
-		.catch(errorCallback);
+	_makeApiQuery(DEFAULTS, url, method, payload, onSuccess, onError);
 }
 
 const utils = {
 	loadAsset,
+	makeAuthApiQuery,
 	makeApiQuery
 };
 

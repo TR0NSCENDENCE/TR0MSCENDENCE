@@ -1,4 +1,4 @@
-import { makeApiQuery } from '@utils';
+import { makeAuthApiQuery } from '@utils';
 import { createStore } from 'vuex'
 import axios from 'axios';
 
@@ -17,7 +17,7 @@ async function authentificate(context, {username, password}) {
 			// Even though the authentication returned a user object that can be
 			// decoded, we fetch it again. This way we aren't super dependant on
 			// JWT and can plug in something else.
-			makeApiQuery(
+			makeAuthApiQuery(
 				'/me', 'get', {},
 				(response) => {
 					const payload = {
@@ -51,7 +51,6 @@ export default createStore({
 		isAuthenticated: localStorage.getItem('isAuthenticated') ?? false,
 		jwt: localStorage.getItem('token') ?? null,
 		endpoints: {
-			// TODO: Remove hardcoding of dev endpoints and use ENV
 			obtainJWT:  import.meta.env.VITE_API_BASE_URL + 'token/',
 			refreshJWT: import.meta.env.VITE_API_BASE_URL + "refresh_token/",
 			baseUrl: import.meta.env.VITE_API_BASE_URL + "",
