@@ -14,6 +14,7 @@ import LeaderboardView from '@/views/LeaderboardView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
 /* ************************************************************************** */
 import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
 import SettingsGeneralView from '@/views/settings/SettingsGeneralView.vue'
@@ -48,6 +49,14 @@ const router = createRouter({
 			component: LoginView,
 			meta: {
 				title: 'login',
+			}
+		},
+		{
+			path: '/register',
+			name: 'RegisterView',
+			component: RegisterView,
+			meta: {
+				title: 'register',
 			}
 		},
 		{
@@ -147,18 +156,10 @@ const router = createRouter({
 			}
 		},
 		{
-			path: '/:pathMatch(.*)',
-			name: 'UnknownView',
-			component: UnknownView,
-			meta: {
-				title: 'unknown page'
-			}
-		},
-		{
 			// juste pour les tests ca va changer -> component et non View
 			path: '/play/match_found',
 			name: 'MatchFound',
-			component : MatchFound,
+			component: MatchFound,
 			meta: {
 				title: 'match found'
 			}
@@ -167,9 +168,17 @@ const router = createRouter({
 			// juste pour les tests ca va changer -> component et non View
 			path: '/play/match_won',
 			name: 'MatchWon',
-			component : MatchWon,
+			component: MatchWon,
 			meta: {
 				title: 'match won'
+			}
+		},
+		{
+			path: '/:pathMatch(.*)',
+			name: 'UnknownView',
+			component: UnknownView,
+			meta: {
+				title: 'unknown page'
 			}
 		},
 	]

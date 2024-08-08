@@ -2,44 +2,58 @@
 	<div id="register_page">
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
+				<label for="email">email:</label>
+				<input type="email" id="email" ref="email">
+			</div>
+			<div class="form-group">
 				<label for="login">login:</label>
-				<input type="text" id="login" ref="username">
+				<input type="text" id="login" ref="login">
 			</div>
 			<div class="form-group">
 				<label for="password">password:</label>
 				<input type="password" id="password" ref="password">
 			</div>
+			<div class="form-group">
+				<label for="repassword">retype password:</label>
+				<input type="password" id="repassword" ref="repassword">
+			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'login'"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register"/>
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
-		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
 
+
 <script setup>
-import GlowingButton from '@/components/GlowingButton.vue';
+import GlowingButton from '@/components/GlowingButton.vue'
 import { ref } from 'vue';
-import store from '@store';
+import utils from '@utils';
 import router from '@router/index';
+import store from '@store';
 
-const username = ref(null);
+const email = ref(null);
+const login = ref(null);
 const password = ref(null);
-const exists = ref(false);
-const payload = {
- username: 'bite',
- password: 'bitebite'
-};
+const repassword = ref(null);
 
-async function login() {
-	let response = await store.dispatch('authentificate', payload);
-	if (response === undefined)
-	{
-		router.push('/');
+// TODO: Do the error handling.
+async function register() {
+	if (password.value.value !== repassword.value.value)
 		return ;
-	}
-	exists.value = true;
+	const payload = {
+		email: email.value.value,
+		password: password.value.value,
+		username: login.value.value,
+	};
+	utils.makeApiQuery('/users/', 'post', payload,
+		async (result) => {
+			await store.dispatch('authentificate', payload);
+			router.push('/');
+		},
+		(error) => console.error('Could not create user.')
+	)
 }
 </script>
 
@@ -60,7 +74,7 @@ async function login() {
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-#login, #password {
+.form-group > input {
 	width: 100%;
 	padding: 1vh;
 	background-color: black;
@@ -84,7 +98,6 @@ async function login() {
 	justify-content: space-between;
 	width: 100%;
 	margin-top: 2vh;
-	
 }
 
 .button-group .small-button {
@@ -95,6 +108,7 @@ async function login() {
 .button-group .small-button:last-child {
 	margin-right: 0;
 }
+
 
 form {
 	width: 50vh;
@@ -114,13 +128,5 @@ label {
 .go-back-button {
 	margin-top: 2vh;
 	width: 45.7vh;
-}
-
-p {
-	margin-top: 5vh;
-	letter-spacing: 0.2em;
-	font-size: larger;
-	font-weight: bolder;
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 </style>
