@@ -1,29 +1,45 @@
 <template>
 	<nav class="header">
-	<router-link to="/">
-		<TranscendenceLogo />
-	</router-link>
-	<div class="sub-header">
-		<router-link to="/login" class="signInUp-link">
-			<h1 class="header-box signInUp">login</h1>
+		<router-link to="/">
+			<TranscendenceLogo />
 		</router-link>
-		<router-link to="/register" class="signInUp-link">
-			<h1 class="header-box signInUp">register</h1>
-		</router-link>
-		<h1 class="header-box title">{{ title }}</h1>
-	</div>
+		<div class="sub-header">
+			<div v-if="store.getters.isAuthenticated" @click="logout">
+				<h1
+					class="header-box signIn signIn-link"
+					>
+					logout
+				</h1>
+			</div>
+			<div v-else class="sub-header">
+				<router-link to="/login" class="signIn-link">
+					<h1 class="header-box signIn">login</h1>
+				</router-link>
+				<router-link to="/register" class="signIn-link">
+					<h1 class="header-box signIn">register</h1>
+				</router-link>
+			</div>
+			<h1 class="header-box title">{{ title }}</h1>
+		</div>
 	</nav>
 </template>
 
 <script setup>
 import TranscendenceLogo from '@components/TranscendenceLogo.vue';
 import { ref, onMounted, onUnmounted } from 'vue'
+import store from '@store';
+import router from '@router/index';
 
 let mutation_observer;
 const title = ref(0);
 
 function updateTitle() {
 	title.value = document.title
+}
+
+function logout() {
+	store.dispatch('deauthentificate');
+	router.push('/');
 }
 
 onMounted(() => {
@@ -82,13 +98,12 @@ onUnmounted(() => {
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-.signInUp-link {
+.signIn-link {
 	text-decoration: none;
 	cursor: pointer;
 }
 
-
-.signInUp::after {
+.signIn::after {
 	content: "";
 	position: absolute;
 	top: 0;
@@ -103,37 +118,37 @@ onUnmounted(() => {
 	transition: opacity 100ms linear;
 }
 
-.signInUp:hover {
+.signIn:hover {
 	color: rgba(0, 0, 0, 0.8);
 	text-shadow: none;
 	animation: none;
 }
 
-.signInUp:hover .glowing-txt {
+.signIn:hover .glowing-txt {
 	color: rgba(0, 0, 0, 0.8);
 	animation: none;
 }
 
-.signInUp:hover .faulty-letter {
+.signIn:hover .faulty-letter {
 	color: rgba(0, 0, 0, 0.8);
 	animation: none;
 	text-shadow: none;
 	opacity: 1;
 }
 
-.signInUp {
+.signIn {
 	flex: 1 0 40%;
 	text-align: center;
 	margin-right: 1em;
 	letter-spacing: 0.1em;
 }
 
-.signInUp:hover:before {
+.signIn:hover:before {
 	filter: blur(1.5em);
 	opacity: 1;
 }
 
-.signInUp:hover:after {
+.signIn:hover:after {
 	opacity: 1;
 }
 
