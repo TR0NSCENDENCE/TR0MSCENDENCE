@@ -147,14 +147,6 @@ const router = createRouter({
 			}
 		},
 		{
-			path: '/:pathMatch(.*)',
-			name: 'UnknownView',
-			component: UnknownView,
-			meta: {
-				title: 'unknown page'
-			}
-		},
-		{
 			// juste pour les tests ca va changer -> component et non View
 			path: '/play/match_found',
 			name: 'MatchFound',
@@ -170,6 +162,14 @@ const router = createRouter({
 			component : MatchWon,
 			meta: {
 				title: 'match won'
+			}
+		},
+		{
+			path: '/:pathMatch(.*)',
+			name: 'UnknownView',
+			component: UnknownView,
+			meta: {
+				title: 'unknown page'
 			}
 		},
 	]
