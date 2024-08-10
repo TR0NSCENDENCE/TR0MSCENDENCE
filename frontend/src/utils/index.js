@@ -13,7 +13,6 @@ function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 			method: method,
 			params: payload,
 		};
-	console.log(payload);
 	axios.create(defaults)(REQUEST_CONFIG)
 		.then(onSuccess)
 		.catch(onError);
