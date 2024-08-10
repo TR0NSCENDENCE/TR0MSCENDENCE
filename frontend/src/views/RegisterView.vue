@@ -2,19 +2,31 @@
 	<div id="register_page">
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
-				<label for="email">email:</label>
+				<div class="label-error-group">
+					<label for="email">email:</label>
+					<p class="error-detail">{{ error_txt.email }}</p>
+				</div>
 				<input type="email" id="email" ref="email">
 			</div>
 			<div class="form-group">
-				<label for="login">login:</label>
-				<input type="text" id="login" ref="login">
+				<div class="label-error-group">
+					<label for="username">login:</label>
+					<p class="error-detail">{{ error_txt.username }}</p>
+				</div>
+				<input type="text" id="username" ref="username">
 			</div>
 			<div class="form-group">
-				<label for="password">password:</label>
+				<div class="label-error-group">
+					<label for="password">password:</label>
+					<p class="error-detail">{{ error_txt.password }}</p>
+				</div>
 				<input type="password" id="password" ref="password">
 			</div>
 			<div class="form-group">
-				<label for="repassword">retype password:</label>
+				<div class="label-error-group">
+					<label for="repassword">retype password:</label>
+					<p class="error-detail">{{ error_txt.repassword }}</p>
+				</div>
 				<input type="password" id="repassword" ref="repassword">
 			</div>
 			<div class="button-group">
@@ -22,9 +34,9 @@
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
+		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
-
 
 <script setup>
 import GlowingButton from '@/components/GlowingButton.vue'
@@ -34,25 +46,40 @@ import router from '@router/index';
 import store from '@store';
 
 const email = ref(null);
-const login = ref(null);
+const username = ref(null);
 const password = ref(null);
 const repassword = ref(null);
 
+const error_txt = {
+	email: ref(''),
+	username: ref(''),
+	password: ref(''),
+	repassword: ref(''),
+};
+
 // TODO: Do the error handling.
 async function register() {
-	if (password.value.value !== repassword.value.value)
-		return ;
 	const payload = {
 		email: email.value.value,
+		username: username.value.value,
 		password: password.value.value,
-		username: login.value.value,
+		repassword: repassword.value.value,
 	};
-	utils.makeApiQuery('/users/', 'post', payload,
+	utils.makeApiQuery('/register/', 'post', payload,
 		async (result) => {
 			await store.dispatch('authentificate', payload);
 			router.push('/');
 		},
-		(error) => console.error('Could not create user.')
+		(error) => {
+			if (error.response) {
+				for (var prop in error_txt) {
+					error_txt[prop].value = ''
+				}
+				for (var prop in error.response.data) {
+					error_txt[prop].value = error.response.data[prop][0];
+				}
+			}
+		}
 	)
 }
 </script>
@@ -72,6 +99,12 @@ async function register() {
 	margin-bottom: 2vh;
 	width: 100%;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.label-error-group {
+	display: flex;
+	flex-direction: row;
+	width: fit-content;
 }
 
 .form-group > input {
@@ -114,9 +147,13 @@ form {
 	width: 50vh;
 }
 
-label {
+.error-detail {
+	font-size: x-small;
+}
+
+label, .error-detail {
 	display: block;
-	margin-bottom: 0.5vh;
+	margin: 0.5vh;
 }
 
 .small-button {

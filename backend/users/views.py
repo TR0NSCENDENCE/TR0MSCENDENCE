@@ -1,28 +1,29 @@
 from django.shortcuts import render
-from rest_framework import permissions, mixins, viewsets, generics, response, request, views
-from .serializers import UserCredSerializer, UserSerializer, UserProfileSerializer
+from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status
+from .serializers import *
 from .models import User, UserProfile
 from .permissions import IsOwnerOrReadOnly
 
-class UserViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   viewsets.GenericViewSet):
-    queryset = User.objects.all()
+class UserRegistrationView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+    serializer_class = UserRegistrationSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class UserProfileView(generics.RetrieveAPIView,
+                    generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    permission_classes = [IsOwnerOrReadOnly]
+    lookup_field = 'user__pk'
 
     def get_serializer_class(self):
-        if self.action in ["create", "update"]:
-            return UserCredSerializer
-        return UserSerializer
-
-    permission_classes = [permissions.IsAuthenticated|IsOwnerOrReadOnly]
-
-class UserProfileRetrieveView(generics.RetrieveUpdateAPIView,
-                   viewsets.GenericViewSet):
-    queryset = UserProfile.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAuthenticated|IsOwnerOrReadOnly]
-    lookup_field = 'user__pk'
+        if self.request.method in ['PUT', 'PATCH']:
+            return UserProfileUpdateSerializer
+        return UserProfileSerializer
 
 class MyUserProfileView(views.APIView):
     def get(self, request, format=None):

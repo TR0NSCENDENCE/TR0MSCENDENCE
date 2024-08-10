@@ -2,8 +2,8 @@
 	<div id="register_page">
 		<form @submit.prevent="submitForm">
 			<div class="form-group">
-				<label for="login">login:</label>
-				<input type="text" id="login" ref="username">
+				<label for="username">login:</label>
+				<input type="text" id="username" ref="username">
 			</div>
 			<div class="form-group">
 				<label for="password">password:</label>
@@ -60,7 +60,7 @@ async function login() {
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-#login, #password {
+#username, #password {
 	width: 100%;
 	padding: 1vh;
 	background-color: black;
