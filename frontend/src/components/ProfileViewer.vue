@@ -3,8 +3,8 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - {{ data.user.username }}</p>
-				<p>Email - {{ data.user.email }}</p>
+				<p>Name - <span class="username">{{ data.user.username }}</span></p>
+				<p>Email - <span class="email">{{ data.user.email }}</span></p>
 			</div>
 		</div>
 		<div class="profile-container">
@@ -29,7 +29,7 @@
 </template>
 
 <script setup>
-const props = defineProps([ 'data' ]);
+const props = defineProps(['data']);
 const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
 </script>
 
@@ -49,6 +49,10 @@ h1 {
 	letter-spacing: 0.3em;
 	font-size: 5vh;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.username, .email {
+	font-family: 'Orbitron';
 }
 
 .profile-container {

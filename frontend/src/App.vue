@@ -31,6 +31,11 @@ import HeaderBar from '@components/HeaderBar.vue';
 	src: url('/fonts/spacetron-51nwz.otf') format('opentype');
 }
 
+@font-face {
+	font-family: 'Orbitron';
+	src: url('/fonts/Orbitron-VariableFont_wght.ttf') format('truetype');
+}
+
 #header {
 	display: flex;
 	align-items: center;
