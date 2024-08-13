@@ -124,7 +124,7 @@ const router = createRouter({
 			}
 		},
 		{
-			path: '/settings/settings_general',
+			path: '/settings/settings_color',
 			name: 'SettingsColorView',
 			component: SettingsColorView,
 			meta: {
