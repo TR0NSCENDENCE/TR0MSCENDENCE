@@ -33,7 +33,7 @@ class ColorMaterial extends MeshStandardMaterial {
 		this.setValues(p);
 		this.color = new THREE.Color(0x000000);
 		this.emissive = new THREE.Color(color);
-		this.emissiveIntensity = 20.0;
+		this.emissiveIntensity = 2;
 	}
 
 	copy(source) {
@@ -64,7 +64,7 @@ export class Game {
 		this.mapScene = new GLTFLoader();
 		this.mapScene.setDRACOLoader(dracoLoader);
 		this.mapScene.load(
-			utils.loadAsset('map_scene/tronStadium1.glb'),
+			utils.loadAsset('map_scene/TronStadiumUltimo.glb'),
 			(gltf) => {
 				gltf.scene.traverse((o) => { if (o.isMesh) { o.material = new ColorMaterial(o.material, hexColor); console.log(o.material) } });
 				this.scene.add(gltf.scene);
