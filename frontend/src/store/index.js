@@ -1,6 +1,7 @@
 import { makeAuthApiQuery } from '@utils';
 import { createStore } from 'vuex'
 import axios from 'axios';
+import audio from './modules/audio';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -46,6 +47,9 @@ function deauthentificate(context) {
 }
 
 export default createStore({
+	modules: {
+		audio,
+	},
 	state: {
 		authUser: localStorage.getItem('authUser') ?? {},
 		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),

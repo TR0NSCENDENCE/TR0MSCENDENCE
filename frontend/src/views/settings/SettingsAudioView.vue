@@ -1,8 +1,8 @@
 <template>
 	<div class="audio-menu">
 		<div class="music-options">
-			<GlowingButton @click="playMusic('Kavinsky-Nightcall')" :text="'Night Call'"/>
-			<GlowingButton @click="playMusic('Hamakua-Kisses')" :text="'Hamakua Kisses'"/>
+			<GlowingButton @click="playMusic('/ressources/music/Kavinsky-Nightcall.mp3')" :text="'Night Call'"/>
+			<GlowingButton @click="playMusic('/ressources/music/Hamakua-Kisses.mp3')" :text="'Hamakua Kisses'"/>
 		</div>
 		<div class="volume-button-knob" ref="volumeButtonKnob">
 			<svg viewBox="0 0 600 600">
@@ -41,33 +41,29 @@
 			</svg>
 		</div>
 		<div class="music-options">
-			<GlowingButton @click="playMusic('Rider')" :text="'Rider'"/>
+			<GlowingButton @click="playMusic('/ressources/music/Rider.mp3')" :text="'Rider'"/>
 			<GlowingButton :text="'Louis'"/>
 		</div>
-		<audio ref="audioElement" :src="audioSrc"></audio>
 	</div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import GlowingButton from '@/components/GlowingButton.vue';
-import utils from '@/utils';
+import store from '@store';
 
-const audioSrc = ref('');
-const audioElement = ref(null);
 const volumeButtonKnob = ref(null);
 const gradateGroup = ref(null);
 const slider = ref(null);
 const sliderShadow = ref(null);
 
 const playMusic = (track) => {
-	audioSrc.value = `/ressources/music/${track}.mp3`;
-	if (audioElement.value) {
-		audioElement.value.load();
-		audioElement.value.addEventListener('canplaythrough', () => {
-			audioElement.value.play();
-		}, { once: true });
-	}
+	store.dispatch('audio/playMusic', track);
+};
+
+const updateVolume = (deg) => {
+	const normalizedVolume = (deg + DEG_RANGE) / (2 * DEG_RANGE);
+	store.dispatch('audio/setVolume', normalizedVolume);
 };
 
 const startDrag = (e) => {
@@ -103,13 +99,6 @@ const updateSlider = (clientX, clientY) => {
 
 	setValue(value);
 	updateVolume(value);
-};
-
-const updateVolume = (deg) => {
-	if (audioElement.value) {
-		const normalizedVolume = (deg + DEG_RANGE) / (2 * DEG_RANGE);
-		audioElement.value.volume = normalizedVolume;
-	}
 };
 
 const STEP = 32;
@@ -184,7 +173,7 @@ function createGradientLines() {
 		const x2 = 300 + (radius + 30) * Math.cos((angle * Math.PI) / 180);
 		const y2 = 300 + (radius + 30) * Math.sin((angle * Math.PI) / 180);
 
-		const hue = (i * (360 / numLines)) % 360; // Hue based on index
+		const hue = (i * (360 / numLines)) % 360;
 		const saturation = '100%';
 		const lightness = '50%';
 
