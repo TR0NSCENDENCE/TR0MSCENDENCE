@@ -173,8 +173,8 @@ function setValue(v) {
 }
 
 function createGradientLines() {
-	const numLines = 36; // Number of lines
-	const radius = 220; // Radius of the lines
+	const numLines = 36;
+	const radius = 220;
 	let lines = '';
 
 	for (let i = 0; i < numLines; i++) {
@@ -300,7 +300,6 @@ function touchHandler(e) {
 	}
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
 	.audio-menu {
 		flex-direction: column;
