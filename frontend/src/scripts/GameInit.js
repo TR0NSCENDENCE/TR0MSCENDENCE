@@ -7,6 +7,15 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { KEYBOARD } from '@scripts/KeyboardManager.js';
 import utils from '@utils';
+import { Material } from 'three';
+import { MeshStandardMaterial } from 'three';
+import { MeshBasicMaterial } from 'three';
+import { MeshLambertMaterial } from 'three';
+
+function getCssVariableValue(varColor) {
+	const color_style = getComputedStyle(document.documentElement);
+	return color_style.getPropertyValue(varColor).trim();
+}
 
 const VELOCITY = 0.4;
 const MAX_ANGLE = 45;
@@ -15,8 +24,27 @@ const ZNEAR = 0.1;
 const ZFAR = 1000;
 
 
+
+class ColorMaterial extends MeshStandardMaterial {
+	constructor (p, color) {
+		super();
+		this.isColorMaterial = true;
+		this.type = 'ColorMaterial';
+		this.setValues(p);
+		this.color = new THREE.Color(0x000000);
+		this.emissive = new THREE.Color(color);
+		this.emissiveIntensity = 2;
+	}
+
+	copy(source) {
+		super.copy(source);
+		return (this);
+	}
+}
+
 export class Game {
 	constructor(showCounter, config, renderer) {
+		const hexColor = getCssVariableValue('--mesh-color');
 		const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 		this.config = config;
 		this.score1 = 0;
@@ -36,8 +64,9 @@ export class Game {
 		this.mapScene = new GLTFLoader();
 		this.mapScene.setDRACOLoader(dracoLoader);
 		this.mapScene.load(
-			'/ressources/map_scene/tronStadium1.glb',
+			'/ressources/map_scene/TronStadiumUltimo.glb',
 			(gltf) => {
+				gltf.scene.traverse(o => { if (o.isMesh) o.material = new ColorMaterial(o.material, hexColor) });
 				this.scene.add(gltf.scene);
 				gltf.scene.scale.set(20, 20, 20);
 			},
@@ -49,8 +78,8 @@ export class Game {
 
 		const geometry = new THREE.BoxGeometry(1.6, 1, 7);
 		const neonMaterial = new THREE.MeshStandardMaterial({
-			color: 0xff0000,
-			emissive: 0xff0000,
+			color: new THREE.Color(hexColor),
+			emissive: new THREE.Color(hexColor),
 			emissiveIntensity: 2,
 			metalness: 2,
 			roughness: 0.1
@@ -101,18 +130,20 @@ export class Game {
 				: this.pauseGame();
 		});
 
-		const backgroundTexture = this.textureLoader.load('/ressources/landscape/zizi.jpg');
-		const backgroundMaterial = new THREE.MeshBasicMaterial({ 
-			map: backgroundTexture,
-			opacity: 0.3,
-			transparent: true, 
-		});
-		const backgroundGeometry = new THREE.PlaneGeometry(750, 333);
-		const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+		
+		// const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
+		// const backgroundMaterial = new MeshStandardMaterial({ 
+		// 	map: backgroundTexture,
+		// 	color: new THREE.Color(0x000000),
+		// 	emissive: new THREE.Color(0xff0000), //new THREE.Color(getCssVariableValue('--mesh-color')),
+		// 	emissiveIntensity: 1.0
+		// });
+		// const backgroundGeometry = new THREE.PlaneGeometry(750, 333);
+		// const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
 
-		backgroundMesh.position.x = -200;
-		backgroundMesh.rotation.y = Math.PI / 2;
-		this.scene.add(backgroundMesh);
+		// backgroundMesh.position.x = -200;
+		// backgroundMesh.rotation.y = Math.PI / 2;
+		// this.scene.add(backgroundMesh);
 
 		// Post-processing for neon effect
 		this.composer = new EffectComposer(renderer);

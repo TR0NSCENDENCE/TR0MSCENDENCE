@@ -1,31 +1,31 @@
 <template>
 	<div class="bracket">
-	  <!-- Colonne de gauche pour les demi-finales -->
-	  <div class="matches-left">
-		<div class="match">
-		  <div class="team"> {{ player1_name }} </div>
-		  <span class="vs">VS</span>
-		  <div class="team">{{ player2_name }}</div>
+		<!-- Colonne de gauche pour les demi-finales -->
+		<div class="matches-left">
+			<div class="match">
+				<div class="team"> {{ player1_name }} </div>
+				<span class="vs">VS</span>
+				<div class="team">{{ player2_name }}</div>
+			</div>
+			<div class="match">
+				<div class="team">{{ player3_name }}</div>
+				<span class="vs">VS</span>
+				<div class="team">{{ player4_name }}</div>
+			</div>
 		</div>
-		<div class="match">
-		  <div class="team">{{ player3_name }}</div>
-		  <span class="vs">VS</span>
-		  <div class="team">{{ player4_name }}</div>
+		<!-- Section pour la finale et le gagnant -->
+		<div class="final-and-winner">
+			<div class="final">
+				<div class="match">
+					<div class="team">Winner Match 1</div>
+					<span class="vs">VS</span>
+					<div class="team">Winner Match 2</div>
+				</div>
+			</div>
+			<div class="winner">
+				<div class="team">Tournament Winner</div>
+			</div>
 		</div>
-	  </div>
-	  <!-- Section pour la finale et le gagnant -->
-	  <div class="final-and-winner">
-		<div class="final">
-		  <div class="match">
-			<div class="team">Winner Match 1</div>
-			<span class="vs">VS</span>
-			<div class="team">Winner Match 2</div>
-		  </div>
-		</div>
-		<div class="winner">
-		  <div class="team">Tournament Winner</div>
-		</div>
-	  </div>
 	</div>
 </template>
 
@@ -50,20 +50,23 @@ const matches = [
 .bracket {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 2vh; /* Espacement global entre les colonnes */
+	gap: 2vh;
+	/* Espacement global entre les colonnes */
 	align-items: center;
 	justify-content: center;
 	color: var(--glow-color);
 	--size-factor: (0.00188323 * 70vw);
 	font-size: calc(8 * var(--size-factor));
 	transform: translateY(10vh) translateX(-6.1vw);
-	position: relative; /* Nécessaire pour les lignes absolues */
+	position: relative;
+	/* Nécessaire pour les lignes absolues */
 }
 
 .matches-left {
 	display: flex;
 	flex-direction: column;
-	gap: 10vh; /* Réduit l'espacement entre les demi-finales */
+	gap: 10vh;
+	/* Réduit l'espacement entre les demi-finales */
 	position: relative;
 }
 
@@ -77,7 +80,8 @@ const matches = [
 .final-and-winner {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 10vh; /* Réduit l'espacement entre la finale et le gagnant */
+	gap: 10vh;
+	/* Réduit l'espacement entre la finale et le gagnant */
 	position: relative;
 }
 
@@ -105,15 +109,17 @@ const matches = [
 	text-align: center;
 	box-sizing: border-box;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	  0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	  0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	  0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 	animation: border-flicker 7s linear infinite;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-	white-space: nowrap; /* Évite les retours à la ligne */
-	overflow: hidden;    /* Cache le texte qui dépasse */
+	white-space: nowrap;
+	/* Évite les retours à la ligne */
+	overflow: hidden;
+	/* Cache le texte qui dépasse */
 	text-overflow: ellipsis;
 }
 

@@ -14,11 +14,8 @@
 			</h1>
 		</div>
 		<div>
-			<Counter321
-				:active="counter_is_active"
-				@finished="() => game.resumeGame()"
-				@toggle="(value) => counter_is_active = value"
-				/>
+			<Counter321 :active="counter_is_active" @finished="() => game.resumeGame()"
+				@toggle="(value) => counter_is_active = value" />
 			<div class="pong_game_container" ref="pong_game_container"></div>
 		</div>
 	</div>
@@ -30,7 +27,7 @@ import * as THREE from 'three';
 import { Game } from '@scripts/GameInit.js';
 import Counter321 from '@components/Counter321.vue';
 
-const props = defineProps([ 'config' ])
+const props = defineProps(['config'])
 
 const counter_is_active = ref(false);
 
@@ -88,7 +85,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px;
-	color: hsl(0, 100%, 59%);
+	color: var(--glow-color);
 	height: 10vh;
 	font-family: 'SpaceTron', sans-serif;
 }
@@ -106,9 +103,9 @@ onUnmounted(() => {
 	padding: 10px;
 }
 
-.pong_game_container {
+/* .pong_game_container {
 	border: 2px solid red;
-}
+} */
 
 .pong_game_commands {
 	font-size: 0.5em;
