@@ -26,7 +26,7 @@ const ZFAR = 1000;
 
 
 class ColorMaterial extends MeshStandardMaterial {
-	constructor (p, color) {
+	constructor(p, color) {
 		super();
 		this.isColorMaterial = true;
 		this.type = 'ColorMaterial';
@@ -43,7 +43,9 @@ class ColorMaterial extends MeshStandardMaterial {
 }
 
 export class Game {
-	constructor(showCounter, config, renderer) {
+	constructor(showCounter, onPause, onResumed, config, renderer) {
+		this.onPause = onPause;
+		this.onResumed = onResumed;
 		const hexColor = getCssVariableValue('--mesh-color');
 		const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 		this.config = config;
@@ -124,26 +126,9 @@ export class Game {
 
 		window.addEventListener('keydown', (event) => {
 			if (event.key !== ' ')
-				return ;
-			this.isGamePaused()
-				? this.resumeGame()
-				: this.pauseGame();
+				return;
+			this.isGamePaused() ? this.resumeGame() : this.pauseGame();
 		});
-
-		
-		// const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
-		// const backgroundMaterial = new MeshStandardMaterial({ 
-		// 	map: backgroundTexture,
-		// 	color: new THREE.Color(0x000000),
-		// 	emissive: new THREE.Color(0xff0000), //new THREE.Color(getCssVariableValue('--mesh-color')),
-		// 	emissiveIntensity: 1.0
-		// });
-		// const backgroundGeometry = new THREE.PlaneGeometry(750, 333);
-		// const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-
-		// backgroundMesh.position.x = -200;
-		// backgroundMesh.rotation.y = Math.PI / 2;
-		// this.scene.add(backgroundMesh);
 
 		// Post-processing for neon effect
 		this.composer = new EffectComposer(renderer);
@@ -175,10 +160,14 @@ export class Game {
 
 	pauseGame() {
 		this.paused = true;
+		if (this.onPause)
+			this.onPause();
 	}
-		
+
 	resumeGame() {
 		this.paused = false;
+		if (this.onResumed)
+			this.onResumed();
 	}
 
 	isGamePaused() {
@@ -231,7 +220,7 @@ export class Game {
 	}
 
 	countdown() {
-		this.pauseGame();
+		this.paused = true;
 		this.showCounter.value = true;
 	}
 
@@ -267,13 +256,13 @@ export class Game {
 		if (this.sphere.position.z <= -18 || this.sphere.position.z >= 18) {
 			this.ballSpeed.z = -this.ballSpeed.z;
 		}
-	
-		if (this.sphere.position.x <= -36) { 
+
+		if (this.sphere.position.x <= -36) {
 			this.resetBall();
 			this.score2++;
 		}
-	
-		if (this.sphere.position.x >= 36) { 
+
+		if (this.sphere.position.x >= 36) {
 			this.resetBall();
 			this.score1++;
 		}

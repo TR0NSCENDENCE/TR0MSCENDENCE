@@ -12,6 +12,7 @@ import PlayView from '@/views/PlayView.vue'
 import MiniGameView from '@/views/MiniGameView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import OtherProfileView from '@/views/OtherProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
@@ -153,6 +154,14 @@ const router = createRouter({
 			component: CreditsView,
 			meta: {
 				title: 'credit$'
+			}
+		},
+		{
+			path: '/player_profile',
+			name: 'OtherProfileView',
+			component: OtherProfileView,
+			meta: {
+				title: 'player profile'
 			}
 		},
 		{

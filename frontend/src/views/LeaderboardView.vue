@@ -12,7 +12,11 @@
 			<tbody>
 				<tr v-for="(player, index) in players" :key="player.id">
 					<td>#{{ index + 1 }}</td>
-					<td>{{ player.name }}</td>
+					<td>
+						<router-link :to="{ name: 'OtherProfileView' }" class="link">
+							{{ player.name }}
+						</router-link>
+					</td>
 					<td>{{ player.winrate }}%</td>
 					<td>{{ player.score }} elo</td>
 				</tr>
@@ -26,6 +30,27 @@ const players = [
 	{ id: 1, name: 'Alice', winrate: 92, score: 1500 },
 	{ id: 2, name: 'Bob', winrate: 86, score: 1400 },
 	{ id: 3, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 4, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 5, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 6, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 7, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 8, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 9, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 10, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 11, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 12, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 13, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 14, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 15, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 16, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 17, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 18, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 19, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 20, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 21, name: 'Charlie', winrate: 75, score: 1300 },
+	{ id: 22, name: 'Alice', winrate: 92, score: 1500 },
+	{ id: 23, name: 'Bob', winrate: 86, score: 1400 },
+	{ id: 24, name: 'Charlie', winrate: 75, score: 1300 },
 	// Exemple naze pour l'instant ici mais va falloir afficher l'entierete du tableau avec iterateur ou variable
 ];
 </script>
@@ -38,6 +63,17 @@ const players = [
 	font-family: "SpaceTron", sans-serif;
 	--size-factor: (0.00188323 * 70vw);
 	font-size: calc(12 * var(--size-factor));
+}
+
+.link {
+	text-decoration: none;
+	color: var(--glow-color);
+}
+
+.link:hover {
+	opacity: 50%;
+	text-shadow: none;
+	animation: none;
 }
 
 table {
@@ -59,11 +95,11 @@ td {
 	background-color: var(--background-color);
 	padding: 10px;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
-	0px 0px 0.5em 0px var(--glow-color);
+		0px 0px 0.5em 0px var(--glow-color);
 }
 
 th {

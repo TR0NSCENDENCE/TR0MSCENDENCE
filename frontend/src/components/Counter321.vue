@@ -1,10 +1,6 @@
 <template>
 	<div class="counter_container">
-		<div
-			ref="counter"
-			class="counter"
-			:class="{ 'counter_active': isActive }"
-		></div>
+		<div ref="counter" class="counter" :class="{ 'counter_active': isActive }"></div>
 	</div>
 </template>
 
@@ -18,7 +14,7 @@ const props = defineProps({
 
 const isActive = ref(props.active);
 
-const emits = defineEmits([ 'toggle', 'finished' ])
+const emits = defineEmits(['toggle', 'finished'])
 
 function setIsActive(value) {
 	emits('toggle', value);
@@ -28,11 +24,11 @@ const counter = ref(null);
 
 watch(() => props.active, (newValue, oldValue) => {
 	if (newValue == oldValue)
-		return ;
+		return;
 	if (oldValue) {
 		isActive.value = false;
 		setIsActive(false);
-		return ;
+		return;
 	}
 	isActive.value = true;
 	setTimeout(
