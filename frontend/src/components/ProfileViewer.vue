@@ -3,8 +3,8 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - {{ data.username }}</p>
-				<p>Email - {{ data.email }}</p>
+				<p>Name - <span class="username">{{ data.username }}</span></p>
+				<p>Email - <span class="email">{{ data.email }}</span></p>
 			</div>
 		</div>
 		<div class="profile-container">
@@ -49,6 +49,10 @@ h1 {
 	letter-spacing: 0.3em;
 	font-size: 5vh;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.username, .email {
+	font-family: 'Orbitron';
 }
 
 .profile-container {
