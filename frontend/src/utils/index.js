@@ -18,6 +18,16 @@ function _makeApiQuery(defaults, url, method, payload, onSuccess, onError) {
 		.catch(onError);
 }
 
+export function connectToWebsocket(url, onSuccess, onError) {
+	makeAuthApiQuery('token/ws/', 'GET', null,
+		(result) => {
+			const uuid = result.data.uuid;
+			onSuccess(new WebSocket(store.state.endpoints.baseUrl + url + '?uuid=' + uuid));
+		},
+		onError
+	)
+}
+
 export function makeAuthApiQuery(url, method, payload, onSuccess, onError) {
 	const DEFAULTS = {
 		baseURL: store.state.endpoints.baseUrl,
@@ -47,7 +57,8 @@ export function makeApiQuery(url, method, payload, onSuccess, onError) {
 
 const utils = {
 	makeAuthApiQuery,
-	makeApiQuery
+	makeApiQuery,
+	connectToWebsocket
 };
 
 export default utils;

@@ -3,7 +3,7 @@
 </template>
 
 <script setup>
-import ButtonList from '@components/ButtonList.vue'
+import ButtonList from '@components/ButtonList.vue';
 
 const buttons = [
 	{ text: 'play', dest: 'play' },

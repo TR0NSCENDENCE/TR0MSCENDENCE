@@ -18,10 +18,10 @@ async function authentificate(context, {username, password}) {
 			// decoded, we fetch it again. This way we aren't super dependant on
 			// JWT and can plug in something else.
 			makeAuthApiQuery(
-				'/me', 'get', {},
+				'/me/', 'get', {},
 				(response) => {
 					const payload = {
-						authUser: response.data.user.username,
+						authUser: response.data.username,
 						isAuthenticated: true,
 					};
 					context.commit('setAuthUser', payload);
@@ -51,9 +51,9 @@ export default createStore({
 		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),
 		jwt: localStorage.getItem('token') ?? null,
 		endpoints: {
-			obtainJWT:  import.meta.env.VITE_API_BASE_URL + 'token/',
-			refreshJWT: import.meta.env.VITE_API_BASE_URL + "refresh_token/",
-			baseUrl: import.meta.env.VITE_API_BASE_URL + "",
+			obtainJWT:  import.meta.env.VITE_API_BASE_URL + '/token/',
+			refreshJWT: import.meta.env.VITE_API_BASE_URL + "/refresh_token/",
+			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
 		},
 	},
 	mutations: {

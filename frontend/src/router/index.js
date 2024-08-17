@@ -6,11 +6,13 @@ import UnknownView from '@/views/UnknownPageView.vue'
 import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
 import MultiplayerView from '@/views/play/MultiplayerView.vue'
+import Multiplayer1v1View from '@/views/play/Multiplayer1v1View.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 /* ************************************************************************** */
 import PlayView from '@/views/PlayView.vue'
 import MiniGameView from '@/views/MiniGameView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
+import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
@@ -21,7 +23,6 @@ import SettingsGeneralView from '@/views/settings/SettingsGeneralView.vue'
 import SettingsGraphicsView from '@/views/settings/SettingsGraphicsView.vue'
 import CreditsView from '@/views/settings/CreditsView.vue'
 /* ************************************************************************** */
-import MatchFound from '@/views/play/MatchFound.vue'
 import MatchWon from '@/views/play/MatchWon.vue'
 
 const router = createRouter({
@@ -84,6 +85,14 @@ const router = createRouter({
 			}
 		},
 		{
+			path: '/play/multiplayer/:uuid',
+			name: 'Multiplayer1v1View',
+			component: Multiplayer1v1View,
+			meta: {
+				title: '1v1',
+			}
+		},
+		{
 			path: '/play/tournament',
 			name: 'TournamentView',
 			component: TournamentView,
@@ -109,6 +118,14 @@ const router = createRouter({
 		},
 		{
 			path: '/profile',
+			name: 'MyProfileView',
+			component: MyProfileView,
+			meta: {
+				title: 'my profile'
+			}
+		},
+		{
+			path: '/profile/:id',
 			name: 'ProfileView',
 			component: ProfileView,
 			meta: {
@@ -153,15 +170,6 @@ const router = createRouter({
 			component: CreditsView,
 			meta: {
 				title: 'credit$'
-			}
-		},
-		{
-			// juste pour les tests ca va changer -> component et non View
-			path: '/play/match_found',
-			name: 'MatchFound',
-			component: MatchFound,
-			meta: {
-				title: 'match found'
 			}
 		},
 		{

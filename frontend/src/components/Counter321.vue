@@ -9,7 +9,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
 	active: Boolean,
@@ -18,7 +18,7 @@ const props = defineProps({
 
 const isActive = ref(props.active);
 
-const emits = defineEmits([ 'toggle', 'finished' ])
+const emits = defineEmits([ 'toggle', 'finished' ]);
 
 function setIsActive(value) {
 	emits('toggle', value);
@@ -44,6 +44,21 @@ watch(() => props.active, (newValue, oldValue) => {
 		3000
 	);
 });
+
+onMounted(() => {
+	if (props.active)
+	{
+		isActive.value = true;
+		setTimeout(
+			() => {
+				isActive.value = false;
+				setIsActive(false);
+				emits('finished');
+			},
+			3000
+		);
+	}
+})
 
 </script>
 

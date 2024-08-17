@@ -34,7 +34,6 @@
 			</div>
 		</form>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
-		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
 

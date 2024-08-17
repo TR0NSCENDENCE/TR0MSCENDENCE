@@ -3,16 +3,16 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - {{ data.user.username }}</p>
-				<p>Email - {{ data.user.email }}</p>
+				<p>Name - {{ data.username }}</p>
+				<p>Email - {{ data.email }}</p>
 			</div>
 		</div>
 		<div class="profile-container">
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
-					<li> Games Played - {{ props.data.stats.played }} </li>
-					<li> Games Won - {{ props.data.stats.wins }} </li>
+					<li> Games Played - {{ 1/*props.data.stats.played*/ }} </li>
+					<li> Games Won - {{ 1/*props.data.stats.wins*/ }} </li>
 					<li> Win Rate - {{ win_rate }} </li>
 				</ul>
 			</div>
@@ -30,7 +30,7 @@
 
 <script setup>
 const props = defineProps([ 'data' ]);
-const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
+// const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
 </script>
 
 <style scoped>

@@ -1,39 +1,30 @@
 <template>
-	<Suspense>
-		<ProfileViewer v-if="exist" :data="data"/>
-		<div id="not-exist" v-else>
-			<h1>User requested does not exist.</h1>
-			<GlowingButton class="go-back-button small-button" :text="'go back'" :dest="'/'"/>
-		</div>
+	<Suspense v-if="store.getters.isAuthenticated">
+		<ProfileViewer :data="data"/>
 		<template #fallback>
 		</template>
 	</Suspense>
+	<div v-else class="profile">
+		<h1>looks like you're not logged in ...</h1>
+	</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router';
 import utils from '@utils'
-import GlowingButton from '@components/GlowingButton.vue';
+import { ref, onMounted } from 'vue'
 import ProfileViewer from '@components/ProfileViewer.vue';
 import store from '@store';
-
-const route = useRoute();
-
-const userId = route.params.id;
-const exist = ref(true);
 
 const data = ref({});
 
 async function getMyProfile() {
 	return new Promise((resolve, reject) => {
-		utils.makeAuthApiQuery('/user/' + userId + '/', 'GET', {},
+		utils.makeAuthApiQuery('/me/', 'get', {},
 			(result) => {
 				data.value = result.data;
 			},
 			(error) => {
 				console.log(error);
-				exist.value = false;
 			}
 		);
 	})
@@ -46,13 +37,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-#not-exist
-{
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
 h1 {
 	display: flex;
 	justify-content: center;
