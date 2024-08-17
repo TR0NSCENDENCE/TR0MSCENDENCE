@@ -2,64 +2,15 @@ from asgiref.sync import async_to_sync, sync_to_async
 import asyncio
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import json
+
 from users.models import User
 from .models import GameInstance
+from .game_state import GameState
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
 
+    # Is this needed two times ?
     update_lock = asyncio.Lock()
-
-    class GameState():
-
-        class AlreadyConnected(Exception):
-            pass
-
-        def __init__(self, instance: GameInstance):
-            self.instance = instance
-            self.p_one_connected = False
-            self.p_two_connected = False
-
-        def player_connect(self, player: User, consumer):
-            if self.instance.player_one == player:
-                if self.p_one_connected:
-                    raise self.AlreadyConnected
-                self.p_one_connected = True
-                self.p_one_consumer = consumer
-            if self.instance.player_two == player:
-                if self.p_two_connected:
-                    raise self.AlreadyConnected
-                self.p_two_connected = True
-                self.p_two_consumer = consumer
-
-        def player_disconnect(self, player: User):
-            if self.instance.player_one == player:
-                self.p_one_connected = False
-            if self.instance.player_two == player:
-                self.p_two_connected = False
-
-        def players_connected(self):
-            return self.p_one_connected and self.p_two_connected
-
-        def running(self):
-            return self.players_connected()
-
-        async def game_loop(self):
-            print('Starting ', self.instance)
-            while not self.players_connected():
-                print("waiting for player to connect...")
-                await asyncio.sleep(3.)
-            print('all player connected')
-            while self.running():
-                print("waiting for player to disconnect")
-                await asyncio.sleep(3.)
-            print('one player disconnected')
-            await self.close_consumers()
-
-        async def close_consumers(self):
-            if self.p_one_connected:
-                await self.p_one_consumer.close()
-            if self.p_two_connected:
-                await self.p_two_consumer.close()
 
     instances = {}
 
@@ -93,7 +44,7 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
         async with self.update_lock:
             if not self.instance_uuid in self.instances.keys():
                 # print('instance created')
-                self.instances[self.instance_uuid] = GameConsumer.GameState(self.instance)
+                self.instances[self.instance_uuid] = GameState(self.instance)
                 asyncio.create_task(self.instances[self.instance_uuid].game_loop())
             try:
                 self.instances[self.instance_uuid].player_connect(self.user, self)
