@@ -30,10 +30,11 @@
 				<input type="password" id="repassword" ref="repassword">
 			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register" />
 			</div>
 		</form>
-		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
+		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'" />
+		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
 
@@ -90,6 +91,10 @@ async function register() {
 	font-size: calc(8 * var(--size-factor));
 }
 
+#email, #username {
+	font-family: 'Orbitron';
+}
+
 .form-group {
 	margin-bottom: 2vh;
 	width: 100%;
@@ -102,7 +107,7 @@ async function register() {
 	width: fit-content;
 }
 
-.form-group > input {
+.form-group>input {
 	width: 100%;
 	padding: 1vh;
 	background-color: black;
@@ -146,7 +151,8 @@ form {
 	font-size: x-small;
 }
 
-label, .error-detail {
+label,
+.error-detail {
 	display: block;
 	margin: 0.5vh;
 }

@@ -14,12 +14,13 @@ import MiniGameView from '@/views/MiniGameView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import OtherProfileView from '@/views/OtherProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 /* ************************************************************************** */
 import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
-import SettingsGeneralView from '@/views/settings/SettingsGeneralView.vue'
+import SettingsColorView from '@/views/settings/SettingsColorView.vue'
 import SettingsGraphicsView from '@/views/settings/SettingsGraphicsView.vue'
 import CreditsView from '@/views/settings/CreditsView.vue'
 /* ************************************************************************** */
@@ -141,11 +142,11 @@ const router = createRouter({
 			}
 		},
 		{
-			path: '/settings/settings_general',
-			name: 'SettingsGeneralView',
-			component: SettingsGeneralView,
+			path: '/settings/settings_color',
+			name: 'SettingsColorView',
+			component: SettingsColorView,
 			meta: {
-				title: 'general - settings'
+				title: 'color - settings'
 			}
 		},
 		{
@@ -170,6 +171,14 @@ const router = createRouter({
 			component: CreditsView,
 			meta: {
 				title: 'credit$'
+			}
+		},
+		{
+			path: '/player_profile',
+			name: 'OtherProfileView',
+			component: OtherProfileView,
+			meta: {
+				title: 'player profile'
 			}
 		},
 		{
