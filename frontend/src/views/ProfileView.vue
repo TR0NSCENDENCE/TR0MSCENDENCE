@@ -28,9 +28,7 @@ const data = ref({});
 async function getMyProfile() {
 	return new Promise((resolve, reject) => {
 		utils.makeAuthApiQuery('/user/' + userId + '/', 'GET', {},
-			(result) => {
-				data.value = result.data;
-			},
+			(result) => data.value = result.data,
 			(error) => {
 				console.log(error);
 				exist.value = false;

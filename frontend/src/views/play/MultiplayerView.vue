@@ -37,34 +37,26 @@ onMounted(() => {
 	utils.connectToWebsocket('ws/matchmaking/1v1/',
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
-			socket.onopen = function(e) {
-				console.log('[WS] socket connected');
-			};
-			socket.onclose = function(e) {
-				console.log('[WS] socket closed');
-			};
-			socket.onmessage = function(e) {
+			socket.onopen = (e) => console.log('[WS] socket connected');
+			socket.onclose = (e) => console.log('[WS] socket closed');
+			socket.onmessage = (e) => {
 				const data = JSON.parse(e.data);
-				if (data.type == 'found'){
-					socket.close();
-					uuid.value = data.uuid;
-					found.value = true;
-					makeAuthApiQuery('gameinstance/' + uuid.value + '/', 'GET', null,
-						(result) => {
-							console.log(result.data);
-							player1.value = result.data.player_one.username;
-							player2.value = result.data.player_two.username;
-						},
-						(error) => {
-							console.log(error);
-						}
-					)
-				}
+				if (data.type != 'found')
+					return ;
+				socket.close();
+				uuid.value = data.uuid;
+				found.value = true;
+				makeAuthApiQuery('gameinstance/' + uuid.value + '/', 'GET', null,
+					(result) => {
+						console.log(result.data);
+						player1.value = result.data.player_one.username;
+						player2.value = result.data.player_two.username;
+					},
+					(error) => console.log(error)
+				)
 			};
 		},
-		(error) => {
-			console.log(error);
-		}
+		(error) => console.log(error)
 	);
 });
 

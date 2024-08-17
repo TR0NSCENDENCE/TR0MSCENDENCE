@@ -11,9 +11,9 @@
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
-					<li> Games Played - {{ 1/*props.data.stats.played*/ }} </li>
-					<li> Games Won - {{ 1/*props.data.stats.wins*/ }} </li>
-					<li> Win Rate - {{ win_rate }} </li>
+					<li> Games Played - {{ 1 /* props.data.stats.played */ }} </li>
+					<li> Games Won - {{ 1 /* props.data.stats.wins */ }} </li>
+					<li> Win Rate - {{ 100 /* win_rate */ }} </li>
 				</ul>
 			</div>
 		</div>

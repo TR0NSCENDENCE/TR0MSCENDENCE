@@ -46,18 +46,17 @@ watch(() => props.active, (newValue, oldValue) => {
 });
 
 onMounted(() => {
-	if (props.active)
-	{
-		isActive.value = true;
-		setTimeout(
-			() => {
-				isActive.value = false;
-				setIsActive(false);
-				emits('finished');
-			},
-			3000
-		);
-	}
+	if (!props.active)
+		return ;
+	isActive.value = true;
+	setTimeout(
+		() => {
+			isActive.value = false;
+			setIsActive(false);
+			emits('finished');
+		},
+		3000
+	);
 })
 
 </script>

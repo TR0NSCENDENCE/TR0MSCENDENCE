@@ -21,20 +21,11 @@ onMounted(() => {
 	utils.connectToWebsocket(`ws/gameinstance/${route.params.uuid}/`,
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
-			socket.onopen = function(e) {
-				console.log('[WS] socket connected');
-			};
-			socket.onclose = function(e) {
-				console.log('[WS] socket closed');
-			};
-			socket.onmessage = function(e) {
-				const data = JSON.parse(e.data);
-				console.log(data);
-			};
+			socket.onopen = (e) => console.log('[WS] socket connected');
+			socket.onclose = (e) => console.log('[WS] socket closed');
+			socket.onmessage = (e) => console.log(JSON.parse(e.data));
 		},
-		(error) => {
-			console.log(error);
-		}
+		(error) => console.log(error)
 	);
 });
 
