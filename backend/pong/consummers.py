@@ -9,10 +9,7 @@ from .game_state import GameState
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
 
-    # Is this needed two times ?
-    update_lock = asyncio.Lock()
-
-    instances = {}
+    game_states = {}
 
     update_lock = asyncio.Lock()
 
@@ -42,47 +39,31 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
             return
 
         async with self.update_lock:
-            if not self.instance_uuid in self.instances.keys():
+            if not self.instance_uuid in self.game_states.keys():
                 # print('instance created')
-                self.instances[self.instance_uuid] = GameState(self.instance)
-                asyncio.create_task(self.instances[self.instance_uuid].game_loop())
+                self.game_states[self.instance_uuid] = GameState(self.instance)
+                asyncio.create_task(self.game_states[self.instance_uuid].game_loop())
             try:
-                self.instances[self.instance_uuid].player_connect(self.user, self)
-            except self.GameState.AlreadyConnected:
-                # print('user already connected to the instance')
+                self.game_states[self.instance_uuid].player_connect(self.user, self)
+                self.game_state = self.game_states[self.instance_uuid]
+            except GameState.AlreadyConnected:
+                print('user already connected to the instance')
                 await self.close()
                 return
-        # Join room group and accept connection
-        await self.channel_layer.group_add(self.instance_name, self.channel_name)
+        # Accept connection
         await self.accept()
 
     async def disconnect(self, close_code):
         if close_code == 1006:
             return
-        # Leave room group
-        await self.channel_layer.group_discard(self.instance_name, self.channel_name)
         # Disconnect from instance if exist
         async with self.update_lock:
-            if self.instance_uuid in self.instances.keys():
-                self.instances[self.instance_uuid].player_disconnect(self.user)
+            if self.instance_uuid in self.game_states.keys():
+                self.game_states[self.instance_uuid].player_disconnect(self.user)
 
     # Receive message from WebSocket
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
-        print("data receive : ", text_data)
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.instance_name, {"type": "chat.message", "message": message}
-        )
-
-    # Receive message from room group
-    async def chat_message(self, event):
-        message = event["message"]
-
-        print("message receive : ", event)
-        # Send message to WebSocket
-        await self.send(text_data="uho")
+    async def receive_json(self, json_data):
+        await self.game_state.player_receive_json(self, json_data)
 
 class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
