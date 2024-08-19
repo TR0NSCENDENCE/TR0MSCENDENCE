@@ -26,14 +26,12 @@ const props = defineProps([ 'name', 'nickname', 'src', 'alt' ]);
 	height: 280px;
 	display: block;
 	margin: 0 auto;
-	border: 0.1em solid rgb(255, 0, 0, 0.3);
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
 	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
-	border-radius: 0.45em;
 }
 
 .name {

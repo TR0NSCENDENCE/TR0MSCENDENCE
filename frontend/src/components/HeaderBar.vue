@@ -122,18 +122,6 @@ onUnmounted(() => {
 	animation: none;
 }
 
-.signIn:hover .glowing-txt {
-	color: rgba(0, 0, 0, 0.8);
-	animation: none;
-}
-
-.signIn:hover .faulty-letter {
-	color: rgba(0, 0, 0, 0.8);
-	animation: none;
-	text-shadow: none;
-	opacity: 1;
-}
-
 .signIn {
 	flex: 1 0 40%;
 	text-align: center;
