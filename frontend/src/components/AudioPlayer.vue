@@ -37,9 +37,10 @@ watch(volume, (newVolume) => {
 
 <style scoped>
 .audio-player {
-	flex: 0.4;
+	flex: 0.3;
 	margin: 0 1em;
 	border-radius: 10px;
+	opacity: 70%;
 }
 
 /* Webkit-based browsers (Chrome, Safari, Edge) */
