@@ -109,8 +109,8 @@ export default createStore({
 		refreshToken: localStorage.getItem('refreshToken') ?? null,
 		selected_theme: loadTheme(),
 		endpoints: {
-			obtainJWT:  import.meta.env.VITE_API_BASE_URL + '/token/',
-			refreshJWT: import.meta.env.VITE_API_BASE_URL + "/token/refresh",
+			obtainJWT:  'token/',
+			refreshJWT: "token/refresh",
 			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
 		},
 	},
