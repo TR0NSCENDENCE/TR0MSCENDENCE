@@ -5,9 +5,7 @@
 		</router-link>
 		<div class="sub-header">
 			<div v-if="store.getters.isAuthenticated" @click="logout">
-				<h1
-					class="header-box signIn signIn-link"
-					>
+				<h1 class="header-box signIn signIn-link">
 					logout
 				</h1>
 			</div>

@@ -11,6 +11,7 @@ import { Material } from 'three';
 import { MeshStandardMaterial } from 'three';
 import { MeshBasicMaterial } from 'three';
 import { MeshLambertMaterial } from 'three';
+import store from '@store';
 
 function getCssVariableValue(varColor) {
 	const color_style = getComputedStyle(document.documentElement);
@@ -26,7 +27,7 @@ const ZFAR = 1000;
 
 
 class ColorMaterial extends MeshStandardMaterial {
-	constructor (p, color) {
+	constructor(p, color) {
 		super();
 		this.isColorMaterial = true;
 		this.type = 'ColorMaterial';
@@ -64,7 +65,7 @@ export class Game {
 		this.mapScene = new GLTFLoader();
 		this.mapScene.setDRACOLoader(dracoLoader);
 		this.mapScene.load(
-			'/ressources/map_scene/TronStadiumUltimo.glb',
+			store.getters.selectedMapPath,
 			(gltf) => {
 				gltf.scene.traverse(o => { if (o.isMesh) o.material = new ColorMaterial(o.material, hexColor) });
 				this.scene.add(gltf.scene);
@@ -124,13 +125,13 @@ export class Game {
 
 		window.addEventListener('keydown', (event) => {
 			if (event.key !== ' ')
-				return ;
+				return;
 			this.isGamePaused()
 				? this.resumeGame()
 				: this.pauseGame();
 		});
 
-		
+
 		// const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
 		// const backgroundMaterial = new MeshStandardMaterial({ 
 		// 	map: backgroundTexture,
@@ -176,7 +177,7 @@ export class Game {
 	pauseGame() {
 		this.paused = true;
 	}
-		
+
 	resumeGame() {
 		this.paused = false;
 	}
@@ -267,13 +268,13 @@ export class Game {
 		if (this.sphere.position.z <= -18 || this.sphere.position.z >= 18) {
 			this.ballSpeed.z = -this.ballSpeed.z;
 		}
-	
-		if (this.sphere.position.x <= -36) { 
+
+		if (this.sphere.position.x <= -36) {
 			this.resetBall();
 			this.score2++;
 		}
-	
-		if (this.sphere.position.x >= 36) { 
+
+		if (this.sphere.position.x >= 36) {
 			this.resetBall();
 			this.score1++;
 		}

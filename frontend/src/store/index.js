@@ -72,6 +72,11 @@ const theme_colors = {
 	},
 }
 
+const map_selector = {
+	map1: '/ressources/map_scene/TronStadiumUltimo.glb',
+	map2: '/ressources/map_scene/TronscendenceMap2.glb'
+}
+
 function changeTheme(theme) {
 	const color_set = theme_colors[theme];
 
@@ -94,6 +99,8 @@ export default createStore({
 		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),
 		jwt: localStorage.getItem('token') ?? null,
 		selected_theme: loadTheme(),
+		selected_map: localStorage.getItem('selected_map') ?? 'map1',
+		map_selector: map_selector,
 		endpoints: {
 			obtainJWT: import.meta.env.VITE_API_BASE_URL + 'token/',
 			refreshJWT: import.meta.env.VITE_API_BASE_URL + "refresh_token/",
@@ -127,6 +134,12 @@ export default createStore({
 				state.selected_theme = theme;
 				changeTheme(theme);
 			}
+		},
+		changeSelectedMap(state, map) {
+			if (map === 'map1' || map === 'map2') {
+				localStorage.setItem('selected_map', map);
+				state.selected_map = map;
+			}
 		}
 	},
 	actions: {
@@ -142,6 +155,9 @@ export default createStore({
 		},
 		selectedTheme(state) {
 			return (state.selected_theme);
+		},
+		selectedMapPath(state) {
+			return state.map_selector[state.selected_map];
 		}
 	}
 });
