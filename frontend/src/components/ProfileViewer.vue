@@ -6,6 +6,13 @@
 				<p>Name - <span class="username">{{ userdata.username }}</span></p>
 				<p>Email - <span class="email">{{ userdata.email }}</span></p>
 			</div>
+			<div id="profile-picture-container">
+				<img id="profile-picture" :src="userdata.user_profile.get_thumbnail"/>
+				<div v-if="store.getters.userId == pk">
+					<input id="new-profile-picture" type="file" @change="onProfilePicturePicked" accept=".jpg" ref="file_picker" style="visibility:hidden"/>
+					<GlowingButton @click="loadNewProfilePicture()" :text="'UPDATE PICTURE'"/>
+				</div>
+			</div>
 		</div>
 		<div class="profile-container">
 			<div class="profile-stats">
@@ -31,16 +38,42 @@
 <script setup>
 import { axiosInstance } from '@utils/api';
 import { onMounted, ref } from 'vue';
+import GlowingButton from './GlowingButton.vue';
+import store from '@store';
 
 const props = defineProps([ 'pk' ]);
 // const win_rate = Math.round(100 * props.userdata.stats.wins / props.userdata.stats.played);
 
-const userdata = ref('');
+const userdata = ref({
+	user_profile: {
+		get_thumbnail: '',
+	},
+});
 const winned = ref(0);
 const losed = ref(0);
 const matchs = ref('');
+const file_picker = ref( );
 
-onMounted(() => {
+function loadNewProfilePicture() {
+	file_picker.value.click();
+}
+
+function onProfilePicturePicked(event) {
+	console.log(event.target.files);
+	const formData = new FormData();
+	formData.append('profile_picture', event.target.files[0]);
+	axiosInstance.patch(`/user/${props.pk}/update/`, formData, {
+		headers: {
+			'Content-Type': 'multipart/form-data'
+		}
+	}).then(
+		(response) => loadProfile()
+	).catch(
+		(error) => console.log(error.response.data)
+	)
+}
+
+function loadProfile() {
 	axiosInstance.get(`/user/${props.pk}/`).then(
 		(response) => userdata.value = response.data
 	);
@@ -53,6 +86,10 @@ onMounted(() => {
 	axiosInstance.get(`/user/${props.pk}/matchs/`).then(
 		(response) => matchs.value = response.data
 	);
+}
+
+onMounted(() => {
+	loadProfile();
 });
 
 </script>
@@ -62,6 +99,20 @@ onMounted(() => {
 	color: var(--glow-color);
 	--size-factor: (0.00188323 * 70vw);
 	font-size: calc(8 * var(--size-factor));
+}
+
+#profile-picture-container {
+	display: flex;
+	flex-direction: column;
+	align-items: end;
+}
+
+#profile-picture {
+	border-radius: 1em;
+}
+
+#profile-picture-container > .glowing_button {
+	margin-top: 20px;
 }
 
 h1 {

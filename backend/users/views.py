@@ -14,15 +14,16 @@ class UserRegistrationView(views.APIView):
         serializer.save()
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class UserView(generics.RetrieveAPIView,
-                generics.UpdateAPIView):
+class UserView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = UserSerializer
 
-    def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
-            return UserSerializer
-        return UserSerializer
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = UserProfileUpdateSerializer
+    lookup_field = 'user__pk'
 
 class MyUserView(views.APIView):
     def get(self, request, format=None):
