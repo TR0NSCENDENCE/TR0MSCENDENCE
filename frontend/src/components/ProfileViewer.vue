@@ -11,9 +11,9 @@
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
-					<li> Games Played - {{ props.data.stats.played }} </li>
-					<li> Games Won - {{ props.data.stats.wins }} </li>
-					<li> Win Rate - {{ win_rate }} </li>
+					<li> Games Played - {{ 1 /* props.data.stats.played */ }} </li>
+					<li> Games Won - {{ 1 /* props.data.stats.wins */ }} </li>
+					<li> Win Rate - {{ 100 /* win_rate */ }} </li>
 				</ul>
 			</div>
 		</div>
@@ -29,8 +29,8 @@
 </template>
 
 <script setup>
-const props = defineProps(['data']);
-const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
+const props = defineProps([ 'data' ]);
+// const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
 </script>
 
 <style scoped>

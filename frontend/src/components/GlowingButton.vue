@@ -20,7 +20,7 @@
 <script setup>
 import GlowingText from '@components/GlowingText.vue';
 
-function createTextChuks(text) {
+function createTextChunks(text) {
 	let chunks = [];
 	let glowing = Math.random() > .7;
 	let index = 0;
@@ -40,7 +40,7 @@ function createTextChuks(text) {
 }
 
 const props = defineProps([ 'text', 'dest' ]);
-const chunks = createTextChuks(props.text);
+const chunks = createTextChunks(props.text);
 </script>
 
 <style scoped>

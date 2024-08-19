@@ -1,6 +1,16 @@
 from rest_framework import serializers
 from .models import User, UserProfile
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        exclude = ['user']
+
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['profile_picture']
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
     username = serializers.CharField(
@@ -49,18 +59,8 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         return user
 
 class UserSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileSerializer()
+
     class Meta:
         model = User
-        fields = ['email', 'username']
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    user = UserSerializer(many=False)
-
-    class Meta:
-        model = UserProfile
-        fields = '__all__'
-
-class UserProfileUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['profile_picture']
+        fields = ['email', 'username', 'user_profile']

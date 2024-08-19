@@ -17,6 +17,7 @@ import { RouterView } from 'vue-router'
 import FooterBar from '@components/FooterBar.vue';
 import HeaderBar from '@components/HeaderBar.vue';
 </script>
+<<<<<<< HEAD
 
 <style>
 :root {
@@ -62,3 +63,5 @@ footer {
 	margin: 1vh;
 }
 </style>
+=======
+>>>>>>> dev

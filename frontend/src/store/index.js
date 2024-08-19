@@ -18,10 +18,10 @@ async function authentificate(context, { username, password }) {
 			// decoded, we fetch it again. This way we aren't super dependant on
 			// JWT and can plug in something else.
 			makeAuthApiQuery(
-				'/me', 'get', {},
+				'/me/', 'get', {},
 				(response) => {
 					const payload = {
-						authUser: response.data.user.username,
+						authUser: response.data.username,
 						isAuthenticated: true,
 					};
 					context.commit('setAuthUser', payload);

@@ -44,7 +44,9 @@ class ColorMaterial extends MeshStandardMaterial {
 }
 
 export class Game {
-	constructor(showCounter, config, renderer) {
+	constructor(showCounter, onPause, onResumed, config, renderer) {
+		this.onPause = onPause;
+		this.onResumed = onResumed;
 		const hexColor = getCssVariableValue('--mesh-color');
 		const ASPECT_RATIO = window.innerWidth / window.innerHeight;
 		this.config = config;
@@ -176,10 +178,14 @@ export class Game {
 
 	pauseGame() {
 		this.paused = true;
+		if (this.onPause)
+			this.onPause();
 	}
 
 	resumeGame() {
 		this.paused = false;
+		if (this.onResumed)
+			this.onResumed();
 	}
 
 	isGamePaused() {
@@ -232,7 +238,7 @@ export class Game {
 	}
 
 	countdown() {
-		this.pauseGame();
+		this.paused = true;
 		this.showCounter.value = true;
 	}
 

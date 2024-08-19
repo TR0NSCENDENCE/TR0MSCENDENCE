@@ -50,12 +50,12 @@ const username = ref(null);
 const password = ref(null);
 const repassword = ref(null);
 
-const error_txt = {
-	email: ref(''),
-	username: ref(''),
-	password: ref(''),
-	repassword: ref(''),
-};
+const error_txt = ref({
+	email: '',
+	username: '',
+	password: '',
+	repassword: '',
+});
 
 // TODO: Do the error handling.
 async function register() {
@@ -71,14 +71,10 @@ async function register() {
 			router.push('/');
 		},
 		(error) => {
-			if (error.response) {
-				for (var prop in error_txt) {
-					error_txt[prop].value = ''
-				}
-				for (var prop in error.response.data) {
-					error_txt[prop].value = error.response.data[prop][0];
-				}
-			}
+			if (!error.response)
+				return ;
+			for (var prop in error_txt.value)
+				error_txt.value[prop] = (error.response.data[prop] ?? '')[0] ?? '';
 		}
 	)
 }
