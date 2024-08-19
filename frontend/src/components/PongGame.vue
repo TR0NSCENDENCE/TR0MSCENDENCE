@@ -45,6 +45,7 @@ function animate() {
 onMounted(() => {
 	const need_resize = () => {
 		const canvas = pong_game_canvas.value;
+		if (!canvas) return (false);
 		const width = pong_game_canvas.value.clientWidth;
 		const height = pong_game_canvas.value.clientHeight;
 		// console.log(width, height, '|', pong_game_canvas.value.width, pong_game_canvas.value.height);
@@ -54,6 +55,7 @@ onMounted(() => {
 
 	const get_dims = () => {
 		const canvas = pong_game_canvas.value;
+		if (!canvas) return ;
 		const width = canvas.clientWidth;
 		const height = canvas.clientHeight;
 
@@ -73,6 +75,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+	if (game.renderer)
+		game.renderer.cleanup();
 })
 
 function resumeGame() {

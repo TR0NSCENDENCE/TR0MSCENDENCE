@@ -302,7 +302,6 @@ export default class PongRenderer {
 	#resize_renderer_to_display_size = () => {
 		if (!this.#callbacks.need_resize())
 			return ;
-		console.log('aled?')
 		const { width, height } = this.#callbacks.get_dims();
 		this.#renderer.setSize(width, height, false);
 		this.#bloom_pass.setSize(width, height);
@@ -316,6 +315,10 @@ export default class PongRenderer {
 	}
 
 	cleanup() {
-		// TODO: implement
+		Object.keys(this).forEach((key) => {
+			if (typeof this[key].dispose === 'function')
+				this[key].dispose();
+			this[key] = null;
+		});
 	}
 }
