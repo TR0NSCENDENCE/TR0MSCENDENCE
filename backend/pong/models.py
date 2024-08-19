@@ -13,9 +13,11 @@ class GameInstance(models.Model):
         max_length=2,
         choices=GameState,
         default=GameState.STARTING
-     )
+    )
+    winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="winner", null=True, default=None, blank=True)
     player_one = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_one")
     player_two = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_two")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"GAME INSTANCE {self.player_one.get_username()} vs {self.player_two.get_username()} (uuid: {self.uuid})"

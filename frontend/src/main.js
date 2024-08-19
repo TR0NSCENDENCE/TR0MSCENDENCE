@@ -5,6 +5,9 @@ import router from '@router';
 import store from '@store';
 
 import '@assets/default.css';
+import { setupInstance } from '@utils/api';
+
+setupInstance();
 
 createApp(App)
 	.use(router)

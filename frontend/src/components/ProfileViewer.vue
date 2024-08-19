@@ -3,25 +3,25 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - <span class="username">{{ data.username }}</span></p>
-				<p>Email - <span class="email">{{ data.email }}</span></p>
+				<p>Name - <span class="username">{{ userdata.username }}</span></p>
+				<p>Email - <span class="email">{{ userdata.email }}</span></p>
 			</div>
 		</div>
 		<div class="profile-container">
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
-					<li> Games Played - {{ 1 /* props.data.stats.played */ }} </li>
-					<li> Games Won - {{ 1 /* props.data.stats.wins */ }} </li>
-					<li> Win Rate - {{ 100 /* win_rate */ }} </li>
+					<li> Games Played - {{ winned + losed }} </li>
+					<li> Games Won - {{ winned }} </li>
+					<li> Win Rate - {{ winned + losed == 0 ? 0 : Math.round((winned / (winned + losed)) * 100) }}% </li>
 				</ul>
 			</div>
 		</div>
 		<div class="profile-activity">
 			<h2>Last Games</h2>
 			<ul>
-				<li v-for="match in data.match_history">
-					{{ data.user.username }} vs {{ match.opponent }} | {{ match.score }} - {{ match.opponent_score }} |
+				<li v-for="match in matchs">
+					{{ match.player_one.username }} vs {{ match.player_two.username }} | {{ match.score }} - {{ match.opponent_score }} |
 				</li>
 			</ul>
 		</div>
@@ -29,8 +29,32 @@
 </template>
 
 <script setup>
-const props = defineProps([ 'data' ]);
-// const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
+import { axiosInstance } from '@utils/api';
+import { onMounted, ref } from 'vue';
+
+const props = defineProps([ 'pk' ]);
+// const win_rate = Math.round(100 * props.userdata.stats.wins / props.userdata.stats.played);
+
+const userdata = ref('');
+const winned = ref(0);
+const losed = ref(0);
+const matchs = ref('');
+
+onMounted(() => {
+	axiosInstance.get(`/user/${props.pk}/`).then(
+		(response) => userdata.value = response.data
+	);
+	axiosInstance.get(`/user/${props.pk}/winned/`).then(
+		(response) => winned.value = response.data.winned_count
+	);
+	axiosInstance.get(`/user/${props.pk}/losed/`).then(
+		(response) => losed.value = response.data.losed_count
+	);
+	axiosInstance.get(`/user/${props.pk}/matchs/`).then(
+		(response) => matchs.value = response.data
+	);
+});
+
 </script>
 
 <style scoped>

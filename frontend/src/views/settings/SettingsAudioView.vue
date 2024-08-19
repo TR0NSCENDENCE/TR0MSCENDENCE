@@ -51,7 +51,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import GlowingButton from '@/components/GlowingButton.vue';
-import utils from '@/utils';
 
 const audioSrc = ref('');
 const audioElement = ref(null);

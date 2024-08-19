@@ -15,14 +15,14 @@ import GlowingButton from '@components/GlowingButton.vue';
 import store from '@store';
 import { onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router'
-import utils from '@utils/index';
+import { connectToWebsocket } from '@utils/ws';
 
 let global_socket = undefined;
 
 const route = useRoute();
 
 onMounted(() => {
-	utils.connectToWebsocket(`ws/gameinstance/${route.params.uuid}/`,
+	connectToWebsocket(`ws/gameinstance/${route.params.uuid}/`,
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
 			socket.onopen = (e) => {

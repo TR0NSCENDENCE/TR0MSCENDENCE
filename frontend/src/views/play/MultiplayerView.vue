@@ -20,10 +20,11 @@ import Counter321 from '@components/Counter321.vue';
 import GlowingButton from '@components/GlowingButton.vue';
 import MatchFound from '@components/MatchFound.vue';
 import WaitingMatch from '@components/WaitingMatch.vue';
-import utils, { makeAuthApiQuery } from '@utils/index';
 import router from '@router/index';
 import { ref, onMounted, onUnmounted } from 'vue';
 import store from '@store';
+import { connectToWebsocket } from '@utils/ws';
+import { axiosInstance } from '@utils/api';
 
 const found = ref(false);
 const player1 = ref('');
@@ -34,28 +35,27 @@ let global_socket = undefined;
 
 onMounted(() => {
 	if (store.getters.isAuthenticated)
-	utils.connectToWebsocket('ws/matchmaking/1v1/',
-		(/** @type {WebSocket} */ socket) => {
-			global_socket = socket;
-			socket.onopen = (e) => console.log('[WS] socket connected');
-			socket.onclose = (e) => console.log('[WS] socket closed');
-			socket.onmessage = (e) => {
-				const data = JSON.parse(e.data);
-				if (data.type != 'found')
-					return ;
-				socket.close();
-				uuid.value = data.uuid;
-				found.value = true;
-				makeAuthApiQuery('gameinstance/' + uuid.value + '/', 'GET', null,
-					(result) => {
-						console.log(result.data);
-						player1.value = result.data.player_one.username;
-						player2.value = result.data.player_two.username;
-					},
-					(error) => console.log(error)
-				)
-			};
-		},
+		connectToWebsocket('ws/matchmaking/1v1/',
+			(/** @type {WebSocket} */ socket) => {
+				global_socket = socket;
+				socket.onopen = (e) => console.log('[WS] socket connected');
+				socket.onclose = (e) => console.log('[WS] socket closed');
+				socket.onmessage = (e) => {
+					const data = JSON.parse(e.data);
+					if (data.type != 'found')
+						return ;
+					socket.close();
+					uuid.value = data.uuid;
+					found.value = true;
+					axiosInstance.get(`gameinstance/${uuid.value}/`).then(
+						(response) => {
+							console.log(response.data);
+							player1.value = response.data.player_one.username;
+							player2.value = response.data.player_two.username;
+						}
+					);
+				};
+			},
 		(error) => console.log(error)
 	);
 });
