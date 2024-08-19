@@ -33,9 +33,7 @@ async function authentificate(context, { username, password }) {
 			context.commit('setUserID', ID);
 
 			axiosInstance.get('/me/').then(
-				(response, error) => {
-					console.log(response);
-					console.log(error);
+				(response) => {
 					const payload = {
 						authUser: response.data.username,
 						isAuthenticated: true,
