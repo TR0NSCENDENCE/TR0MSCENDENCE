@@ -14,7 +14,7 @@
 			</h1>
 		</div>
 		<div>
-			<Counter321 :active="counter_is_active" @finished="() => game.resumeGame()"
+			<Counter321 :active="counter_is_active" @finished="game.resumeGame"
 				@toggle="(value) => counter_is_active = value" />
 			<div class="pong_game_container" ref="pong_game_container"></div>
 		</div>

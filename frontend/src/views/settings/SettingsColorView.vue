@@ -1,12 +1,12 @@
 <template>
 	<div class="color_palette">
 		<div class="button_line">
-			<GlowingButton :text="'green'" @click="store.commit('changeSelectedTheme', 'green')" />
-			<GlowingButton :text="'red'" @click="store.commit('changeSelectedTheme', 'red')" />
+			<GlowingButton text="green" @click="store.commit('changeSelectedTheme', 'green')" />
+			<GlowingButton text="red" @click="store.commit('changeSelectedTheme', 'red')" />
 		</div>
 		<div class="button_line">
-			<GlowingButton :text="'yellow'" @click="store.commit('changeSelectedTheme', 'yellow')" />
-			<GlowingButton :text="'blue'" @click="store.commit('changeSelectedTheme', 'blue')" />
+			<GlowingButton text="yellow" @click="store.commit('changeSelectedTheme', 'yellow')" />
+			<GlowingButton text="blue" @click="store.commit('changeSelectedTheme', 'blue')" />
 		</div>
 	</div>
 </template>
