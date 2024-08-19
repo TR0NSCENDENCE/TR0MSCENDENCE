@@ -78,7 +78,7 @@ class GameState():
         self.log('Winner :', player.username)
         self.instance.winner = player
         self.instance.save()
-        async_to_sync(self.players_send_json)({'type': 'winner', 'winner-id': player.pk})
+        async_to_sync(self.players_send_json)({'type': 'winner', 'winner_id': player.pk})
 
     async def close_consumers(self):
         if self.p_one_connected:
@@ -100,13 +100,15 @@ class GameState():
     async def wait_for_players(self):
         self.log("Waiting for player to connect...")
         while not self.players_connected():
-            await asyncio.sleep(1. / 150)
+            await asyncio.sleep(1. / 10)
+
+    tick_rate = 150
 
     async def logic(self):
         self.log("Waiting for player to disconnect")
         while self.running():
             await self.players_send_json({'type': 'update-position'})
-            await asyncio.sleep(1. / 150)
+            await asyncio.sleep(1. / self.tick_rate)
 
     async def game_loop(self):
         await self.wait_for_players()
