@@ -4,14 +4,19 @@
 			<TranscendenceLogo />
 		</router-link>
 		<div class="sub-header">
-			<div v-if="store.getters.isAuthenticated" @click="logout">
-				<h1
-					class="header-box signIn signIn-link"
-					>
-					logout
-				</h1>
+			<div v-if="store.getters.isAuthenticated" class="sub-header-link">
+				<div class="signIn-link" @click="logout">
+					<h1 class="header-box signIn">
+						logout
+					</h1>
+				</div>
+				<div class="signIn-link" @click="router.push('/profile')">
+					<h1 class="header-box signIn">
+						my profile ({{ store.getters.authUser }})
+					</h1>
+				</div>
 			</div>
-			<div v-else class="sub-header">
+			<div v-else class="sub-header-link">
 				<router-link to="/login" class="signIn-link">
 					<h1 class="header-box signIn">login</h1>
 				</router-link>
@@ -19,7 +24,9 @@
 					<h1 class="header-box signIn">register</h1>
 				</router-link>
 			</div>
-			<h1 class="header-box title">{{ title }}</h1>
+			<div class="transcendence-title">
+				<h1 class="header-box title">{{ title }}</h1>
+			</div>
 		</div>
 	</nav>
 </template>
@@ -66,10 +73,19 @@ onUnmounted(() => {
 	width: 100%;
 }
 
+.transcendence-title {
+	flex: 1 1 0;
+}
+
 .sub-header {
+	flex: 1 1 0;
+	display: flex;
+}
+
+.sub-header-link {
 	display: flex;
 	justify-content: space-between;
-	width: 100%;
+	width: fit-content;
 	padding: 0 2%;
 	--size-factor: (0.00188323 * 70vw);
 	font-size: calc(12 * var(--size-factor));
@@ -81,8 +97,10 @@ onUnmounted(() => {
 	border: 0.15em solid var(--glow-color);
 	border-radius: 0.45em;
 	background: none;
+	white-space: nowrap;
 	perspective: 2em;
 	font-family: "SpaceTron", sans-serif;
+	--size-factor: (0.00188323 * 70vw);
 	font-size: calc(12 * var(--size-factor));
 	font-weight: 900;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
@@ -153,7 +171,6 @@ onUnmounted(() => {
 }
 
 .title {
-	flex: 1 0 60%;
 	text-align: right;
 	letter-spacing: 0.6em;
 }
