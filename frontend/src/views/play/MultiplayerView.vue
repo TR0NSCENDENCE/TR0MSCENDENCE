@@ -60,7 +60,7 @@ onMounted(() => {
 							player2.value = response.data.player_two;
 						}
 					);
-					router.push(`multiplayer/${uuid.value}`);
+					// router.push(`multiplayer/${uuid.value}`);
 				};
 			},
 		(error) => console.log(error)

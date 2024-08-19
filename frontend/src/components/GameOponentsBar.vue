@@ -16,7 +16,7 @@ import UserViewer from './UserViewer.vue';
 const props = defineProps(['player_1', 'player_2']);
 </script>
 
-<style>
+<style scoped>
 .pong_game_header {
 	color: var(--glow-color);
 	--size-factor: (0.00188323 * 70vw);

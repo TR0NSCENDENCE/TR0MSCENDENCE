@@ -9,7 +9,7 @@ const buttons = [
 	{ text: 'play', dest: 'play' },
 	{ text: 'minigame', dest: 'minigame' },
 	{ text: 'leaderboard', dest: 'leaderboard' },
-	{ text: 'profile', dest: 'profile' },
+	{ text: 'search profile', dest: 'searchprofile' },
 	{ text: 'settings', dest: 'settings' },
 ];
 </script>

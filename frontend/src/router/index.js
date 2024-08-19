@@ -14,6 +14,7 @@ import MiniGameView from '@/views/MiniGameView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
+import SearchProfileView from '@/views/SearchProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
@@ -122,6 +123,14 @@ const router = createRouter({
 			component: MyProfileView,
 			meta: {
 				title: 'my profile'
+			}
+		},
+		{
+			path: '/searchprofile',
+			name: 'SearchProfileView',
+			component: SearchProfileView,
+			meta: {
+				title: 'search profile'
 			}
 		},
 		{
