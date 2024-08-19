@@ -1,11 +1,13 @@
 <template>
 	<router-link class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank">
-		<p id="username">{{ userdata.username }}</p>
+		<p id="username">{{ userdata.username + (store.getters.userId == userdata.pk ? ' (me)' : '') }}</p>
 		<img :src="userdata.user_profile.get_thumbnail" width="50"/>
 	</router-link>
 </template>
 
 <script setup>
+import store from '@store';
+
 const props = defineProps([ 'userdata' ]);
 </script>
 
@@ -32,6 +34,7 @@ const props = defineProps([ 'userdata' ]);
 
 #username {
 	margin-right: 5%;
+	white-space: nowrap;
 }
 
 @keyframes border-flicker {

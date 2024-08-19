@@ -1,14 +1,31 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from .managers import UserManager
 from io import BytesIO
 from PIL import Image
 from django.core.files import File
 from uuid import uuid4
+from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
 class User(AbstractUser):
     email = models.EmailField(unique=True)
+
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        _("username"),
+        max_length=16,
+        unique=True,
+        help_text=_(
+            "Required. 16 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[username_validator],
+        error_messages={
+            "unique": _("A user with that username already exists."),
+        },
+    )
 
     objects = UserManager()
 

@@ -28,10 +28,6 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    username = serializers.CharField(
-        min_length=8,
-        max_length=32
-    )
     password = serializers.CharField(
         min_length=8,
         max_length=32,
