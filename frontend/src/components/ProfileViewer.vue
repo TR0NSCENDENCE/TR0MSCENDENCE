@@ -84,7 +84,8 @@ function loadProfile() {
 		(response) => losed.value = response.data.losed_count
 	);
 	axiosInstance.get(`/user/${props.pk}/matchs/`).then(
-		(response) => matchs.value = response.data
+		// TODO: implement pagination
+		(response) => matchs.value = response.data.results
 	);
 }
 
