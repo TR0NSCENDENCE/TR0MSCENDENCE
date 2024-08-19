@@ -1,13 +1,15 @@
 <template>
 	<div>
 		<div v-if="store.getters.isAuthenticated">
-			<PongGame
-				v-if="connected"
-				ref="game"
-				:player_1="names[0]"
-				:player_2="names[1]"
-				@onUpdateRequested="update"/>
-			<GlowingText v-else="" :text="'Waiting for connection...'"/>
+			<div v-if="connected">
+				<GameOponentsBar
+					:player_1="players[0]"
+					:player_2="players[1]"/>
+				<PongGame
+					ref="game"
+					@onUpdateRequested="update"/>
+			</div>
+			<GlowingText v-else :text="'Waiting for connection...'"/>
 		</div>
 		<div id="must-logged" v-else>
 			<h1>You must be logged to play online.</h1>
@@ -27,14 +29,27 @@ import GlowingText from '@components/GlowingText.vue';
 import router from '@router/index';
 import { KEYBOARD } from '@scripts/KeyboardManager';
 import { axiosInstance } from '@utils/api';
+import GameOponentsBar from '@components/GameOponentsBar.vue';
 
 let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
 const connected = ref(false);
 const game = ref(null);
-const names = ref([
-	'tintin',
-	'milou'
+
+const default_player = {
+	score: 0,
+	user: {
+		username: undefined,
+		user_profile: {
+			get_thumbnail: undefined,
+		},
+	},
+};
+
+const players = ref([
+	// structuredClone to avoid referencing
+	structuredClone(default_player),
+	structuredClone(default_player)
 ]);
 
 const VELOCITY = 0.4;
@@ -102,8 +117,8 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 	try {
 		const response = await axiosInstance.get(`gameinstance/${UUID}/`);
 
-		names.value[0] = response.data.player_one.username;
-		names.value[1] = response.data.player_two.username;
+		players.value[0].user = response.data.player_one;
+		players.value[1].user = response.data.player_two;
 		p1 = response.data.player_one.pk;
 	} catch(e) {
 		console.log(e);

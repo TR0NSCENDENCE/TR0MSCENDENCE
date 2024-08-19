@@ -1,18 +1,5 @@
 <template>
 	<div class="pong_game">
-		<div class="pong_game_header">
-			<h1 class="pong_game_player">
-				player 1: {{ players[0].name }} <br>
-				<h3 class="pong_game_commands">commands: 'w + s'</h3>
-			</h1>
-			<h1 class="pong_game_score_header">
-				score: {{ players[0].score }} - {{ players[1].score }}
-			</h1>
-			<h1 class="pong_game_player">
-				player 2: {{ players[1].name }} <br>
-				<h3 class="pong_game_commands">commands: '↑ + ↓'</h3>
-			</h1>
-		</div>
 		<div class="pong_game_container">
 			<Counter321
 				style="width: 100%; height: 10%;"
@@ -42,23 +29,11 @@ let game = {
 	renderer: undefined
 };
 
-const props = defineProps(['player_1', 'player_2']);
 const emits = defineEmits(['onUpdateRequested']);
 
 const counter_is_active = ref(false);
 const pong_game_canvas = ref(null);
 let pause_is_active = ref(false);
-
-const players = ref([
-	{
-		name: 'tintin',
-		score: 0
-	},
-	{
-		name: 'milou',
-		score: 0
-	}
-]);
 
 function animate() {
 	emits('onUpdateRequested')
@@ -85,8 +60,6 @@ onMounted(() => {
 		return ({width, height});
 	}
 
-	players.value[0].name = props.player_1;
-	players.value[1].name = props.player_2;
 	game.renderer = new PongRenderer(
 		pong_game_canvas.value,
 		0xff0000,

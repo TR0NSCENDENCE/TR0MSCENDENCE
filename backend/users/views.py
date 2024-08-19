@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status
+from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status, filters
 from .serializers import *
 from .models import User, UserProfile
 from .permissions import IsOwnerOrReadOnly
@@ -18,6 +18,13 @@ class UserView(generics.RetrieveAPIView):
     queryset = User.objects.all()
     permission_classes = [IsOwnerOrReadOnly]
     serializer_class = UserSerializer
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    filter_backends = [filters.SearchFilter]
+    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = UserSerializer
+    search_fields = ['username']
 
 class UserUpdateView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()

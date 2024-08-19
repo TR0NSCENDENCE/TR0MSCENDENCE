@@ -120,7 +120,7 @@ class GameState():
         while not self.players_connected():
             await asyncio.sleep(1. / 10)
 
-    TICK_RATE = 20
+    TICK_RATE = 60
 
     async def logic(self):
         self.log("Waiting for player to disconnect")
