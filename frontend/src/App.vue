@@ -5,7 +5,6 @@
 		</header>
 		<main>
 			<RouterView />
-			<!-- <AudioPlayer /> -->
 		</main>
 		<footer>
 			<FooterBar />
@@ -17,7 +16,6 @@
 import { RouterView } from 'vue-router'
 import FooterBar from '@components/FooterBar.vue';
 import HeaderBar from '@components/HeaderBar.vue';
-// import AudioPlayer from '@components/AudioPlayer.vue';
 </script>
 
 <style>
