@@ -1,15 +1,11 @@
 <template>
 	<div class="counter_container">
-		<div
-			ref="counter"
-			class="counter"
-			:class="{ 'counter_active': isActive }"
-		></div>
+		<div ref="counter" class="counter" :class="{ 'counter_active': isActive }"></div>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
 	active: Boolean,
@@ -18,7 +14,7 @@ const props = defineProps({
 
 const isActive = ref(props.active);
 
-const emits = defineEmits([ 'toggle', 'finished' ])
+const emits = defineEmits(['toggle', 'finished'])
 
 function setIsActive(value) {
 	emits('toggle', value);
@@ -28,11 +24,11 @@ const counter = ref(null);
 
 watch(() => props.active, (newValue, oldValue) => {
 	if (newValue == oldValue)
-		return ;
+		return;
 	if (oldValue) {
 		isActive.value = false;
 		setIsActive(false);
-		return ;
+		return;
 	}
 	isActive.value = true;
 	setTimeout(
@@ -44,6 +40,20 @@ watch(() => props.active, (newValue, oldValue) => {
 		3000
 	);
 });
+
+onMounted(() => {
+	if (!props.active)
+		return ;
+	isActive.value = true;
+	setTimeout(
+		() => {
+			isActive.value = false;
+			setIsActive(false);
+			emits('finished');
+		},
+		3000
+	);
+})
 
 </script>
 
@@ -57,7 +67,7 @@ watch(() => props.active, (newValue, oldValue) => {
 
 .counter {
 	position: relative;
-	background-color: hsl(0, 100%, 59%);
+	background-color: var(--glow-color);
 	margin: 0 auto;
 	width: 40%;
 	height: 60%;

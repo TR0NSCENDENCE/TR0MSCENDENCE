@@ -3,17 +3,17 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - {{ data.user.username }}</p>
-				<p>Email - {{ data.user.email }}</p>
+				<p>Name - <span class="username">{{ data.username }}</span></p>
+				<p>Email - <span class="email">{{ data.email }}</span></p>
 			</div>
 		</div>
 		<div class="profile-container">
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
-					<li> Games Played - {{ props.data.stats.played }} </li>
-					<li> Games Won - {{ props.data.stats.wins }} </li>
-					<li> Win Rate - {{ win_rate }} </li>
+					<li> Games Played - {{ 1 /* props.data.stats.played */ }} </li>
+					<li> Games Won - {{ 1 /* props.data.stats.wins */ }} </li>
+					<li> Win Rate - {{ 100 /* win_rate */ }} </li>
 				</ul>
 			</div>
 		</div>
@@ -30,7 +30,7 @@
 
 <script setup>
 const props = defineProps([ 'data' ]);
-const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
+// const win_rate = Math.round(100 * props.data.stats.wins / props.data.stats.played);
 </script>
 
 <style scoped>
@@ -49,6 +49,10 @@ h1 {
 	letter-spacing: 0.3em;
 	font-size: 5vh;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.username, .email {
+	font-family: 'Orbitron';
 }
 
 .profile-container {

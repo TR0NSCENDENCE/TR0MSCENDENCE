@@ -30,10 +30,10 @@
 				<input type="password" id="repassword" ref="repassword">
 			</div>
 			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register"/>
+				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register" />
 			</div>
 		</form>
-		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'"/>
+		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'" />
 		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
@@ -50,12 +50,12 @@ const username = ref(null);
 const password = ref(null);
 const repassword = ref(null);
 
-const error_txt = {
-	email: ref(''),
-	username: ref(''),
-	password: ref(''),
-	repassword: ref(''),
-};
+const error_txt = ref({
+	email: '',
+	username: '',
+	password: '',
+	repassword: '',
+});
 
 // TODO: Do the error handling.
 async function register() {
@@ -71,14 +71,10 @@ async function register() {
 			router.push('/');
 		},
 		(error) => {
-			if (error.response) {
-				for (var prop in error_txt) {
-					error_txt[prop].value = ''
-				}
-				for (var prop in error.response.data) {
-					error_txt[prop].value = error.response.data[prop][0];
-				}
-			}
+			if (!error.response)
+				return ;
+			for (var prop in error_txt.value)
+				error_txt.value[prop] = (error.response.data[prop] ?? '')[0] ?? '';
 		}
 	)
 }
@@ -95,6 +91,10 @@ async function register() {
 	font-size: calc(8 * var(--size-factor));
 }
 
+#email, #username {
+	font-family: 'Orbitron';
+}
+
 .form-group {
 	margin-bottom: 2vh;
 	width: 100%;
@@ -107,7 +107,7 @@ async function register() {
 	width: fit-content;
 }
 
-.form-group > input {
+.form-group>input {
 	width: 100%;
 	padding: 1vh;
 	background-color: black;
@@ -151,7 +151,8 @@ form {
 	font-size: x-small;
 }
 
-label, .error-detail {
+label,
+.error-detail {
 	display: block;
 	margin: 0.5vh;
 }

@@ -1,6 +1,6 @@
 <template>
-	<h1>match found :</h1>
-	<div id="match_found_1">
+	<h1 id="match_found">match found :</h1>
+	<div id="match_found_p1">
 		<div class="player1">
 			{{ player1 }}
 		</div>
@@ -9,7 +9,7 @@
 		<div class="letter" id="letter_V">v</div>
 		<div class="letter" id="letter_S">s</div>
 	</div>
-	<div id="match_found_2">
+	<div id="match_found_p2">
 		<div class="player2">
 			{{ player2 }}
 		</div>
@@ -17,14 +17,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const player1 = ref("souli");
-const player2 = ref("dolphin");
+const props = defineProps([ 'player1', 'player2' ]);
 </script>
 
 <style scoped>
-#match_found_1, #match_found_2 {
+#match_found_p1, #match_found_p2 {
 	color: var(--glow-color);
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 	display: flex;

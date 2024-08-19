@@ -14,13 +14,11 @@
 			</h1>
 		</div>
 		<div>
-			<Counter321
-				:active="counter_is_active"
-				@finished="() => game.resumeGame()"
-				@toggle="(value) => counter_is_active = value"
-				/>
+			<Counter321 :active="counter_is_active" @finished="resumeGame"
+				@toggle="(value) => counter_is_active = value" />
 			<div class="pong_game_container" ref="pong_game_container"></div>
 		</div>
+		<PauseOverlay v-if="pause_is_active" @resume="resumeGame" />
 	</div>
 </template>
 
@@ -29,12 +27,16 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import { Game } from '@scripts/GameInit.js';
 import Counter321 from '@components/Counter321.vue';
+import PauseOverlay from '@components/PauseOverlay.vue'
 
-const props = defineProps([ 'config' ])
+let renderer = undefined;
+let game = undefined;
+
+const props = defineProps(['config'])
 
 const counter_is_active = ref(false);
-
 const pong_game_container = ref(null);
+let pause_is_active = ref(false);
 
 const players = ref([
 	{
@@ -46,9 +48,6 @@ const players = ref([
 		score: 0
 	}
 ]);
-
-let renderer;
-let game;
 
 function animate() {
 	if (!game.isGamePaused()) {
@@ -64,7 +63,7 @@ onMounted(() => {
 	renderer = new THREE.WebGLRenderer({ antialias: true });
 	renderer.setSize(window.innerWidth * 0.9, window.innerHeight * 0.9);
 	pong_game_container.value.appendChild(renderer.domElement);
-	game = new Game(counter_is_active, props.config, renderer);
+	game = new Game(counter_is_active, () => pause_is_active.value = true, () => pause_is_active.value = false, props.config, renderer);
 	game.countdown();
 	requestAnimationFrame(animate);
 });
@@ -73,6 +72,16 @@ onUnmounted(() => {
 	if (renderer !== undefined)
 		renderer.dispose();
 })
+
+function resumeGame() {
+	if (game) {
+		counter_is_active.value = false;  // Hide the overlay
+		game.resumeGame();
+	} else {
+		console.error('Game is not initialized');
+	}
+}
+
 </script>
 
 <style scoped>
@@ -88,7 +97,7 @@ onUnmounted(() => {
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px;
-	color: hsl(0, 100%, 59%);
+	color: var(--glow-color);
 	height: 10vh;
 	font-family: 'SpaceTron', sans-serif;
 }
@@ -106,9 +115,9 @@ onUnmounted(() => {
 	padding: 10px;
 }
 
-.pong_game_container {
+/* .pong_game_container {
 	border: 2px solid red;
-}
+} */
 
 .pong_game_commands {
 	font-size: 0.5em;

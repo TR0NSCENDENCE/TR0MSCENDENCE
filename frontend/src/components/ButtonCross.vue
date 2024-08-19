@@ -33,7 +33,7 @@
 <script setup>
 import GlowingButton from '@components/GlowingButton.vue';
 
-const props = defineProps([ 'buttons' ]);
+const props = defineProps(['buttons']);
 </script>
 
 <style scoped>
@@ -42,45 +42,52 @@ const props = defineProps([ 'buttons' ]);
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	height: 100%; /* Adjust as needed */
-	width: 100%; /* Adjust as needed */
+	height: 70vh;
+	width: 70vw;
 	position: relative;
+	padding: 2vw;
+	box-sizing: border-box;
 }
 
 .middle-row {
 	display: flex;
 	justify-content: space-between;
-	width: 100%; /* Adjust as needed */
+	width: 50%;
+	max-width: 20vw;
 }
 
 .middle-space {
 	flex: 1;
 }
 
-.top-button {
+.top-button, .bottom-button {
 	position: absolute;
-	top: 0;
-	left: 50%;
+	left: 50vw;
 	transform: translateX(-50%);
-	margin-top: 50px;
+	width: 40%;
+	max-width: 15vw;
 }
 
-.left-button {
-	flex: 1;
-	margin-left: 50px;
-}
-
-.right-button {
-	flex: 1;
-	margin-right: 50px; /* Adjust as needed */
+.top-button {
+	top: 10%;
 }
 
 .bottom-button {
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	transform: translateX(-50%);
-	margin-bottom: 50px;
+	bottom: 10%;
+}
+
+.left-button, .right-button {
+	flex: 1;
+	margin: 0 50%;
+	width: 40%;
+	max-width: 25vw;
+}
+
+.left-button {
+	margin-left: 0;
+}
+
+.right-button {
+	margin-right: 0;
 }
 </style>
-

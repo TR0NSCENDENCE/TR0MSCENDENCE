@@ -75,7 +75,7 @@ async function login() {
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
 	animation: border-flicker 7s linear infinite;
-	font-family: 'SpaceTron', sans-serif;
+	font-family: 'Orbitron', sans-serif;
 	outline: none;
 }
 
@@ -84,7 +84,6 @@ async function login() {
 	justify-content: space-between;
 	width: 100%;
 	margin-top: 2vh;
-	
 }
 
 .button-group .small-button {
