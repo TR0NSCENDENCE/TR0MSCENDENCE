@@ -1,11 +1,11 @@
 <template>
-	<audio ref="audioElement" class="audio-player" controls>
+	<audio ref="audioElement" class="audio-player" controls loop>
 		<source :src="currentTrack" type="audio/mpeg" />
 	</audio>
 </template>
 
 <script setup>
-import { computed, watch, onMounted, ref } from 'vue';
+import { computed, watch, ref } from 'vue';
 import store from '@store';
 
 const currentTrack = computed(() => store.getters['audio/currentTrack']);
@@ -15,8 +15,13 @@ const isPlaying = computed(() => store.getters['audio/isPlaying']);
 const audioElement = ref(null);
 
 watch(currentTrack, (newVal) => {
-	audioElement.value.src = newVal;
-})
+	if (audioElement.value) {
+		audioElement.value.src = newVal;
+		if (isPlaying.value) {
+			audioElement.value.play();
+		}
+	}
+});
 
 watch(isPlaying, (newVal) => {
 	if (audioElement.value) {

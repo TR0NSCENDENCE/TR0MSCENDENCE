@@ -42,7 +42,7 @@
 		</div>
 		<div class="music-options">
 			<GlowingButton @click="playMusic('/ressources/music/Rider.mp3')" :text="'Rider'"/>
-			<GlowingButton :text="'Louis'"/>
+			<GlowingButton @click="playMusic('/ressources/music/X-SLIDE.mp3')" :text="'x-slide'"/>
 		</div>
 	</div>
 </template>
@@ -59,6 +59,7 @@ const sliderShadow = ref(null);
 
 const playMusic = (track) => {
 	store.dispatch('audio/playMusic', track);
+	store.dispatch('audio/setPlaying', true);
 };
 
 const updateVolume = (deg) => {
