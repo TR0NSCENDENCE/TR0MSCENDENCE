@@ -56,6 +56,18 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",
     "https://localhost:1332",
+    "https://localhost",
+    "https://aalms.duckdns.org",
+    "https://lailouezzz.duckdns.org",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "https://localhost:1332",
+    "https://localhost",
+    "https://aalms.duckdns.org",
+    "https://lailouezzz.duckdns.org",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
