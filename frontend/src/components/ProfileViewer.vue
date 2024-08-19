@@ -109,6 +109,7 @@ onMounted(() => {
 
 #profile-picture {
 	border-radius: 1em;
+	width: 50%;
 }
 
 #profile-picture-container > .glowing_button {

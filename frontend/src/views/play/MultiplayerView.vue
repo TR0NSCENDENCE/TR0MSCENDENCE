@@ -26,9 +26,15 @@ import store from '@store';
 import { connectToWebsocket } from '@utils/ws';
 import { axiosInstance } from '@utils/api';
 
+const defaultUser = {
+	user_profile: {
+		get_thumbnail: '',
+	}
+}
+
 const found = ref(false);
-const player1 = ref('');
-const player2 = ref('');
+const player1 = ref(defaultUser);
+const player2 = ref(defaultUser);
 const uuid = ref(undefined);
 
 let global_socket = undefined;
@@ -50,8 +56,8 @@ onMounted(() => {
 					axiosInstance.get(`gameinstance/${uuid.value}/`).then(
 						(response) => {
 							console.log(response.data);
-							player1.value = response.data.player_one.username;
-							player2.value = response.data.player_two.username;
+							player1.value = response.data.player_one;
+							player2.value = response.data.player_two;
 						}
 					);
 				};
