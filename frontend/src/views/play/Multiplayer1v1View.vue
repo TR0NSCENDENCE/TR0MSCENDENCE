@@ -1,6 +1,14 @@
 <template>
 	<div>
-		<PongGame v-if="store.getters.isAuthenticated" :config="config" />
+		<div v-if="store.getters.isAuthenticated">
+			<PongGame
+				v-if="connected"
+				ref="game"
+				:player_1="names[0]"
+				:player_2="names[1]"
+				@onUpdateRequested="update"/>
+			<GlowingText v-else="" :text="'Waiting for connection...'"/>
+		</div>
 		<div id="must-logged" v-else>
 			<h1>You must be logged to play online.</h1>
 			<GlowingButton class="go-back-button small-button" :text="'go back'" :dest="'/play'"/>
@@ -10,29 +18,108 @@
 
 <script setup>
 import PongGame from '@components/PongGame.vue';
-import { config } from '@assets/game_config/pong/solo';
 import GlowingButton from '@components/GlowingButton.vue';
 import store from '@store';
-import { onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router'
 import { connectToWebsocket } from '@utils/ws';
+import GlowingText from '@components/GlowingText.vue';
+import router from '@router/index';
+import { KEYBOARD } from '@scripts/KeyboardManager';
+import { axiosInstance } from '@utils/api';
 
-let global_socket = undefined;
+let /** @type {WebSocket} */ global_socket = undefined;
+let p1 = undefined;
+const connected = ref(false);
+const game = ref(null);
+const names = ref([
+	'tintin',
+	'milou'
+]);
+
+const VELOCITY = 0.4;
 
 const route = useRoute();
+const UUID = route.params.uuid;
+const inversed = () => p1 === parseInt(store.getters.userId);
+
+const update = () => {
+	let offset = 0;
+
+	if (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'))
+		offset -= 1;
+	if (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a'))
+		offset += 1;
+	if (offset != 0) {
+		global_socket.send(JSON.stringify({
+			type: 'player_move',
+			payload: {
+				offset: VELOCITY * (inversed() ? -offset : offset)
+			}
+		}));
+	}
+};
+
+const setup = async (/** @type {WebSocket} */ socket) => {
+	global_socket = socket;
+
+	socket.onopen = () => {
+		console.log('[WS] socket connected');
+	};
+	socket.onclose = () => {
+		console.log('[WS] socket closed');
+		router.push('/play');
+	};
+	socket.onmessage = (e) => {
+		const event = JSON.parse(e.data);
+
+		if (event.type === 'sync') {
+			let state = event.state;
+
+			if (inversed()) {
+				state.ball.position = {
+					x: -state.ball.position.x,
+					y: -state.ball.position.y,
+				};
+				state.ball.velocity = {
+					x: -state.ball.velocity.x,
+					y: -state.ball.velocity.y,
+				};
+				state.paddle_1.position = {
+					x: -state.paddle_1.position.x,
+					y: -state.paddle_1.position.y
+				};
+				state.paddle_2.position = {
+					x: -state.paddle_2.position.x,
+					y: -state.paddle_2.position.y
+				};
+			}
+			game.value.setters.ball(state.ball.position, state.ball.velocity);
+			game.value.setters.paddle_1(state.paddle_1.position);
+			game.value.setters.paddle_2(state.paddle_2.position);
+		}
+	}
+	try {
+		const response = await axiosInstance.get(`gameinstance/${UUID}/`);
+
+		names.value[0] = response.data.player_one.username;
+		names.value[1] = response.data.player_two.username;
+		p1 = response.data.player_one.pk;
+	} catch(e) {
+		console.log(e);
+		socket.close();
+		return ;
+	}
+	connected.value = true;
+};
 
 onMounted(() => {
-	connectToWebsocket(`ws/gameinstance/${route.params.uuid}/`,
-		(/** @type {WebSocket} */ socket) => {
-			global_socket = socket;
-			socket.onopen = (e) => {
-				console.log('[WS] socket connected');
-				socket.send(JSON.stringify({'type': 'test-position-update'}));
-			}
-			socket.onclose = (e) => console.log('[WS] socket closed');
-			socket.onmessage = (e) => console.log(e.data);
-		},
-		(error) => console.log(error)
+	connectToWebsocket(`ws/gameinstance/${UUID}/`,
+		setup,
+		(error) => {
+			router.push('/');
+			console.log(error)
+		}
 	);
 });
 

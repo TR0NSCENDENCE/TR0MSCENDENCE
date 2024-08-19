@@ -38,11 +38,12 @@ import PongLogic from '@scripts/games/pong/logic';
 import PongRenderer from '@scripts/games/pong/renderer';
 
 let game = {
-	logic: undefined,
+	logic: new PongLogic(),
 	renderer: undefined
 };
 
-const props = defineProps(['config'])
+const props = defineProps(['player_1', 'player_2']);
+const emits = defineEmits(['onUpdateRequested']);
 
 const counter_is_active = ref(false);
 const pong_game_canvas = ref(null);
@@ -60,6 +61,7 @@ const players = ref([
 ]);
 
 function animate() {
+	emits('onUpdateRequested')
 	game.logic.step();
 	game.renderer.render();
 	requestAnimationFrame(animate);
@@ -83,6 +85,8 @@ onMounted(() => {
 		return ({width, height});
 	}
 
+	players.value[0].name = props.player_1;
+	players.value[1].name = props.player_2;
 	game.renderer = new PongRenderer(
 		pong_game_canvas.value,
 		0xff0000,
@@ -91,9 +95,7 @@ onMounted(() => {
 			get_dims
 		}
 	);
-	game.logic = new PongLogic({
-		onUpdateFinished: game.renderer.updateState
-	});
+	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
 	requestAnimationFrame(animate);
 });
 
@@ -108,6 +110,14 @@ function resumeGame() {
 		console.error('Game is not initialized');
 	}
 }
+
+defineExpose({
+	setters: {
+		ball: game.logic.setBall,
+		paddle_1: game.logic.setPaddle1,
+		paddle_2: game.logic.setPaddle2
+	}
+})
 
 </script>
 

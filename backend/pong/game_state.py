@@ -6,6 +6,8 @@ from autobahn.exception import Disconnected
 
 from .models import GameInstance
 
+import math
+
 class GameState():
     class AlreadyConnected(Exception):
         pass
@@ -15,6 +17,10 @@ class GameState():
     # p_two_connected: Boolean
     # p_one_consumer: GameConsumer
     # p_two_consumer: GameConsumer
+    # p_one_pos: (float, float)
+    # p_two_pos: (float, float)
+    # ball_pos: (float, float)
+    # ball_vel: (float, float)
 
     def __init__(self, instance: GameInstance):
         self.instance = instance
@@ -22,6 +28,10 @@ class GameState():
         self.p_two_connected = False
         self.p_one_consumer = None
         self.p_two_consumer = None
+        self.p_one_pos = (-35, 0)
+        self.p_two_pos = (35, 0)
+        self.ball_pos = (0, 0)
+        self.ball_vel = (0, 0)
 
     def player_connect(self, player: User, consumer):
         if self.instance.player_one == player:
@@ -45,9 +55,17 @@ class GameState():
 
     async def player_receive_json(self, consumer, json_data):
         if self.p_one_consumer == consumer:
-            self.log('p one data :', json_data)
+            if json_data['type'] == 'player_move':
+                (x, y) = self.p_one_pos
+                offset = json_data['payload']['offset']
+                y += offset
+                self.p_one_pos = (x, y)
         if self.p_two_consumer == consumer:
-            self.log('p two data :', json_data)
+            if json_data['type'] == 'player_move':
+                (x, y) = self.p_two_pos
+                offset = json_data['payload']['offset']
+                y += offset
+                self.p_two_pos = (x, y)
 
     async def players_send_json(self, data):
         try:
@@ -102,13 +120,39 @@ class GameState():
         while not self.players_connected():
             await asyncio.sleep(1. / 10)
 
-    tick_rate = 150
+    TICK_RATE = 20
 
     async def logic(self):
         self.log("Waiting for player to disconnect")
         while self.running():
-            await self.players_send_json({'type': 'update-position'})
-            await asyncio.sleep(1. / self.tick_rate)
+            await self.players_send_json({
+                'type': 'sync',
+                'state': {
+                    'ball': {
+                        'position': {
+                            'x': self.ball_pos[0],
+                            'y': self.ball_pos[1]
+                        },
+                        'velocity': {
+                            'x': self.ball_vel[0],
+                            'y': self.ball_vel[1]
+                        }
+                    },
+                    'paddle_1': {
+                        'position': {
+                            'x': self.p_one_pos[0],
+                            'y': self.p_one_pos[1]
+                        },
+                    },
+                    'paddle_2': {
+                        'position': {
+                            'x': self.p_two_pos[0],
+                            'y': self.p_two_pos[1]
+                        },
+                    }
+                }
+            })
+            await asyncio.sleep(1. / self.TICK_RATE)
 
     async def game_loop(self):
         await self.wait_for_players()

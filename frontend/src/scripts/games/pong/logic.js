@@ -50,7 +50,6 @@ export default class PongLogic {
 	}
 
 	step = () => {
-		this.#ball.position.x += 0.1;
 		this.#callbacks.onUpdateFinished(
 			this.getBall(),
 			this.getPaddle1(),
@@ -91,5 +90,9 @@ export default class PongLogic {
 		return ({
 			position: this.#paddle_2.position
 		});
+	}
+
+	setCallbackUpdateFinished = (onUpdateFinished) => {
+		this.#callbacks.onUpdateFinished = onUpdateFinished;
 	}
 }
