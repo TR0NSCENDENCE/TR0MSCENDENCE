@@ -24,8 +24,8 @@ export default {
 		setVolume({ commit }, volume) {
 			commit('set_volume', volume);
 		},
-		stopMusic({ commit }) {
-			commit('set_playing', false);
+		setPlaying({ commit }, isplaying) {
+			commit('set_playing', isplaying);
 		},
 	},
 	getters: {
