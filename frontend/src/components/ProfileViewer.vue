@@ -3,8 +3,8 @@
 		<div class="profile-container">
 			<div class="profile-info">
 				<h2>Personal Information</h2>
-				<p>Name - <span class="username">{{ data.user.username }}</span></p>
-				<p>Email - <span class="email">{{ data.user.email }}</span></p>
+				<p>Name - <span class="username">{{ data.username }}</span></p>
+				<p>Email - <span class="email">{{ data.email }}</span></p>
 			</div>
 		</div>
 		<div class="profile-container">
@@ -21,7 +21,7 @@
 			<h2>Last Games</h2>
 			<ul>
 				<li v-for="match in data.match_history">
-					{{ data.user.username }} vs {{ match.opponent }} | {{ match.score }} - {{ match.opponent_score }} |
+					{{ data.username }} vs {{ match.opponent }} | {{ match.score }} - {{ match.opponent_score }} |
 				</li>
 			</ul>
 		</div>

@@ -106,9 +106,9 @@ export default createStore({
 		selected_map: localStorage.getItem('selected_map') ?? 'map1',
 		map_selector: map_selector,
 		endpoints: {
-			obtainJWT: import.meta.env.VITE_API_BASE_URL + 'token/',
-			refreshJWT: import.meta.env.VITE_API_BASE_URL + "refresh_token/",
-			baseUrl: import.meta.env.VITE_API_BASE_URL + "",
+			obtainJWT: import.meta.env.VITE_API_BASE_URL + '/token/',
+			refreshJWT: import.meta.env.VITE_API_BASE_URL + "/refresh_token/",
+			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
 		}
 	},
 	mutations: {
