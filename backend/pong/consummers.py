@@ -119,7 +119,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
             async with self.update_lock:
                 if len(self.waiting_list['1v1']) >= 2:
                     match_uuid = await create_match(self.waiting_list['1v1'][:2])
-                    for c in self.waiting_list['1v1'][2:]:
+                    for c in self.waiting_list['1v1'][:2]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
                         await c.close()
                     self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
