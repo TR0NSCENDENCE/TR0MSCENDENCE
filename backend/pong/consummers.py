@@ -111,7 +111,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                 pass
 
     async def matchmaking_loop_1v1(self):
-        async def create_tournament(consumers):
+        async def create_match(consumers):
             new_instance = await sync_to_async(GameInstance.objects.create)(player_one=consumers[0].user, player_two=consumers[1].user)
             return new_instance.uuid
 
