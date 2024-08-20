@@ -100,6 +100,8 @@ class GameState():
     def instance_winner(self, player: User):
         self.log('Winner :', player.username)
         self.instance.winner = player
+        self.instance.player_one_score = 69
+        self.instance.player_two_score = 42
         self.instance.save()
         async_to_sync(self.players_send_json)({'type': 'winner', 'winner_id': player.pk})
 
