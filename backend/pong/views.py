@@ -5,13 +5,19 @@ from django.http import Http404
 import json
 from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status
 from .serializers import *
-from .models import GameInstance
+from .models import GameInstance, TournamentInstance
 
 class GameInstanceRetrieveView(generics.RetrieveAPIView):
     queryset = GameInstance.objects.all()
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     lookup_field = 'uuid'
     serializer_class = GameInstanceInfoSerializer
+
+class TournamentInstanceRetrieveView(generics.RetrieveAPIView):
+    queryset = TournamentInstance.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    lookup_field = 'uuid'
+    serializer_class = TournamentInstanceInfoSerializer
 
 class UserGameListView(generics.ListAPIView):
     serializer_class = GameInstanceInfoSerializer

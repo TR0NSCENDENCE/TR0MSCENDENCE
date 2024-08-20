@@ -4,7 +4,7 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import json
 
 from users.models import User
-from .models import GameInstance
+from .models import GameInstance, TournamentInstance
 from .game_state import GameState
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
@@ -111,7 +111,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                 pass
 
     async def matchmaking_loop_1v1(self):
-        async def create_match(consumers):
+        async def create_tournament(consumers):
             new_instance = await sync_to_async(GameInstance.objects.create)(player_one=consumers[0].user, player_two=consumers[1].user)
             return new_instance.uuid
 
@@ -119,16 +119,37 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
             async with self.update_lock:
                 if len(self.waiting_list['1v1']) >= 2:
                     match_uuid = await create_match(self.waiting_list['1v1'][:2])
-                    for c in [self.waiting_list['1v1'][0], self.waiting_list['1v1'][1]]:
+                    for c in self.waiting_list['1v1'][2:]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
                         await c.close()
                     self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['1v1'] = False
 
+    async def matchmaking_loop_tournament(self):
+        async def create_tournament(consumers):
+            new_instance = await sync_to_async(TournamentInstance.objects.create)(
+                player_one=consumers[0].user,
+                player_two=consumers[1].user,
+                player_thr=consumers[2].user,
+                player_fou=consumers[3].user
+                )
+            return new_instance.uuid
+
+        while len(self.waiting_list['tournament']) > 0:
+            async with self.update_lock:
+                if len(self.waiting_list['tournament']) >= 4:
+                    match_uuid = await create_match(self.waiting_list['tournament'][:4])
+                    for c in self.waiting_list['tournament'][:4]:
+                        await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
+                        await c.close()
+                    self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
+            await asyncio.sleep(0.5)
+        self.matchmaking_running['tournament'] = False
+
     matchmaking_function = {
         '1v1': matchmaking_loop_1v1,
-        'tournament': None,
+        'tournament': matchmaking_loop_tournament,
     }
 
     matchmaking_running = {
