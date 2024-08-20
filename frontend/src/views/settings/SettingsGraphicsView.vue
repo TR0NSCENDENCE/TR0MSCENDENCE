@@ -3,12 +3,12 @@
 		<h1>Select Playboard</h1>
 		<div class="playboard-options">
 			<div class="playboard-option" @click="selectMap('map1')">
-				<img :src="map1Image" alt="Map 1" />
+				<img class="logo" :src="map1Image" alt="Map 1" />
 				<p>I</p>
 				<p class="dot" v-if="dot === 1">.</p>
 			</div>
 			<div class="playboard-option" @click="selectMap('map2')">
-				<img :src="map2Image" alt="Playboard 2" />
+				<img class="logo" :src="map2Image" alt="Playboard 2" />
 				<p>II</p>
 				<p class="dot" v-if="dot === 2">.</p>
 			</div>
@@ -20,9 +20,8 @@
 
 import { computed } from 'vue';
 import { useStore } from 'vuex'
-import map1Image from '@assets/play_boards/map1.webp' //changer les images des deux maps
-import map2Image from '@assets/play_boards/playboard2.png' //elle aussi (limite je mets une screenshot de blender ca sera plus  
-// style et ca sera en noir et blanc comme a on pourra changer la couleur de l'image plus facilement)
+import map1Image from '@assets/play_boards/map1.png'
+import map2Image from '@assets/play_boards/map2.png'
 
 const store = useStore();
 
@@ -30,12 +29,10 @@ const dot = computed(() => {
 	return store.state.selected_map === 'map2' ? 2 : 1;
 });
 
-// Fonction pour sélectionner la map et mettre à jour Vuex
 const selectMap = (map) => {
 	store.commit('changeSelectedMap', map);
 }
 </script>
-
 
 <style scoped>
 .dot {
@@ -88,6 +85,12 @@ h1 {
 	margin: 8px;
 	cursor: pointer;
 	transition: transform 0.2s;
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
 }
 
 .playboard-option:hover {
@@ -95,7 +98,7 @@ h1 {
 }
 
 .playboard-option img {
-	width: 25vw;
+	width: 20vw;
 	height: 25vh;
 }
 
@@ -105,5 +108,9 @@ h1 {
 
 p {
 	font-size: x-large;
+}
+
+.logo {
+	filter: var(--image-filter);
 }
 </style>

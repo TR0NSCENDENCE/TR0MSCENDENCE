@@ -75,7 +75,7 @@ onUnmounted(() => {
 
 function resumeGame() {
 	if (game) {
-		counter_is_active.value = false;  // Hide the overlay
+		counter_is_active.value = false;
 		game.resumeGame();
 	} else {
 		console.error('Game is not initialized');
