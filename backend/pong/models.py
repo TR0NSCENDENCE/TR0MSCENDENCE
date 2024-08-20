@@ -16,7 +16,10 @@ class GameInstance(models.Model):
     )
     winner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="winner", null=True, default=None, blank=True)
     player_one = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_one")
+    player_one_score = models.PositiveIntegerField(default=0)
     player_two = models.ForeignKey(User, on_delete=models.CASCADE, related_name="player_two")
+    player_two_score = models.PositiveIntegerField(default=0)
+    score = models.Field
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

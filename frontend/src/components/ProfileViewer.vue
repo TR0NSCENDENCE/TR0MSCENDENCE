@@ -28,7 +28,7 @@
 			<h2>Last Games</h2>
 			<ul>
 				<li v-for="match in matchs">
-					{{ match.player_one.username }} vs {{ match.player_two.username }} | {{ match.score }} - {{ match.opponent_score }} |
+					{{ match.player_one.username }} vs {{ match.player_two.username }} | {{ match.player_one_score }} - {{ match.player_two_score }} |
 				</li>
 			</ul>
 		</div>
