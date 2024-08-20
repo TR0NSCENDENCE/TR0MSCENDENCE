@@ -9,6 +9,7 @@ import { Material } from 'three';
 import { MeshStandardMaterial } from 'three';
 import { MeshBasicMaterial } from 'three';
 import { MeshLambertMaterial } from 'three';
+import store from '@store';
 
 function getCssVariableValue(varColor) {
 	const color_style = getComputedStyle(document.documentElement);
@@ -64,7 +65,7 @@ export class Game {
 		this.mapScene = new GLTFLoader();
 		this.mapScene.setDRACOLoader(dracoLoader);
 		this.mapScene.load(
-			'/ressources/map_scene/TronStadiumUltimo.glb',
+			store.getters.selectedMapPath,
 			(gltf) => {
 				gltf.scene.traverse(o => { if (o.isMesh) o.material = new ColorMaterial(o.material, hexColor) });
 				this.scene.add(gltf.scene);
@@ -125,8 +126,25 @@ export class Game {
 		window.addEventListener('keydown', (event) => {
 			if (event.key !== ' ')
 				return;
-			this.isGamePaused() ? this.resumeGame() : this.pauseGame();
+			this.isGamePaused()
+				? this.resumeGame()
+				: this.pauseGame();
 		});
+
+
+		// const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
+		// const backgroundMaterial = new MeshStandardMaterial({ 
+		// 	map: backgroundTexture,
+		// 	color: new THREE.Color(0x000000),
+		// 	emissive: new THREE.Color(0xff0000), //new THREE.Color(getCssVariableValue('--mesh-color')),
+		// 	emissiveIntensity: 1.0
+		// });
+		// const backgroundGeometry = new THREE.PlaneGeometry(750, 333);
+		// const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+
+		// backgroundMesh.position.x = -200;
+		// backgroundMesh.rotation.y = Math.PI / 2;
+		// this.scene.add(backgroundMesh);
 
 		// Post-processing for neon effect
 		this.composer = new EffectComposer(renderer);
