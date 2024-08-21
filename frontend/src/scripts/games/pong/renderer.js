@@ -124,7 +124,8 @@ export default class PongRenderer {
 			this.#composer = new EffectComposer(this.#renderer);
 			this.#render_pass = new RenderPass(this.#scene, this.#camera);
 			this.#bloom_pass = new UnrealBloomPass(
-				canvas.clientWidth, canvas.clientHeight,
+				// HACK: Will be fixed when the game canvas becomes responsive
+				undefined,
 				0.3,  // strength
 				0.5,  // radius
 				0.2   // threshold
