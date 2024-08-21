@@ -37,7 +37,6 @@ const PELLET_COLOR = 'white';
 const PACGUM_COLOR_1 = 'black';
 const PACGUM_COLOR_2 = 'white';
 const PACGUM_RADIUS = 14;
-const BLINKY_TIME = 1 * 60;
 const PINKY_TIME = 8 * 60;
 const INKY_TIME = 14 * 60;
 const CLYDE_TIME = 20 * 60;
@@ -52,16 +51,19 @@ let canvas, ctx;
 
 let time = 0;
 let id;
-let lastKey = '';
+let lastKey_j1 = '';
+let lastKey_j2 = '';
 let score = 0;
 let Pacman;
+let Blinky;
 let ghosts = [];
 
 const pellets = [];
 const pacgums = [];
 const boundaries = [];
 
-const keys = { w: { pressed: false }, a: { pressed: false }, s: { pressed: false }, d: { pressed: false } }
+const keys_j1 = { w: { pressed: false }, a: { pressed: false }, s: { pressed: false }, d: { pressed: false } }
+const keys_j2 = { up: { pressed: false }, left: { pressed: false }, down: { pressed: false }, right: { pressed: false } }
 
 const map = [
 	['1', '-', '-', '-', '-', '-', '-', '-', '_', '-', '-', '-', '-', '-', '-', '-', '2'],
@@ -186,7 +188,7 @@ class Pacgum {
 	}
 }
 
-function	createGhosts() {
+function createGhosts() {
 	const temp_ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
 	new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
 	new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
@@ -194,12 +196,6 @@ function	createGhosts() {
 	]
 	return (temp_ghosts);
 }
-
-// const ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
-// new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
-// new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
-// new ghost({ position: { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: CLYDE_COLOR, name: CLYDE })
-// ]
 
 function createImage(src, onLoadCallback, onErrorCallback) {
 	const image = new Image();
@@ -361,6 +357,10 @@ function affMapAndPellets() {
 			Pacman.velocity.x = 0;
 			Pacman.velocity.y = 0;
 		}
+		if (collidersDetector({ circle: Blinky, rectangle: boundary }) && boundary.symbol !== '~') {
+			Blinky.velocity.x = 0;
+			Blinky.velocity.y = 0;
+		}
 	})
 
 	pellets.forEach((pellet, i) => {
@@ -404,13 +404,13 @@ function collidersDetector({ circle, rectangle }) {
 }
 
 //Permet les mouvements du joueur et empeches le joueur de s'arreter en cours de route
-function playerMouvement(key, x, y) {
+function pacmanMouvement(key, x, y) {
 	if (key === 'w' || key === 's') {
 		for (let i = 0; i < boundaries.length; i++) {
 			const boundary = boundaries[i];
 			if (collidersDetector({ circle: { ...Pacman, velocity: { x: x, y: y } }, rectangle: boundary })) {
 				Pacman.velocity.y = 0;
-				return;
+				return ;
 			}
 			else
 				Pacman.velocity.y = y;
@@ -421,10 +421,43 @@ function playerMouvement(key, x, y) {
 			const boundary = boundaries[i];
 			if (collidersDetector({ circle: { ...Pacman, velocity: { x: x, y: y } }, rectangle: boundary })) {
 				Pacman.velocity.x = 0;
-				return;
+				return ;
 			}
 			else
 				Pacman.velocity.x = x;
+		}
+	}
+}
+
+//Permet les mouvements du joueur et empeches le joueur de s'arreter en cours de route
+function blinkyMouvement(key, x, y) {
+	if (Blinky.inJail === true)
+		return ;
+	if (key === 'ArrowUp' || key === 'ArrowDown') {
+		for (let i = 0; i < boundaries.length; i++) {
+			const boundary = boundaries[i];
+			if (boundary.symbol === '~' && key === 'ArrowUp')
+			{
+				Blinky.velocity.y = y;
+				return ;
+			}
+			else if (collidersDetector({ circle: { ...Blinky, velocity: { x: x, y: y } }, rectangle: boundary })) {
+				Blinky.velocity.y = 0;
+				return ;
+			}
+			else
+				Blinky.velocity.y = y;
+		}
+	}
+	if (key === 'ArrowLeft' || key === 'ArrowRight') {
+		for (let i = 0; i < boundaries.length; i++) {
+			const boundary = boundaries[i];
+			if (collidersDetector({ circle: { ...Blinky, velocity: { x: x, y: y } }, rectangle: boundary })) {
+				Blinky.velocity.x = 0;
+				return ;
+			}
+			else
+				Blinky.velocity.x = x;
 		}
 	}
 }
@@ -475,22 +508,6 @@ function removePrevDirection(ghost, directions) {
 		if (toRemove !== -1)
 			directions.splice(toRemove, 1);
 	}
-}
-
-//Modes de chasse de blinky, dans ce mode il ne suivra que le joueur
-function chaseBehaviorBlinky(ghost, directions, target) {
-	ghost.target = target;
-	const randDir = getRandomInt(directions.length);
-	if (ghost.target.y < ghost.position.y && directions.includes('up'))
-		ghost.currentDir = 'up';
-	else if (ghost.target.y > ghost.position.y && directions.includes('down'))
-		ghost.currentDir = 'down';
-	else if (ghost.target.x < ghost.position.x && directions.includes('left'))
-		ghost.currentDir = 'left';
-	else if (ghost.target.x > ghost.position.x && directions.includes('right'))
-		ghost.currentDir = 'right';
-	else
-		ghost.currentDir = directions[randDir];
 }
 
 //Modes de chasse de blinky, dans ce mode il predira les mouvements du joueur pour le pieger
@@ -600,9 +617,8 @@ function shatterBehavior(ghost, directions) {
 
 //choix de la maniere dont le fantome vas suivre le joueur en fonction de qui il est
 function chaseTarget(ghost, directions) {
-	if (ghost.name === BLINKY)
-		chaseBehaviorBlinky(ghost, directions, { x: Pacman.position.x, y: Pacman.position.y });
-	else if (ghost.name === PINKY)
+
+	if (ghost.name === PINKY)
 		chaseBehaviorPinky(ghost, directions, { x: Pacman.position.x, y: Pacman.position.y });
 	else if (ghost.name === INKY)
 		chaseBehaviorInky(ghost, directions, { x: Pacman.position.x, y: Pacman.position.y });
@@ -679,14 +695,10 @@ function AvailableDirectionAndGhostModes(ghost) {
 //Centre de control des fantomes, ajoute la notion de temps pour la sortie des fantomes, et lance le processus de mouvement
 function ghostControlCenter() {
 	ghosts.forEach(ghost => {
-		if (ghost.start === true)
+		if (ghost.start === true && ghost.name !== BLINKY)
 			AvailableDirectionAndGhostModes(ghost);
-		else if (ghost.start === false) {
-			if (ghost.name === BLINKY && time >= BLINKY_TIME) {
-				ghost.start = true;
-				ghost.scatterTime = time + SCATTER_TIME;
-			}
-			else if (ghost.name === PINKY && time >= PINKY_TIME) {
+		else if (ghost.start === false && ghost.name !== BLINKY) {
+			if (ghost.name === PINKY && time >= PINKY_TIME) {
 				ghost.start = true;
 				ghost.scatterTime = time + SCATTER_TIME;
 			}
@@ -734,10 +746,10 @@ function pacManGotCaught() {
 		ghost.mode = SCATTER;
 		resetForJail(ghost);
 	})
-	time = 0;
 	Pacman.position = { x: boundary.width * 8 + boundary.width / 2, y: boundary.height * 12 + boundary.height / 2 };
-	pacman.velocity = {x: 0, y: 0};
+	pacman.velocity = { x: 0, y: 0 };
 	Pacman.life -= 1;
+	time = 0;
 	if (Pacman.life === 0)
 		return (true);
 	return (false);
@@ -766,6 +778,16 @@ function winCondition(id) {
 	}
 }
 
+function	get_blinky()
+{
+	let blinky = undefined;
+	ghosts.forEach(ghost => {
+		if (ghost.name === BLINKY)
+			blinky = ghost;
+	})
+	return (blinky);
+}
+
 function animate() {
 	id = requestAnimationFrame(animate);
 	const now = Date.now();
@@ -775,14 +797,23 @@ function animate() {
 		then = now - (elapsed % fpsInterval);
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		if (keys.w.pressed && lastKey === 'w')
-			playerMouvement('w', 0, -Pacman.speed);
-		else if (keys.a.pressed && lastKey === 'a')
-			playerMouvement('a', -Pacman.speed, 0);
-		else if (keys.s.pressed && lastKey === 's')
-			playerMouvement('s', 0, Pacman.speed);
-		else if (keys.d.pressed && lastKey === 'd')
-			playerMouvement('d', Pacman.speed, 0);
+		if (keys_j1.w.pressed && lastKey_j1 === 'w')
+			pacmanMouvement('w', 0, -Pacman.speed);
+		else if (keys_j1.a.pressed && lastKey_j1 === 'a')
+			pacmanMouvement('a', -Pacman.speed, 0);
+		else if (keys_j1.s.pressed && lastKey_j1 === 's')
+			pacmanMouvement('s', 0, Pacman.speed);
+		else if (keys_j1.d.pressed && lastKey_j1 === 'd')
+			pacmanMouvement('d', Pacman.speed, 0);
+
+		if (keys_j2.up.pressed && lastKey_j2 === 'ArrowUp')
+			blinkyMouvement('ArrowUp', 0, -SPEED);
+		else if (keys_j2.left.pressed && lastKey_j2 === 'ArrowLeft')
+			blinkyMouvement('ArrowLeft', -SPEED, 0);
+		else if (keys_j2.down.pressed && lastKey_j2 === 'ArrowDown')
+			blinkyMouvement('ArrowDown', 0, SPEED);
+		else if (keys_j2.right.pressed && lastKey_j2 === 'ArrowRight')
+			blinkyMouvement('ArrowRight', SPEED, 0);
 
 		affMapAndPellets();
 		Pacman.update();
@@ -793,13 +824,12 @@ function animate() {
 	}
 }
 
-export	function stopAnimate()
-{
+export function stopAnimate() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	cancelAnimationFrame(id);
 	time = 0;
 	id;
-	lastKey = '';
+	lastKey_j1 = '';
 	score = 0;
 
 	pellets.length = 0;
@@ -822,6 +852,7 @@ export function initialize(context, c, updateScore, scoreRef) {
 		stockMap(textureMap).then(() => {
 			changeColorImage();
 			ghosts = createGhosts();
+			Blinky = get_blinky();
 			animate();
 			updateScore(score);
 			resolve();
@@ -834,20 +865,36 @@ export function initialize(context, c, updateScore, scoreRef) {
 addEventListener('keydown', ({ key }) => {
 	switch (key) {
 		case 'w':
-			keys.w.pressed = true;
-			lastKey = 'w';
+			keys_j1.w.pressed = true;
+			lastKey_j1 = 'w';
 			break;
 		case 'a':
-			keys.a.pressed = true;
-			lastKey = 'a';
+			keys_j1.a.pressed = true;
+			lastKey_j1 = 'a';
 			break;
 		case 's':
-			keys.s.pressed = true;
-			lastKey = 's';
+			keys_j1.s.pressed = true;
+			lastKey_j1 = 's';
 			break;
 		case 'd':
-			keys.d.pressed = true;
-			lastKey = 'd';
+			keys_j1.d.pressed = true;
+			lastKey_j1 = 'd';
+			break;
+		case 'ArrowUp':
+			keys_j2.up.pressed = true;
+			lastKey_j2 = 'ArrowUp';
+			break;
+		case 'ArrowLeft':
+			keys_j2.left.pressed = true;
+			lastKey_j2 = 'ArrowLeft';
+			break;
+		case 'ArrowDown':
+			keys_j2.down.pressed = true;
+			lastKey_j2 = 'ArrowDown';
+			break;
+		case 'ArrowRight':
+			keys_j2.right.pressed = true;
+			lastKey_j2 = 'ArrowRight';
 			break;
 	}
 })
@@ -856,16 +903,28 @@ addEventListener('keydown', ({ key }) => {
 addEventListener('keyup', ({ key }) => {
 	switch (key) {
 		case 'w':
-			keys.w.pressed = false;
+			keys_j1.w.pressed = false;
 			break;
 		case 'a':
-			keys.a.pressed = false;
+			keys_j1.a.pressed = false;
 			break;
 		case 's':
-			keys.s.pressed = false;
+			keys_j1.s.pressed = false;
 			break;
 		case 'd':
-			keys.d.pressed = false;
+			keys_j1.d.pressed = false;
+			break;
+		case 'ArrowUp':
+			keys_j2.up.pressed = false;
+			break;
+		case 'ArrowLeft':
+			keys_j2.left.pressed = false;
+			break;
+		case 'ArrowDown':
+			keys_j2.down.pressed = false;
+			break;
+		case 'ArrowRight':
+			keys_j2.right.pressed = false;
 			break;
 	}
 })

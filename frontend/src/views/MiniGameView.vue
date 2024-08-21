@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class="canvas">
 		<p class="score-header">
 			<span>Score: </span><span id="scoreEl">{{ score }}</span>
 		</p>
@@ -20,7 +20,7 @@ function initializeCanvas() {
 	const canvas = gameCanvas.value;
 	const ctx = canvas.getContext('2d');
 
-	import('@assets/pacman_img/pacman.js').then(module => {
+	import('@assets/pacman_img/1v1.js').then(module => {
 		return module.initialize(ctx, canvas, updateScore, score);
 	}).then(() => {
 		console.log('Game initialized');
@@ -31,7 +31,7 @@ function initializeCanvas() {
 
 function stopGame() {
     // Si le module pacman a des méthodes spécifiques pour nettoyer le jeu, vous pouvez les appeler ici
-    import('@assets/pacman_img/pacman.js').then(module => {
+    import('@assets/pacman_img/1v1.js').then(module => {
         if (module.stopAnimate) {
             module.stopAnimate(); // Appeler une méthode d'arrêt si elle existe
         }
@@ -61,6 +61,10 @@ const gameCanvas = ref(null);
 	-moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
 		0 0 0.45em var(--glow-color);
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.canvas {
+	display: flex;
 }
 
 canvas {
