@@ -19,8 +19,8 @@ class GameInstance(models.Model):
     player_one_score = models.PositiveIntegerField(default=0)
     player_two = models.ForeignKey(User, on_delete=models.CASCADE, related_name="gameinstance_player_two")
     player_two_score = models.PositiveIntegerField(default=0)
-    score = models.Field
     created_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True, default=None)
 
     def tournament_uuid(self):
         try:

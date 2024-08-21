@@ -25,7 +25,7 @@ class UserGameListView(generics.ListAPIView):
 
     def get_queryset(self):
         pk = self.kwargs['pk']
-        return GameInstance.objects.filter(Q(player_one__pk=pk) | Q(player_two__pk=pk)).filter(state='FD')
+        return GameInstance.objects.filter(Q(player_one__pk=pk) | Q(player_two__pk=pk)).filter(state='FD').order_by('-finished_at')
 
 class UserGameWinnedCount(views.APIView):
 

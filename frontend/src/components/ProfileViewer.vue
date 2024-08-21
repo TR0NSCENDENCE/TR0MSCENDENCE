@@ -36,11 +36,18 @@
 		</div>
 		<div class="profile-matchs" v-if="store.getters.isAuthenticated">
 			<h2>Last Games</h2>
-			<ul>
-				<li v-for="match in matchs">
-					{{ match.player_one.username }} vs {{ match.player_two.username }} | {{ match.player_one_score }} - {{ match.player_two_score }} |
-				</li>
-			</ul>
+			<div id="matchs-list-pages">
+				<ul>
+					<li v-for="match in matchs">
+						<MatchViewer :data="match"/>
+					</li>
+				</ul>
+				<div id="nav-pages">
+					<GlowingButton v-if="prev" @click="_updateMatchsList(prev)" :text="'previous'"/>
+					<h2 v-if="prev || next" >page {{ curpage }}/{{ totalpage }}</h2>
+					<GlowingButton v-if="next" @click="_updateMatchsList(next)" :text="'next'"/>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -50,6 +57,7 @@ import { axiosInstance } from '@utils/api';
 import { onMounted, ref } from 'vue';
 import GlowingButton from './GlowingButton.vue';
 import store from '@store';
+import MatchViewer from './MatchViewer.vue';
 
 const props = defineProps([ 'pk' ]);
 // const win_rate = Math.round(100 * props.userdata.stats.wins / props.userdata.stats.played);
@@ -74,10 +82,30 @@ const new_username = ref(null);
 const winned = ref(0);
 const losed = ref(0);
 const matchs = ref('');
-const file_picker = ref( );
+const file_picker = ref();
+const next = ref(null);
+const prev = ref(null);
+const curpage = ref(0);
+const totalpage = ref(0);
 
 function loadNewProfilePicture() {
 	file_picker.value.click();
+}
+
+function _updateMatchsList(url) {
+	axiosInstance.get(url).then(
+		(response) => {
+			curpage.value = new URL(response.request.responseURL).searchParams.get('page') || 1
+			totalpage.value = Math.ceil(response.data.count / 5);
+			next.value = response.data.next;
+			prev.value = response.data.previous
+			matchs.value = response.data.results;
+		}
+	);
+}
+
+function updateMatchsList() {
+	_updateMatchsList(`/user/${props.pk}/matchs`);
 }
 
 function newUsername() {
@@ -99,7 +127,6 @@ function newEmail() {
 }
 
 function onProfilePicturePicked(event) {
-	console.log(event.target.files);
 	const formData = new FormData();
 	formData.append('profile_picture', event.target.files[0]);
 	axiosInstance.patch(`/user/${props.pk}/update/`, formData, {
@@ -124,10 +151,7 @@ function loadProfile() {
 		axiosInstance.get(`/user/${props.pk}/losed/`).then(
 			(response) => losed.value = response.data.losed_count
 		);
-		axiosInstance.get(`/user/${props.pk}/matchs/`).then(
-			// TODO: implement pagination
-			(response) => matchs.value = response.data.results
-		);
+		updateMatchsList();
 	}
 }
 
@@ -138,6 +162,18 @@ onMounted(() => {
 </script>
 
 <style scoped>
+#matchs-list-pages {
+	display: flex;
+	justify-content: space-between;
+}
+
+#nav-pages {
+	margin-left: 1vw;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
 #new_username, #new_email {
 	margin-bottom: 4px;
 	width: 100%;
@@ -247,8 +283,16 @@ h1 {
 	padding: 0;
 }
 
+#matchs-list-pages > li {
+	width: fit-content;
+}
+
+#matchs-list-pages > ul {
+	width: fit-content;
+	margin: 0px;
+}
 .profile-stats ul li,
-.profile-matchs ul li,
+#matchs-list-pages ul li,
 .profile-info p {
 	margin-bottom: 10px;
 }

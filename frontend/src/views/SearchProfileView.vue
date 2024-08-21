@@ -88,6 +88,9 @@ h1 {
 ul {
 	list-style-type: none;
 	padding-left: 5vw;
+	width: fit-content;
+	display: flex;
+	flex-direction: column;
 }
 
 li {
