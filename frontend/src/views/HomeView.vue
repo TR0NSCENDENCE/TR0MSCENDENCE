@@ -6,11 +6,11 @@
 import ButtonList from '@components/ButtonList.vue';
 
 const buttons = [
-	{ text: 'play', dest: 'play' },
-	{ text: 'minigame', dest: 'minigame' },
-	{ text: 'leaderboard', dest: 'leaderboard' },
-	{ text: 'search profile', dest: 'searchprofile' },
-	{ text: 'settings', dest: 'settings' },
+	{ text: 'play', dest: 'play', needAuth: false },
+	{ text: 'minigame', dest: 'minigame', needAuth: false },
+	{ text: 'leaderboard', dest: 'leaderboard', needAuth: false },
+	{ text: 'search profile', dest: 'searchprofile', needAuth: false },
+	{ text: 'settings', dest: 'settings', needAuth: false },
 ];
 </script>
 

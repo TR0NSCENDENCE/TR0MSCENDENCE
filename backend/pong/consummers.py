@@ -65,6 +65,66 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
     async def receive_json(self, json_data):
         await self.game_state.player_receive_json(self, json_data)
 
+class TournamentConsumer(AsyncJsonWebsocketConsumer):
+
+    tournament_states = {}
+
+    update_lock = asyncio.Lock()
+
+    async def connect(self):
+        self.instance_uuid = self.scope["url_route"]["kwargs"]["instance_uuid"]
+        self.user = self.scope["user"]
+
+        # The instance exist ?
+        try:
+            self.instance = await TournamentInstance.objects.select_related('player_one', 'player_two', 'player_thr', 'player_fou').aget(uuid=self.instance_uuid)
+        except TournamentInstance.DoesNotExist:
+            # print(self.instance_uuid, 'instance not found')
+            await self.close()
+            return
+
+        # The instance is in starting or in-game state
+        if self.instance.state is TournamentInstance.TournamentState.FINISHED:
+            # print(self.instance_uuid, 'tournament finished')
+            await self.close()
+            return
+
+        # User is in the instance ?
+        if not self.user in [self.instance.player_one,
+                            self.instance.player_two,
+                            self.instance.player_thr,
+                            self.instance.player_fou]:
+            # print(self.user, 'not in the user of the instance')
+            await self.close()
+            return
+
+        async with self.update_lock:
+            if not self.instance_uuid in self.tournament_states.keys():
+                # print('instance created')
+                self.tournament_states[self.instance_uuid] = GameState(self.instance)
+                asyncio.create_task(self.tournament_states[self.instance_uuid].game_loop())
+            try:
+                self.tournament_states[self.instance_uuid].player_connect(self.user, self)
+                self.game_state = self.tournament_states[self.instance_uuid]
+            except GameState.AlreadyConnected:
+                print('user already connected to the instance')
+                await self.close()
+                return
+        # Accept connection
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if close_code == 1006:
+            return
+        # Disconnect from instance if exist
+        async with self.update_lock:
+            if self.instance_uuid in self.tournament_states.keys():
+                self.tournament_states[self.instance_uuid].player_disconnect(self.user)
+
+    # Receive message from WebSocket
+    async def receive_json(self, json_data):
+        await self.game_state.player_receive_json(self, json_data)
+
 class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
     waiting_list = {

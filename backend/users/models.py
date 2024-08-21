@@ -36,6 +36,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name="user_profile")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    friends = models.ManyToManyField(User)
     profile_picture = models.ImageField(default='default.jpg', upload_to="profile_pictures/", blank=True)
     thumbnail = models.ImageField(upload_to='profile_pictures/thumbnail/', blank=True, null=True)
 

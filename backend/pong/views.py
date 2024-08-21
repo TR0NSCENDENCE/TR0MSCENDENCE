@@ -21,7 +21,7 @@ class TournamentInstanceRetrieveView(generics.RetrieveAPIView):
 
 class UserGameListView(generics.ListAPIView):
     serializer_class = GameInstanceInfoSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         pk = self.kwargs['pk']
@@ -29,7 +29,7 @@ class UserGameListView(generics.ListAPIView):
 
 class UserGameWinnedCount(views.APIView):
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None, **kwargs):
         pk = kwargs['pk']
@@ -40,7 +40,7 @@ class UserGameWinnedCount(views.APIView):
 
 class UserGameLosedCount(views.APIView):
 
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, format=None, **kwargs):
         pk = kwargs['pk']

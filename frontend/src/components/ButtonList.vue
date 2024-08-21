@@ -2,7 +2,7 @@
 	<div class="button_list">
 		<GlowingButton
 			v-if="buttons !== undefined && buttons.length > 0"
-			v-for="button in buttons"
+			v-for="button in buttons.filter((b) => !b.needAuth | store.getters.isAuthenticated)"
 			:text="button.text"
 			:dest="button.dest"
 			/>
@@ -11,6 +11,7 @@
 
 <script setup>
 import GlowingButton from '@/components/GlowingButton.vue';
+import store from '@store';
 
 const props = defineProps([ 'buttons' ]);
 </script>

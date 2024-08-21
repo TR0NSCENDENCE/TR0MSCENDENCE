@@ -14,7 +14,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="profile-container">
+		<div class="profile-container" v-if="store.getters.isAuthenticated">
 			<div class="profile-stats">
 				<h2>Statistics</h2>
 				<ul>
@@ -24,7 +24,7 @@
 				</ul>
 			</div>
 		</div>
-		<div class="profile-activity">
+		<div class="profile-matchs" v-if="store.getters.isAuthenticated">
 			<h2>Last Games</h2>
 			<ul>
 				<li v-for="match in matchs">
@@ -77,16 +77,18 @@ function loadProfile() {
 	axiosInstance.get(`/user/${props.pk}/`).then(
 		(response) => userdata.value = response.data
 	);
-	axiosInstance.get(`/user/${props.pk}/winned/`).then(
-		(response) => winned.value = response.data.winned_count
-	);
-	axiosInstance.get(`/user/${props.pk}/losed/`).then(
-		(response) => losed.value = response.data.losed_count
-	);
-	axiosInstance.get(`/user/${props.pk}/matchs/`).then(
-		// TODO: implement pagination
-		(response) => matchs.value = response.data.results
-	);
+	if (store.getters.isAuthenticated) {
+		axiosInstance.get(`/user/${props.pk}/winned/`).then(
+			(response) => winned.value = response.data.winned_count
+		);
+		axiosInstance.get(`/user/${props.pk}/losed/`).then(
+			(response) => losed.value = response.data.losed_count
+		);
+		axiosInstance.get(`/user/${props.pk}/matchs/`).then(
+			// TODO: implement pagination
+			(response) => matchs.value = response.data.results
+		);
+	}
 }
 
 onMounted(() => {
@@ -180,12 +182,12 @@ h1 {
 }
 
 .profile-stats ul li,
-.profile-activity ul li,
+.profile-matchs ul li,
 .profile-info p {
 	margin-bottom: 10px;
 }
 
-.profile-activity {
+.profile-matchs {
 	margin: 20px;
 	padding: 20px;
 	border: 0.2em solid var(--glow-color);
@@ -200,16 +202,16 @@ h1 {
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-.profile-activity h2 {
+.profile-matchs h2 {
 	margin-left: 20px;
 	padding: 20px;
 }
 
-.profile-activity ul {
+.profile-matchs ul {
 	list-style-type: none;
 }
 
-.profile-activity li {
+.profile-matchs li {
 	margin-bottom: 5px;
 }
 

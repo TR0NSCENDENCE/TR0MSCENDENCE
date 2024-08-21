@@ -16,13 +16,13 @@ class UserRegistrationView(views.APIView):
 
 class UserView(generics.RetrieveAPIView):
     queryset = User.objects.all()
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = UserSerializer
 
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     filter_backends = [filters.SearchFilter]
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     serializer_class = UserSerializer
     search_fields = ['username']
 

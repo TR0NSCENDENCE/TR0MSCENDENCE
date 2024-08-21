@@ -30,6 +30,8 @@ const setupInstance = () => {
 	axiosInstance.interceptors.response.use(
 		(res) => {return res},
 		async (err) => {
+			if (!store.getters.accessToken)
+				return Promise.reject(err);
 			const originalConfig = err.config;
 			if (err.response && err.response.status === 401 && !originalConfig._retry) {
 				originalConfig._retry = true;

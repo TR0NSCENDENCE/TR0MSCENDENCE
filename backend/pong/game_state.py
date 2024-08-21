@@ -24,6 +24,8 @@ class GameState():
     #   p_two_consumer: GameConsumer
     #   p_one_pos: (float, float)
     #   p_two_pos: (float, float)
+    #   p_one: User
+    #   p_two: User
     #   ball_pos: (float, float)
     #   ball_vel: (float, float)
 

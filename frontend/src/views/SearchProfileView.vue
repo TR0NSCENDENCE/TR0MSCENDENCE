@@ -15,15 +15,28 @@
 				<GlowingButton v-if="next" @click="_updateUserList(next)" :text="'next'"/>
 			</div>
 		</div>
+		<button @click="bomb()">bomb</button>
 	</div>
 </template>
 
 <script setup>
 import GlowingButton from '@components/GlowingButton.vue';
 import UserViewer from '@components/UserViewer.vue';
+import store from '@store';
 import { axiosInstance } from '@utils/api';
 import { onMounted, ref } from 'vue';
 
+function bomb() {
+	for (let i = 0; i < 20; ++i) {
+		const rand = Math.random().toString(36).substring(2, 10);
+		axiosInstance.post('/register/', {
+			username: rand,
+			email: rand + '@gmail.com',
+			password: rand,
+			repassword: rand,
+		})
+	}
+}
 
 const search_username = ref(null);
 
