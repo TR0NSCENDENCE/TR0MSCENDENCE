@@ -52,14 +52,31 @@ class UserProfile(models.Model):
             return 'http://localhost:8000' + self.thumbnail.url
         return self.thumbnail.url
 
-    def make_thumbnail(self, image, size=(300, 200)):
-        img = Image.open(image)
-        img.convert('RGB')
-        img.thumbnail(size)
+    def make_thumbnail(self, image, size=(200, 200)):
+        with Image.open(image) as img:
+            img_width, img_height = img.size
+            aspect_ratio_img = img_width / img_height
+            aspect_ratio_target = size[0] / size[1]
 
-        thumb_io = BytesIO()
-        img.save(thumb_io, 'JPEG', quality=85)
+            if aspect_ratio_img > aspect_ratio_target:
+                new_width = int(img_height * aspect_ratio_target)
+                new_height = img_height
+                top = 0
+                bottom = img_height
+                left = (img_width - new_width) / 2
+                right = (img_width + new_width) / 2
+            else:
+                new_width = img_width
+                new_height = int(img_width / aspect_ratio_target)
+                top = (img_height - new_height) / 2
+                bottom = (img_height + new_height) / 2
+                left = 0
+                right = img_width
 
-        thumbnail = File(thumb_io, name=str(uuid4()) + '.jpg')
+            img_resized = img.crop((left, top, right, bottom)).resize(size).convert('RGB')
 
-        return thumbnail
+            thumb_io = BytesIO()
+            img_resized.save(thumb_io, 'JPEG', quality=85)
+
+            thumbnail = File(thumb_io, name=str(uuid4()) + '.jpg')
+            return thumbnail

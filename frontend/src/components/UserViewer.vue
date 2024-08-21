@@ -1,7 +1,7 @@
 <template>
 	<router-link class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank">
 		<p id="username">{{ userdata.username + (store.getters.userId == userdata.pk ? ' (me)' : '') }}</p>
-		<img :src="userdata.user_profile.get_thumbnail" width="50"/>
+		<img class="user-pp" :src="userdata.user_profile.get_thumbnail" width="50"/>
 	</router-link>
 </template>
 
@@ -12,6 +12,10 @@ const props = defineProps([ 'userdata' ]);
 </script>
 
 <style scoped>
+.user-pp {
+	border-radius: 4px;
+}
+
 .userviewer {
 	display: flex;
 	flex-direction: row;
@@ -23,7 +27,7 @@ const props = defineProps([ 'userdata' ]);
 	cursor: pointer;
 	border: 0.15em solid var(--glow-color);
 	border-radius: 0.45em;
-	padding: 2vh 5vh;
+	padding: 1vh 2.5vh;
 	letter-spacing: 0.2em;
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
@@ -33,6 +37,7 @@ const props = defineProps([ 'userdata' ]);
 }
 
 #username {
+	font-size: 1em;
 	margin-right: 5%;
 	white-space: nowrap;
 }

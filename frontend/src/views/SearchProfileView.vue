@@ -87,7 +87,7 @@ h1 {
 
 ul {
 	list-style-type: none;
-	padding: 0;
+	padding-left: 5vw;
 }
 
 li {
