@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .models import User, UserProfile
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from uuid import uuid4
+import django.contrib.auth.password_validation as validators
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,20 +29,16 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     email = serializers.EmailField()
-    password = serializers.CharField(
-        min_length=8,
-        max_length=32,
-        write_only=True
-    )
     repassword = serializers.CharField(
-        min_length=8,
-        max_length=32,
         write_only=True
     )
 
     class Meta:
         model = User
         fields = ['email', 'username', 'password', 'repassword']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
 
     def validate_repassword(self, value):
         data = self.get_initial()  # Récupérer les données initiales
@@ -50,6 +47,14 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if password != value:
             raise serializers.ValidationError("The passwords must match.")
         return value
+
+    def validate_password(self, value):
+        try:
+            validators.validate_password(value)
+        except validators.ValidationError as e:
+            raise serializers.ValidationError(e.messages[0])
+        return value
+
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
