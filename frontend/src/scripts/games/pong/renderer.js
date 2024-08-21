@@ -314,7 +314,7 @@ export default class PongRenderer {
 		this.#composer.render();
 	}
 
-	cleanup() {
+	cleanup = () => {
 		Object.keys(this).forEach((key) => {
 			if (typeof this[key].dispose === 'function')
 				this[key].dispose();

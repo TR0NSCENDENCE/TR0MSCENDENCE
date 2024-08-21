@@ -3,21 +3,31 @@ import json
 from asgiref.sync import async_to_sync, sync_to_async
 from users.models import User
 from autobahn.exception import Disconnected
+from random import random
 
 from .models import GameInstance
 
 import math
 
+BALL_SPEEDUP_FACTOR = 1.01
+BALL_INITIAL_VELOCITY = 0.5
+
 WALL_DIST = 19
 PADDLE_DIST = 35
 BALL_RADIUS = 1
 PADDLE_SIZE = 7
+PADDLE_MAX_POS = WALL_DIST - PADDLE_SIZE / 2
+
+BALL_RESET_ANGLE_BOUNDS = math.atan(PADDLE_DIST / WALL_DIST)
+BALL_RESET_ANGLE_RANGE = 2 * BALL_RESET_ANGLE_BOUNDS - math.pi
 
 class GameState():
     class AlreadyConnected(Exception):
         pass
 
     # Fields:
+    #   finished: Boolean
+    #   need_score_update: Boolean
     #   p_one_connected: Boolean
     #   p_two_connected: Boolean
     #   p_one_consumer: GameConsumer
@@ -31,14 +41,18 @@ class GameState():
 
     def __init__(self, instance: GameInstance):
         self.instance = instance
+        self.finished = False
+        self.need_score_update = False
+
         self.p_one_connected = False
-        self.p_two_connected = False
         self.p_one_consumer = None
+        self.p_one_score = 0
+
+        self.p_two_connected = False
         self.p_two_consumer = None
-        self.p_one_pos = (-35, 0)
-        self.p_two_pos = (35, 0)
-        self.ball_pos = (0, 0)
-        self.ball_vel = (0.5, 0.5)
+        self.p_two_score = 0
+
+        self.reset_game_state()
 
     def player_connect(self, player: User, consumer):
         if self.instance.player_one == player:
@@ -66,12 +80,18 @@ class GameState():
                 (x, y) = self.p_one_pos
                 offset = json_data['payload']['offset']
                 y += offset
+                if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
+                    tmp = PADDLE_MAX_POS
+                    y = math.copysign(tmp, y)
                 self.p_one_pos = (x, y)
         if self.p_two_consumer == consumer:
             if json_data['type'] == 'player_move':
                 (x, y) = self.p_two_pos
                 offset = json_data['payload']['offset']
                 y += offset
+                if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
+                    tmp = PADDLE_MAX_POS
+                    y = math.copysign(tmp, y)
                 self.p_two_pos = (x, y)
 
     async def players_send_json(self, data):
@@ -87,7 +107,7 @@ class GameState():
         return self.p_one_connected and self.p_two_connected
 
     def running(self):
-        return self.players_connected()
+        return self.players_connected() and not self.finished
 
     def instance_ingame(self):
         self.log('In-game !')
@@ -102,10 +122,13 @@ class GameState():
     def instance_winner(self, player: User):
         self.log('Winner :', player.username)
         self.instance.winner = player
-        self.instance.player_one_score = 69
-        self.instance.player_two_score = 42
+        self.instance.player_one_score = self.p_one_score
+        self.instance.player_two_score = self.p_two_score
         self.instance.save()
-        async_to_sync(self.players_send_json)({'type': 'winner', 'winner_id': player.pk})
+        async_to_sync(self.players_send_json)({
+            'type': 'winner',
+            'winner_id': player.pk
+        })
 
     async def close_consumers(self):
         if self.p_one_connected:
@@ -160,12 +183,59 @@ class GameState():
             }
         })
 
+    async def update_score(self):
+        await self.players_send_json({
+            'type': 'score',
+            'scores': {
+                'p1': self.p_one_score,
+                'p2': self.p_two_score
+            }
+        })
+
     def update_ball_pos(self):
         (x, y) = self.ball_pos
         (vx, vy) = self.ball_vel
         x += vx
         y += vy
         self.ball_pos = (x, y)
+
+    def reset_game_state(self, is_ball_on_p1_side=False):
+        angle = BALL_RESET_ANGLE_BOUNDS + random() * BALL_RESET_ANGLE_RANGE
+        if not is_ball_on_p1_side:
+            angle += math.pi
+        self.ball_pos = (0, 0)
+        self.ball_vel = (BALL_INITIAL_VELOCITY * math.cos(angle), BALL_INITIAL_VELOCITY * math.sin(angle))
+        self.p_one_pos = (-35, 0)
+        self.p_two_pos = (35, 0)
+
+    def round_end(self, winner: User):
+        has_p1_scored = winner == self.p_one
+        winner_score = self.p_one_score if has_p1_scored else self.p_two_score
+        if winner_score == 2:
+            self.winner = winner
+            self.finished = True
+        else:
+            if winner == self.p_one:
+                self.p_one_score = self.p_one_score + 1
+            else:
+                self.p_two_score = self.p_two_score + 1
+
+    def handle_paddle_physics(self, id):
+        def collides(y, player):
+            return abs(player[1] - y) <= (PADDLE_SIZE / 2) + BALL_RADIUS
+
+        assert(id in [1, 2])
+        (bx, by) = self.ball_pos
+        (bvx, bvy) = self.ball_vel
+        player = self.p_one_pos if id == 1 else self.p_two_pos
+        bounce = collides(by, player)
+        if bounce:
+            sign = math.copysign(1, bx)
+            offset = abs(bx) - PADDLE_DIST - BALL_RADIUS
+            bx = sign * (PADDLE_DIST - BALL_RADIUS - offset)
+            bvx = -bvx * BALL_SPEEDUP_FACTOR
+            bvy = bvy * BALL_SPEEDUP_FACTOR
+        return (bx, by, bvx, bvy, not bounce)
 
     def handle_physics(self):
         (bx, by) = self.ball_pos
@@ -179,22 +249,36 @@ class GameState():
             by = sign * (WALL_DIST - BALL_RADIUS - offset)
             # Change path of ball
             bvy = -bvy
+            self.ball_pos = (bx, by)
+            self.ball_vel = (bvx, bvy)
 
-        self.ball_pos = (bx, by)
-        self.ball_vel = (bvx, bvy)
+        # Ball bounce on paddle or win / lose
+        if abs(bx) >= PADDLE_DIST - BALL_RADIUS:
+            ball_on_p1_side = bx < 0
+            result = self.handle_paddle_physics(1 if ball_on_p1_side else 2)
+            (bx, by, bvx, bvy, lost) = result
+            self.ball_pos = (bx, by)
+            self.ball_vel = (bvx, bvy)
+            if lost:
+                # TODO: notify players that the game has been reset
+                self.need_score_update = True
+                self.round_end(self.p_two if ball_on_p1_side else self.p_one)
+                self.reset_game_state(ball_on_p1_side)
 
     async def logic(self):
         self.update_ball_pos()
         self.handle_physics()
+        if self.need_score_update:
+            self.need_score_update = False
+            await self.update_score()
         await self.update_consumers()
         await asyncio.sleep(1. / self.TICK_RATE)
 
     async def game_loop(self):
         await self.wait_for_players()
         await sync_to_async(self.instance_ingame)()
-        self.log("Waiting for player to disconnect")
         while self.running():
             await self.logic()
+        await sync_to_async(self.instance_winner)(self.winner)
         await sync_to_async(self.instance_finished)()
-        await sync_to_async(self.instance_winner)(self.p_one)
         await self.close_consumers()

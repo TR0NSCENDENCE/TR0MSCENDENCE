@@ -12,8 +12,8 @@
 import {ref} from 'vue';
 import GlowingButton from '@components/GlowingButton.vue';
 
-const winner = ref("souli");
-const loser = ref("dolphin");
+const props = defineProps(['winner', 'loser'])
+
 </script>
 
 <style scoped>
@@ -51,7 +51,7 @@ h1 {
 .dots::after {
 	content: '';
 	animation: dots 2s steps(3, end);
-    animation-iteration-count: 1;
+	animation-iteration-count: 1;
 	width: 100%;
 }
 

@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<div v-if="store.getters.isAuthenticated">
-			<div v-if="connected">
+			<div v-if="connected && !finished">
 				<GameOponentsBar
 					:player_1="players[0]"
 					:player_2="players[1]"/>
@@ -10,6 +10,11 @@
 					@onUpdateRequested="update"/>
 			</div>
 			<GlowingText v-else :text="'Waiting for connection...'"/>
+			<MatchWon
+				v-if="finished"
+				:winner="winner"
+				:loser="loser"
+				/>
 		</div>
 		<div id="must-logged" v-else>
 			<h1>You must be logged to play online.</h1>
@@ -30,6 +35,7 @@ import router from '@router/index';
 import { KEYBOARD } from '@scripts/KeyboardManager';
 import { axiosInstance } from '@utils/api';
 import GameOponentsBar from '@components/GameOponentsBar.vue';
+import MatchWon from './MatchWon.vue';
 
 let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
@@ -51,6 +57,9 @@ const players = ref([
 	structuredClone(default_player),
 	structuredClone(default_player)
 ]);
+const winner = ref('');
+const loser = ref('');
+const finished = ref(false);
 
 const VELOCITY = 0.4;
 
@@ -83,7 +92,6 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 	};
 	socket.onclose = () => {
 		console.log('[WS] socket closed');
-		router.push('/play');
 	};
 	socket.onmessage = (e) => {
 		const event = JSON.parse(e.data);
@@ -112,6 +120,16 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 			game.value.setters.ball(state.ball.position, state.ball.velocity);
 			game.value.setters.paddle_1(state.paddle_1.position);
 			game.value.setters.paddle_2(state.paddle_2.position);
+		} else if (event.type === 'score') {
+			players.value[0].score = event.scores.p1;
+			players.value[1].score = event.scores.p2;
+		} else if (event.type === 'winner') {
+			const winner_id = event.winner_id;
+			const has_won = store.getters.userId == winner_id;
+			const winner_index = has_won ^ inversed() ? 1 : 0;
+			finished.value = true;
+			winner.value = players.value[winner_index].user.username;
+			loser.value = players.value[1 - winner_index].user.username;
 		}
 	}
 	try {
