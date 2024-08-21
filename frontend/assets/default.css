@@ -5,6 +5,8 @@
 @font-face {
 	font-family: 'SpaceTron';
 	src: url('/fonts/spacetron-51nwz.otf') format('opentype');
+	font-family: 'Orbitron';
+	src: url('/fonts/Orbitron-VariableFont_wght.ttf') format('truetype');
 }
 
 #header {
