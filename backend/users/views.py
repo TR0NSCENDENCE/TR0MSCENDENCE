@@ -26,11 +26,17 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
     search_fields = ['username']
 
-class UserUpdateView(generics.UpdateAPIView):
+class UserProfileUpdateView(generics.UpdateAPIView):
     queryset = UserProfile.objects.all()
     permission_classes = [IsOwnerOrReadOnly]
     serializer_class = UserProfileUpdateSerializer
     lookup_field = 'user__pk'
+
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = UserSerializer
+    lookup_field = 'pk'
 
 class MyUserView(views.APIView):
     def get(self, request, format=None):

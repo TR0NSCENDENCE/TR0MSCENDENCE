@@ -4,13 +4,23 @@
 			<div class="profile-info">
 				<h2>Personal Information</h2>
 				<p>Name - <span class="username">{{ userdata.username }}</span></p>
+				<div v-if="store.getters.userId == pk">
+					<input type="text" id="new_username" ref="new_username"/>
+					<p>{{ error_txt.username }}</p>
+					<GlowingButton class="fit-content" @click="newUsername()" :text="'update username'"/>
+				</div>
 				<p>Email - <span class="email">{{ userdata.email }}</span></p>
+				<div v-if="store.getters.userId == pk">
+					<input type="email" id="new_email" ref="new_email"/>
+					<p>{{ error_txt.email }}</p>
+					<GlowingButton class="fit-content" @click="newEmail()" :text="'update email'"/>
+				</div>
 			</div>
 			<div id="profile-picture-container">
 				<img id="profile-picture" :src="userdata.user_profile.get_thumbnail"/>
 				<div v-if="store.getters.userId == pk">
 					<input id="new-profile-picture" type="file" @change="onProfilePicturePicked" accept=".jpg" ref="file_picker" style="visibility:hidden"/>
-					<GlowingButton @click="loadNewProfilePicture()" :text="'UPDATE PICTURE'"/>
+					<GlowingButton class="fit-content" @click="loadNewProfilePicture()" :text="'UPDATE PICTURE'"/>
 				</div>
 			</div>
 		</div>
@@ -44,11 +54,23 @@ import store from '@store';
 const props = defineProps([ 'pk' ]);
 // const win_rate = Math.round(100 * props.userdata.stats.wins / props.userdata.stats.played);
 
+const error_txt = ref({
+	email: '',
+	username: '',
+});
+
+function handleError(err) {
+	for (var prop in error_txt.value)
+		error_txt.value[prop] = (err.response.data[prop] ?? '')[0] ?? '';
+}
+
 const userdata = ref({
 	user_profile: {
 		get_thumbnail: '',
 	},
 });
+const new_email = ref(null);
+const new_username = ref(null);
 const winned = ref(0);
 const losed = ref(0);
 const matchs = ref('');
@@ -56,6 +78,24 @@ const file_picker = ref( );
 
 function loadNewProfilePicture() {
 	file_picker.value.click();
+}
+
+function newUsername() {
+	error_txt.value.username = '';
+	axiosInstance.patch(`/user/${props.pk}/update-cred/`, {
+		username: new_username.value.value
+	}).then(
+		(response) => loadProfile()
+	).catch(handleError)
+}
+
+function newEmail() {
+	error_txt.value.email = '';
+	axiosInstance.patch(`/user/${props.pk}/update-cred/`, {
+		email: new_email.value.value
+	}).then(
+		(response) => loadProfile()
+	).catch(handleError)
 }
 
 function onProfilePicturePicked(event) {
@@ -98,6 +138,32 @@ onMounted(() => {
 </script>
 
 <style scoped>
+#new_username, #new_email {
+	margin-bottom: 4px;
+	width: 100%;
+	padding: 1vh;
+	background-color: black;
+	border: 0.15em solid var(--glow-color);
+	border-radius: 0.45em;
+	color: var(--glow-color);
+	box-sizing: border-box;
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	animation: border-flicker 7s linear infinite;
+	font-family: 'Orbitron', sans-serif;
+	outline: none;
+}
+
+.fit-content {
+	width: fit-content;
+	height: fit-content;
+	font-size: 1vmax;
+}
+
 .profile {
 	color: var(--glow-color);
 	--size-factor: (0.00188323 * 70vw);

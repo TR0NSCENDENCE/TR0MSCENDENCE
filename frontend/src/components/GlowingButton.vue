@@ -63,7 +63,7 @@ const chunks = createTextChunks(props.text);
 	font-family: "SpaceTron", sans-serif;
 	font-weight: 900;
 	letter-spacing: 0.2em;
-	--size-factor: (0.00188323 * 70vw);
+	--size-factor: (0.00188323 * 70em);
 	font-size: calc(12 * var(--size-factor));
 	text-align: center;
 	display: flex;
