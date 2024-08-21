@@ -21,11 +21,11 @@ import { devs } from '@assets/data/devs.json'
 	direction: row;
 	align-items: center;
 	justify-content: center;
-	gap: 15vh;
+	gap: 7vw;
 	margin: 3vh;
 	border: 0.2em solid var(--glow-color);
 	border-radius: 0.45em;
-	padding: 4vh;
+	padding: 2vw;
 	background: none;
 	perspective: 2em;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),

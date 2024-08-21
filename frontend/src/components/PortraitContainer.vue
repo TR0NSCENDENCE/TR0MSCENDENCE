@@ -24,7 +24,7 @@ const props = defineProps([ 'name', 'nickname', 'src', 'alt' ]);
 }
 
 .portrait {
-	width: 20vh;
+	width: 10vw;
 	height: 28vh;
 	display: block;
 	margin: 0 auto;
