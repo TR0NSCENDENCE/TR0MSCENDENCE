@@ -1,39 +1,31 @@
 <template>
 	<div class="pong_game">
 		<div class="pong_game_container">
-			<Counter321
-				style="width: 100%; height: 10%;"
-				:active="counter_is_active"
-				@finished="resumeGame"
-				@toggle="(value) => counter_is_active = value"
-				/>
-			<div class="pong_game_canvas_container" style="width: 100%; height: 90%;">
-				<canvas ref="pong_game_canvas" style="width: 90%; height:100%;"></canvas>
-			</div>
+			<Counter321 ref="counter"/>
+			<canvas
+				ref="pong_game_canvas"
+				style="width: 90%; height:100%;"
+				>
+			</canvas>
 		</div>
-		<PauseOverlay v-if="pause_is_active" @resume="resumeGame" />
 	</div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import * as THREE from 'three';
-import { Game } from '@scripts/GameInit.js';
 import Counter321 from '@components/Counter321.vue';
-import PauseOverlay from '@components/PauseOverlay.vue'
 import PongLogic from '@scripts/games/pong/logic';
 import PongRenderer from '@scripts/games/pong/renderer';
 
-let game = {
+const emits = defineEmits(['onUpdateRequested']);
+
+const game = {
 	logic: new PongLogic(),
 	renderer: undefined
 };
 
-const emits = defineEmits(['onUpdateRequested']);
-
-const counter_is_active = ref(false);
+const counter = ref(null);
 const pong_game_canvas = ref(null);
-let pause_is_active = ref(false);
 
 function animate() {
 	emits('onUpdateRequested')
@@ -48,8 +40,6 @@ onMounted(() => {
 		if (!canvas) return (false);
 		const width = pong_game_canvas.value.clientWidth;
 		const height = pong_game_canvas.value.clientHeight;
-		// console.log(width, height, '|', pong_game_canvas.value.width, pong_game_canvas.value.height);
-
 		return (pong_game_canvas.value.width !== width || pong_game_canvas.value.height !== height);
 	};
 
@@ -79,16 +69,13 @@ onUnmounted(() => {
 		game.renderer.cleanup();
 })
 
-function resumeGame() {
-	if (game) {
-		counter_is_active.value = false;  // Hide the overlay
-		game.resumeGame();
-	} else {
-		console.error('Game is not initialized');
-	}
-}
-
 defineExpose({
+	setCounterActive: (active) => {
+		if (active)
+			counter.value.start();
+		else
+			counter.value.stop();
+	},
 	setters: {
 		ball: game.logic.setBall,
 		paddle_1: game.logic.setPaddle1,

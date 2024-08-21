@@ -27,7 +27,7 @@ class GameState():
 
     # Fields:
     #   finished: Boolean
-    #   need_score_update: Boolean
+    #   has_round_ended: Boolean
     #   p_one_connected: Boolean
     #   p_two_connected: Boolean
     #   p_one_consumer: GameConsumer
@@ -42,7 +42,7 @@ class GameState():
     def __init__(self, instance: GameInstance):
         self.instance = instance
         self.finished = False
-        self.need_score_update = False
+        self.has_round_ended = False
 
         self.p_one_connected = False
         self.p_one_consumer = None
@@ -192,6 +192,11 @@ class GameState():
             }
         })
 
+    async def counter(self):
+        await self.players_send_json({'type': 'counter_start'})
+        await asyncio.sleep(3)
+        await self.players_send_json({'type': 'counter_stop'})
+
     def update_ball_pos(self):
         (x, y) = self.ball_pos
         (vx, vy) = self.ball_vel
@@ -209,16 +214,15 @@ class GameState():
         self.p_two_pos = (35, 0)
 
     def round_end(self, winner: User):
-        has_p1_scored = winner == self.p_one
-        winner_score = self.p_one_score if has_p1_scored else self.p_two_score
-        if winner_score == 2:
+        if winner == self.p_one:
+            self.p_one_score = self.p_one_score + 1
+        else:
+            self.p_two_score = self.p_two_score + 1
+        if 3 in [self.p_one_score, self.p_two_score]:
             self.winner = winner
             self.finished = True
-        else:
-            if winner == self.p_one:
-                self.p_one_score = self.p_one_score + 1
-            else:
-                self.p_two_score = self.p_two_score + 1
+            return
+        self.has_round_ended = True
 
     def handle_paddle_physics(self, id):
         def collides(y, player):
@@ -260,23 +264,24 @@ class GameState():
             self.ball_pos = (bx, by)
             self.ball_vel = (bvx, bvy)
             if lost:
-                # TODO: notify players that the game has been reset
-                self.need_score_update = True
                 self.round_end(self.p_two if ball_on_p1_side else self.p_one)
                 self.reset_game_state(ball_on_p1_side)
 
     async def logic(self):
         self.update_ball_pos()
         self.handle_physics()
-        if self.need_score_update:
-            self.need_score_update = False
-            await self.update_score()
         await self.update_consumers()
-        await asyncio.sleep(1. / self.TICK_RATE)
+        if self.has_round_ended:
+            self.has_round_ended = False
+            await self.update_score()
+            await self.counter()
+        else:
+            await asyncio.sleep(1. / self.TICK_RATE)
 
     async def game_loop(self):
         await self.wait_for_players()
         await sync_to_async(self.instance_ingame)()
+        await self.counter()
         while self.running():
             await self.logic()
         await sync_to_async(self.instance_winner)(self.winner)

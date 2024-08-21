@@ -3,28 +3,36 @@
 		<div v-if="store.getters.isAuthenticated">
 			<div v-if="ws_error">
 				<h1> A server error occured... </h1>
-				<GlowingButton text="main menu" dest="/" />
+				<GlowingButton
+					text="main menu"
+					dest="/"
+					/>
 			</div>
 			<div v-else-if="connected">
 				<div v-if="game_running">
 					<GameOponentsBar
 						:player_1="players[0]"
-						:player_2="players[1]"/>
+						:player_2="players[1]"
+						/>
 					<PongGame
 						ref="game"
-						@onUpdateRequested="update"/>
+						@onUpdateRequested="update"
+						/>
 				</div>
-				<MatchWon
-					v-else
+				<MatchWon v-else
 					:winner="winner"
 					:loser="loser"
 					/>
 			</div>
 			<h1 v-else> Waiting for connection... </h1>
 		</div>
-		<div id="must-logged" v-else>
-			<h1>You must be logged to play online.</h1>
-			<GlowingButton class="go-back-button small-button" text="go back" dest="/play'"/>
+		<div v-else id="must-logged">
+			<h1> You must be logged to play online. </h1>
+			<GlowingButton
+				class="go-back-button small-button"
+				text="go back"
+				dest="/play"
+				/>
 		</div>
 	</div>
 </template>
@@ -137,6 +145,11 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 		} else if (event.type === 'score') {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
+		} else if (event.type === 'counter_start') {
+			console.log('hehe boi')
+			game.value.setCounterActive(true)
+		} else if (event.type === 'counter_stop') {
+			game.value.setCounterActive(false)
 		} else if (event.type === 'winner') {
 			const winner_id = event.winner_id;
 			const has_won = store.getters.userId == winner_id;
@@ -153,10 +166,10 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 		players.value[0].user = response.data.player_one;
 		players.value[1].user = response.data.player_two;
 		p1 = response.data.player_one.pk;
-	} catch(e) {
+	} catch (e) {
 		console.log(e);
 		socket.close();
-		return ;
+		return;
 	}
 	connected.value = true;
 };
@@ -179,6 +192,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+
 #must-logged {
 	display: flex;
 	flex-direction: column;

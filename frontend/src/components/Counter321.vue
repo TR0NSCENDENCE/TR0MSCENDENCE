@@ -1,59 +1,48 @@
 <template>
 	<div class="counter_container">
-		<div ref="counter" class="counter" :class="{ 'counter_active': isActive }"></div>
+		<div class="counter" :class="{ 'counter_active': is_active }"></div>
 	</div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, onUnmounted } from 'vue'
 
-const props = defineProps({
-	active: Boolean,
-	finishCallback: Function
-});
+const emits = defineEmits(['finished'])
 
-const isActive = ref(props.active);
+const is_active = ref(false);
+let timer = undefined;
 
-const emits = defineEmits(['toggle', 'finished'])
-
-function setIsActive(value) {
-	emits('toggle', value);
+function start() {
+	console.log('start')
+	is_active.value = true;
+	setTimeout(
+		() => {
+			console.log('end')
+			emits('finished');
+			is_active.value = false;
+			timer = undefined;
+		},
+		3000
+	);
 }
 
-const counter = ref(null);
-
-watch(() => props.active, (newValue, oldValue) => {
-	if (newValue == oldValue)
-		return;
-	if (oldValue) {
-		isActive.value = false;
-		setIsActive(false);
-		return;
+function stop() {
+	is_active.value = false;
+	if (timer) {
+		clearTimeout(timer);
+		timer = undefined;
 	}
-	isActive.value = true;
-	setTimeout(
-		() => {
-			isActive.value = false;
-			setIsActive(false);
-			emits('finished');
-		},
-		3000
-	);
-});
+}
 
-onMounted(() => {
-	if (!props.active)
-		return ;
-	isActive.value = true;
-	setTimeout(
-		() => {
-			isActive.value = false;
-			setIsActive(false);
-			emits('finished');
-		},
-		3000
-	);
+onUnmounted(() => {
+	if (timer)
+		clearTimeout(timer)
 })
+
+defineExpose({
+	start: start,
+	stop: stop
+});
 
 </script>
 
