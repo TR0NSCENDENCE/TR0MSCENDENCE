@@ -1,7 +1,3 @@
-// const canvas = document.querySelector('canvas');
-// const c = canvas.getContext('2d');
-const scoreEl = document.querySelector('#scoreEl');
-
 import pipeVertical from '@assets/pacman_img/pipeVertical.png';
 import pipeConnectorBottom from '@assets/pacman_img/pipeConnectorBottom.png';
 import pipeConnectorTop from '@assets/pacman_img/pipeConnectorTop.png';
@@ -19,6 +15,7 @@ import pipeCorner2 from '@assets/pacman_img/pipeCorner2.png';
 import pipeCorner3 from '@assets/pacman_img/pipeCorner3.png';
 import pipeCorner4 from '@assets/pacman_img/pipeCorner4.png';
 import PrisonDoor from '@assets/pacman_img/PrisonDoor.png';
+//import caca from store.getters.PacmanColor;
 
 let textureMap = new Map();
 const SPEED = 2;
@@ -59,6 +56,7 @@ let id;
 let lastKey = '';
 let score = 0;
 let Pacman;
+let ghosts = [];
 
 const pellets = [];
 const pacgums = [];
@@ -131,6 +129,7 @@ class ghost {
 		this.color = color;
 		this.mode = SCATTER;
 		this.shatter = false;
+		this.id_shatter = 0;
 		this.target;
 		this.scatterTime = SCATTER_TIME;
 		this.chaseTime = CHASE_TIME;
@@ -188,18 +187,20 @@ class Pacgum {
 	}
 }
 
-const ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
-new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
-new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
-new ghost({ position: { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: CLYDE_COLOR, name: CLYDE })
-]
+function	createGhosts() {
+	const temp_ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
+	new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
+	new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
+	new ghost({ position: { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: CLYDE_COLOR, name: CLYDE })
+	]
+	return (temp_ghosts);
+}
 
-//cree l'image en fonction de src renseigner en parametre et la retourn
-// function createImage(src) {
-// 	const image = new Image();
-// 	image.src = src;
-// 	return (image);
-// }
+// const ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
+// new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
+// new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
+// new ghost({ position: { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: CLYDE_COLOR, name: CLYDE })
+// ]
 
 function createImage(src, onLoadCallback, onErrorCallback) {
 	const image = new Image();
@@ -256,59 +257,32 @@ function initMap(textureMap) {
 	textureMap.set("4", pipeCorner4);
 	textureMap.set("~", PrisonDoor);
 }
-//Cree le tableau map, pellets et cree pacman en fonction de sa position sur la map et renvoie un objet Pacman
-// function stockMap(textureMap) {
-// 	initMap(textureMap);
-// 	map.forEach((row, i) => {
-// 		row.forEach((symbol, j) => {
-// 			if (symbol === '.') {
-// 				pellets.push(new Pellet({
-// 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2 }
-// 				}))
-// 			}
-// 			else if (symbol === 'O') {
-// 				pacgums.push(new Pacgum({
-// 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2, color: PACGUM_COLOR_1 }
-// 				}))
-// 			}
-// 			else if (symbol === 'P') {
-// 				Pacman = new pacman({
-// 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2 },
-// 					velocity: { x: 0, y: 0 }
-// 				})
-// 			}
-// 			else if (textureMap.has(symbol)) {
-// 				boundaries.push(new boundary({
-// 					position: { x: boundary.width * j, y: boundary.height * i },
-// 					image: createImage(textureMap.get(symbol)),
-// 					symbol: symbol
-// 				}))
-// 			}
-// 		})
-// 	})
-// }
 
 function stockMap(textureMap) {
 	initMap(textureMap);
 
 	const imagePromises = [];
 
+	changeColorImage();
 	map.forEach((row, i) => {
 		row.forEach((symbol, j) => {
 			if (symbol === '.') {
 				pellets.push(new Pellet({
 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2 }
 				}));
-			} else if (symbol === 'O') {
+			}
+			else if (symbol === 'O') {
 				pacgums.push(new Pacgum({
 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2, color: PACGUM_COLOR_1 }
 				}));
-			} else if (symbol === 'P') {
+			}
+			else if (symbol === 'P') {
 				Pacman = new pacman({
 					position: { x: boundary.width * j + boundary.width / 2, y: boundary.height * i + boundary.height / 2 },
 					velocity: { x: 0, y: 0 }
 				});
-			} else if (textureMap.has(symbol)) {
+			}
+			else if (textureMap.has(symbol)) {
 				const src = textureMap.get(symbol);
 				const promise = new Promise((resolve, reject) => {
 					createImage(src, (image) => {
@@ -327,7 +301,58 @@ function stockMap(textureMap) {
 	return Promise.all(imagePromises); // Attendre que toutes les images soient chargées
 }
 
+// boundary.image = applyColorFilterToImage(boundary.image);
 
+function getCssVariableValue(varColor) {
+	const color_style = getComputedStyle(document.documentElement);
+	return color_style.getPropertyValue(varColor).trim();
+}
+
+function changeColorImage() {
+	const hexColor = getCssVariableValue('--mesh-color');
+	boundaries.forEach((boundary) => {
+		boundary.image = applyColorFilterToImage(boundary.image, hexColor);
+	})
+}
+
+function applyColorFilterToImage(image, color) {
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+
+	// Assurez-vous que le canvas a la même taille que l'image
+	canvas.width = image.width;
+	canvas.height = image.height;
+
+	// Dessinez l'image sur le canvas
+	ctx.drawImage(image, 0, 0);
+
+	// Obtenez les données des pixels
+	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	const data = imageData.data;
+
+	// Décomposez la couleur souhaitée en ses composantes rouge, vert, bleu
+	const r = parseInt(color.slice(1, 3), 16);
+	const g = parseInt(color.slice(3, 5), 16);
+	const b = parseInt(color.slice(5, 7), 16);
+
+	// Parcourez chaque pixel
+	for (let i = 0; i < data.length; i += 4) {
+		const grayscale = data[i]; // Puisque l'image est en noir et blanc, r=g=b
+
+		// Si le pixel n'est pas complètement blanc, appliquez la couleur
+		if (grayscale > 30) {
+			data[i] = r * (grayscale / 255);       // Rouge
+			data[i + 1] = g * (grayscale / 255);   // Vert
+			data[i + 2] = b * (grayscale / 255);   // Bleu
+		}
+	}
+
+	// Mettez à jour le canvas avec les nouvelles données de pixels
+	ctx.putImageData(imageData, 0, 0);
+
+	// Retournez le canvas pour affichage
+	return canvas;
+}
 
 //Affiche la map et les pellets
 function affMapAndPellets() {
@@ -345,7 +370,6 @@ function affMapAndPellets() {
 			pellet.position.y - Pacman.position.y) < pellet.radius / 2 + Pacman.radius / 2) {
 			pellets.splice(i, 1);
 			score += 1000;
-			scoreEl.innerHTML = score;
 		}
 	})
 
@@ -361,7 +385,11 @@ function affMapAndPellets() {
 			pacgums.splice(i, 1);
 			ghosts.forEach(ghost => {
 				ghost.shatter = true;
-				setTimeout(() => { ghost.shatter = false }, 7000)
+				if (ghost.id_shatter !== 0) {
+					clearTimeout(ghost.id_shatter);
+					ghost.id_shatter = setTimeout(() => { ghost.shatter = false }, 7000)
+				}
+				ghost.id_shatter = setTimeout(() => { ghost.shatter = false, ghost.id_shatter = 0 }, 7000)
 			})
 		}
 	})
@@ -697,7 +725,7 @@ function resetForJail(ghost) {
 		ghost.position = { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 };
 	ghost.velocity.y = 0;
 	ghost.velocity.x = 0;
-	scoreEl.innerHTML = score;
+	score += 3000;
 	setTimeout(() => { ghost.inJail = false }, 3000)
 }
 
@@ -717,7 +745,6 @@ function pacManGotCaught() {
 
 function loseCondition(ghost, id) {
 	if (calLoseHitBox(Pacman.position.y - ghost.position.y) && calLoseHitBox(Pacman.position.x - ghost.position.x) && ghost.shatter === false) {
-		console.log(Pacman.life);
 		if (pacManGotCaught() === true) {
 			console.log(ghost.name);
 			cancelAnimationFrame(id);
@@ -739,53 +766,67 @@ function winCondition(id) {
 	}
 }
 
-// pacman.js
+function animate() {
+	id = requestAnimationFrame(animate);
+	const now = Date.now();
+	const elapsed = now - then;
 
-export function initialize(context, c, updateScore) {
+	if (elapsed > fpsInterval) {
+		then = now - (elapsed % fpsInterval);
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		if (keys.w.pressed && lastKey === 'w')
+			playerMouvement('w', 0, -Pacman.speed);
+		else if (keys.a.pressed && lastKey === 'a')
+			playerMouvement('a', -Pacman.speed, 0);
+		else if (keys.s.pressed && lastKey === 's')
+			playerMouvement('s', 0, Pacman.speed);
+		else if (keys.d.pressed && lastKey === 'd')
+			playerMouvement('d', Pacman.speed, 0);
+
+		affMapAndPellets();
+		Pacman.update();
+		ghostControlCenter();
+		all_ghosts_updates();
+		winCondition(id);
+		clock();
+	}
+}
+
+export	function stopAnimate()
+{
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	cancelAnimationFrame(id);
+	time = 0;
+	id;
+	lastKey = '';
+	score = 0;
+	Pacman;
+
+	pellets.length = 0;
+	pacgums.length = 0;
+	boundaries.length = 0;
+	ghosts.length = 0;
+}
+
+export function initialize(context, c, updateScore, scoreRef) {
 	return new Promise((resolve, reject) => {
-		// Initialisation des variables
-		fpsInterval = 1000 / 60; // Exemple de FPS
+		fpsInterval = 1000 / 60;
 		then = Date.now();
 		startTime = then;
 		canvas = c;
 		ctx = context;
+		score = scoreRef.value;
 
 		canvas.width = map[0].length * BLOCK_SIZE;
 		canvas.height = map.length * BLOCK_SIZE;
-
-		console.log(canvas.width);
-		console.log(canvas.height);
-		// Stockage des images et création des objets
 		stockMap(textureMap).then(() => {
-			function animate() {
-				id = requestAnimationFrame(animate);
-				const now = Date.now();
-				const elapsed = now - then;
-
-				if (elapsed > fpsInterval) {
-					then = now - (elapsed % fpsInterval);
-					ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-					// Logique du jeu
-					if (keys.w.pressed && lastKey === 'w') playerMouvement('w', 0, -Pacman.speed);
-					else if (keys.a.pressed && lastKey === 'a') playerMouvement('a', -Pacman.speed, 0);
-					else if (keys.s.pressed && lastKey === 's') playerMouvement('s', 0, Pacman.speed);
-					else if (keys.d.pressed && lastKey === 'd') playerMouvement('d', Pacman.speed, 0);
-
-					affMapAndPellets();
-					ghostControlCenter();
-					Pacman.update();
-					all_ghosts_updates();
-					winCondition(id);
-					clock();
-
-					updateScore(Pacman.score); // Exemple de mise à jour du score
-				}
-			}
-
+			changeColorImage();
+			ghosts = createGhosts();
 			animate();
-			resolve(); // Indique que l'initialisation est terminée
-		}).catch(reject); // En cas d'erreur, rejette la promesse
+			updateScore(score);
+			resolve();
+		}).catch(reject);
 	});
 }
 
