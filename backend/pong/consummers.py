@@ -27,7 +27,7 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
             return
 
         # The instance is in starting or in-game state
-        if not self.instance.state in ['ST', 'IG']:
+        if not self.instance.state in ['ST']:
             # print(self.instance_uuid, 'match finished')
             await self.close()
             return
