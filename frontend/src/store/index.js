@@ -52,28 +52,28 @@ const theme_colors = {
 		b_color: 'hsl(120, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-240deg) contrast(180%) brightness(1.2)',
 		mesh_color: '#00ff00',
-		image_color: 'sepia(100%) saturate(3000%) hue-rotate(-285deg) contrast(100%) brightness(1.2)',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-285deg) contrast(180%) brightness(1.2)',
 	},
 	red: {
 		color: 'hsl(0, 100%, 59%)',
 		b_color: 'hsl(0, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-35deg) contrast(180%) brightness(1.2)',
 		mesh_color: '#ff0000',
-		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-40deg) contrast(100%) brightness(1.0)',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-30deg) contrast(180%) brightness(1.2)',
 	},
 	yellow: {
 		color: 'hsl( 60, 100%, 50%)',
 		b_color: 'hsl( 90, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(35deg) contrast(100%) brightness(1.8)',
 		mesh_color: '#ffff00',
-		image_color: 'sepia(100%) saturate(1000%) hue-rotate(35deg) contrast(100%) brightness(1.5)',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(35deg) contrast(100%) brightness(1.8)',
 	},
 	blue: {
 		color: 'hsl(180, 90%,  50%)',
 		b_color: 'hsl(180, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-210deg) contrast(120%) brightness(1.8)',
 		mesh_color: '#00ffff',
-		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-210deg) contrast(90%) brightness(1.2)',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-210deg) contrast(120%) brightness(1.8)',
 	},
 }
 
