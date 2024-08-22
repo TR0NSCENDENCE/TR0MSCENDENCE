@@ -20,6 +20,7 @@ PADDLE_DIST = 35
 BALL_RADIUS = 1
 PADDLE_SIZE = 7
 PADDLE_MAX_POS = WALL_DIST - PADDLE_SIZE / 2
+PADDLE_VELOCITY = 1.
 
 BALL_RESET_ANGLE_BOUNDS = math.atan(PADDLE_DIST / WALL_DIST)
 BALL_RESET_ANGLE_RANGE = 2 * BALL_RESET_ANGLE_BOUNDS - math.pi
@@ -39,6 +40,8 @@ class GameState():
     #   p_two_pos: (float, float)
     #   p_one: User
     #   p_two: User
+    #   p_one_dir: int
+    #   p_two_dir: int
     #   ball_pos: (float, float)
     #   ball_vel: (float, float)
 
@@ -49,10 +52,12 @@ class GameState():
 
         self.p_one_connected = False
         self.p_one_consumer = None
+        self.p_one_dir = 0
         self.p_one_score = 0
 
         self.p_two_connected = False
         self.p_two_consumer = None
+        self.p_two_dir = 0
         self.p_two_score = 0
 
         self.reset_game_state()
@@ -79,23 +84,26 @@ class GameState():
 
     async def player_receive_json(self, consumer, json_data):
         if self.p_one_consumer == consumer:
-            if json_data['type'] == 'player_move':
-                (x, y) = self.p_one_pos
-                offset = json_data['payload']['offset']
-                y += offset
-                if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
-                    tmp = PADDLE_MAX_POS
-                    y = math.copysign(tmp, y)
-                self.p_one_pos = (x, y)
+            if json_data['type'] == 'player_direction':
+                self.p_one_dir = 1 if json_data['payload']['right'] else 0
+                self.p_one_dir -= 1 if json_data['payload']['left'] else 0
+                # (x, y) = self.p_one_pos
+                # y += offset
+                # if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
+                #     tmp = PADDLE_MAX_POS
+                #     y = math.copysign(tmp, y)
+                # self.p_one_pos = (x, y)
         if self.p_two_consumer == consumer:
-            if json_data['type'] == 'player_move':
-                (x, y) = self.p_two_pos
-                offset = json_data['payload']['offset']
-                y += offset
-                if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
-                    tmp = PADDLE_MAX_POS
-                    y = math.copysign(tmp, y)
-                self.p_two_pos = (x, y)
+            if json_data['type'] == 'player_direction':
+                self.p_two_dir = -1 if json_data['payload']['right'] else 0
+                self.p_two_dir += 1 if json_data['payload']['left'] else 0
+                # (x, y) = self.p_two_pos
+                # offset = json_data['payload']['offset']
+                # y += offset
+                # if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
+                #     tmp = PADDLE_MAX_POS
+                #     y = math.copysign(tmp, y)
+                # self.p_two_pos = (x, y)
 
     async def players_send_json(self, data):
         try:
@@ -207,6 +215,25 @@ class GameState():
         y += vy
         self.ball_pos = (x, y)
 
+    def update_paddle_pos(self):
+        def crop_paddle_wall(y):
+            if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
+                tmp = PADDLE_MAX_POS
+                y = math.copysign(tmp, y)
+            return y
+
+
+        (x1, y1) = self.p_one_pos
+        (x2, y2) = self.p_two_pos
+        o1 = self.p_one_dir * PADDLE_VELOCITY
+        o2 = self.p_two_dir * PADDLE_VELOCITY
+        y1 += o1
+        y2 += o2
+        y1 = crop_paddle_wall(y1)
+        y2 = crop_paddle_wall(y2)
+        self.p_one_pos = (x1, y1)
+        self.p_two_pos = (x2, y2)
+
     def reset_game_state(self, is_ball_on_p1_side=False):
         angle = BALL_RESET_ANGLE_BOUNDS + random() * BALL_RESET_ANGLE_RANGE
         if not is_ball_on_p1_side:
@@ -290,6 +317,7 @@ class GameState():
 
     async def logic(self):
         self.update_ball_pos()
+        self.update_paddle_pos()
         self.handle_physics()
         await self.update_consumers()
         if self.has_round_ended:

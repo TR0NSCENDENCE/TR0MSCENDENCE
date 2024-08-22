@@ -54,7 +54,8 @@ let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
 const connected = ref(false);
 const game = ref(null);
-const ws_error = ref(false)
+const ws_error = ref(false);
+const ws_connected = ref(false);
 
 const default_player = {
 	score: 0,
@@ -75,25 +76,30 @@ const winner = ref('');
 const loser = ref('');
 const game_running = ref(true);
 
-const VELOCITY = 0.4;
+// const VELOCITY = 0.4;
 
 const route = useRoute();
 const UUID = route.params.uuid;
 const inversed = () => p1 === parseInt(store.getters.userId);
 
-const update = () => {
-	let offset = 0;
+let last_dir = {
+	right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
+	left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+};
 
-	if (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'))
-		offset -= 1;
-	if (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a'))
-		offset += 1;
-	if (offset != 0) {
+const update = () => {
+	if (ws_connected.value)
+	{
+		const dir = {
+			right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
+			left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+		};
+		if (dir === last_dir)
+			return ;
+		last_dir = dir;
 		global_socket.send(JSON.stringify({
-			type: 'player_move',
-			payload: {
-				offset: VELOCITY * (inversed() ? -offset : offset)
-			}
+			type: 'player_direction',
+			payload: dir
 		}));
 	}
 };
@@ -103,9 +109,11 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 
 	socket.onopen = () => {
 		console.log('[WS] socket connected');
+		ws_connected.value = true;
 	};
 	socket.onclose = (e) => {
 		console.log('[WS] socket closed');
+		ws_connected.value = false;
 		if (!e.wasClean)
 			ws_error.value = true;
 		console.log(e)
