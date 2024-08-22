@@ -50,6 +50,7 @@ let fpsInterval, then, startTime;
 let canvas, ctx;
 
 let time = 0;
+let real_time = 0;
 let id;
 let lastKey_j1 = '';
 let lastKey_j2 = '';
@@ -57,6 +58,7 @@ let score = 0;
 let Pacman;
 let Blinky;
 let ghosts = [];
+let winOrLose = 0;
 
 const pellets = [];
 const pacgums = [];
@@ -226,10 +228,18 @@ function all_ghosts_updates() {
 	})
 }
 
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+
+    const paddedSeconds = remainingSeconds < 10 ? '0' + remainingSeconds : remainingSeconds;
+
+    return `${minutes}:${paddedSeconds}`;
+}
+
 function clock() {
-	if (time % 60 === 0)
-		console.log(time / 60);
 	time++;
+	real_time++;
 }
 
 //Stock dans une map les signes et leur pass pour l'affichage de la map
@@ -368,7 +378,7 @@ function affMapAndPellets() {
 		if (Math.hypot(pellet.position.x - Pacman.position.x,
 			pellet.position.y - Pacman.position.y) < pellet.radius / 2 + Pacman.radius / 2) {
 			pellets.splice(i, 1);
-			score += 1000;
+			score += 10;
 		}
 	})
 
@@ -736,7 +746,7 @@ function resetForJail(ghost) {
 		ghost.position = { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 };
 	ghost.velocity.y = 0;
 	ghost.velocity.x = 0;
-	score += 3000;
+	score += 30;
 	setTimeout(() => { ghost.inJail = false }, 3000)
 }
 
@@ -746,10 +756,10 @@ function pacManGotCaught() {
 		ghost.mode = SCATTER;
 		resetForJail(ghost);
 	})
+	time = 0;
 	Pacman.position = { x: boundary.width * 8 + boundary.width / 2, y: boundary.height * 12 + boundary.height / 2 };
 	pacman.velocity = { x: 0, y: 0 };
 	Pacman.life -= 1;
-	time = 0;
 	if (Pacman.life === 0)
 		return (true);
 	return (false);
@@ -758,9 +768,8 @@ function pacManGotCaught() {
 function loseCondition(ghost, id) {
 	if (calLoseHitBox(Pacman.position.y - ghost.position.y) && calLoseHitBox(Pacman.position.x - ghost.position.x) && ghost.shatter === false) {
 		if (pacManGotCaught() === true) {
-			console.log(ghost.name);
 			cancelAnimationFrame(id);
-			console.log('BAD ENDING');
+			winOrLose = 1;
 		}
 		return (true);
 	}
@@ -771,9 +780,8 @@ function loseCondition(ghost, id) {
 
 function winCondition(id) {
 	if (pellets.length === 0) {
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		cancelAnimationFrame(id);
-		console.log('GOOD ENDING');
+		winOrLose = 2;
 		return;
 	}
 }
@@ -788,8 +796,8 @@ function	get_blinky()
 	return (blinky);
 }
 
-function animate() {
-	id = requestAnimationFrame(animate);
+function animate(checkWin, updateData) {
+	id = requestAnimationFrame(() => animate(checkWin, updateData));
 	const now = Date.now();
 	const elapsed = now - then;
 
@@ -820,7 +828,9 @@ function animate() {
 		ghostControlCenter();
 		all_ghosts_updates();
 		winCondition(id);
+		checkWin();
 		clock();
+		updateData(score, Pacman.life, formatTime(Math.round(real_time / 60)));
 	}
 }
 
@@ -836,9 +846,13 @@ export function stopAnimate() {
 	pacgums.length = 0;
 	boundaries.length = 0;
 	ghosts.length = 0;
+	winOrLose = 0;
+	real_time = 0;
 }
 
-export function initialize(context, c, updateScore, scoreRef) {
+export	function checkWinOrLose() { return (winOrLose); }
+
+export function initialize(context, c, updateData, scoreRef, checkWin) {
 	return new Promise((resolve, reject) => {
 		fpsInterval = 1000 / 60;
 		then = Date.now();
@@ -853,8 +867,7 @@ export function initialize(context, c, updateScore, scoreRef) {
 			changeColorImage();
 			ghosts = createGhosts();
 			Blinky = get_blinky();
-			animate();
-			updateScore(score);
+			animate(checkWin, updateData);
 			resolve();
 		}).catch(reject);
 	});

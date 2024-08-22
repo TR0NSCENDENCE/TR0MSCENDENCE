@@ -1,0 +1,21 @@
+{
+    "solo": [
+      {
+        "id": 1,
+        "best_score": 2000,
+        "best_time": "Alice",
+        "game_played": 92,
+        "winrate": "65%"
+      }
+    ],
+    "versus": [
+      {
+        "id": 1,
+        "best_score": 1500,
+        "best_time": "Bob",
+        "game_played": 85,
+        "winrate": "70%"
+      }
+    ]
+  }
+  
