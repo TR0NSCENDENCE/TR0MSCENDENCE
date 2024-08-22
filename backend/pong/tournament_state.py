@@ -72,35 +72,25 @@ class TournamentState():
             except Disconnected:
                 pass
 
+    #==========================================================================#
+    # Utils
+    #==========================================================================#
+
     def players_connected(self):
         return reduce(lambda a, b: a.connected and b.connected, self.player_connections)
 
     def running(self):
         return self.players_connected()
 
-    def instance_ingame(self):
-        self.log('In-game !')
-        self.instance.state = 'IG'
-        self.instance.save()
-
     def instance_finished(self):
-        self.log('Game finished !')
+        self.log('Tournament finished !')
         self.instance.state = 'FD'
         self.instance.save()
 
-    def instance_winner(self, player: User):
-        self.log('Winner :', player.username)
-        self.instance.winner = player
-        self.instance.player_one_score = 69
-        self.instance.player_two_score = 42
-        self.instance.save()
-        async_to_sync(self.players_send_json)({'type': 'winner', 'winner_id': player.pk})
-
     async def close_consumers(self):
-        if self.p_one_connected:
-            await self.p_one_consumer.close()
-        if self.p_two_connected:
-            await self.p_two_consumer.close()
+        for c in self.player_connections:
+            asyncio.create_task(c.consumer.close())
+            c.disconnect()
 
     #==========================================================================#
     # Pure game logic
@@ -118,6 +108,11 @@ class TournamentState():
         while not self.players_connected():
             await asyncio.sleep(1. / 10)
 
+    async def logic(self):
+        self.log('waiting for player to disconnect...')
+        while self.running():
+            await asyncio.sleep(1. / 10)
+
     async def tournament_loop(self):
         await self.wait_for_players()
         await sync_to_async(self.instance_ingame)()
@@ -125,5 +120,4 @@ class TournamentState():
         while self.running():
             await self.logic()
         await sync_to_async(self.instance_finished)()
-        await sync_to_async(self.instance_winner)(self.p_one)
         await self.close_consumers()

@@ -7,6 +7,9 @@ from users.models import User
 from .models import GameInstance, TournamentInstance
 from .game_state import GameState
 
+CLOSE_CODE_ERROR = 3000
+CLOSE_CODE_OK = 3001
+
 class GameConsumer(AsyncJsonWebsocketConsumer):
 
     game_states = {}
@@ -23,19 +26,19 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
             self.instance = await GameInstance.objects.select_related('player_one', 'player_two').aget(uuid=self.instance_uuid)
         except GameInstance.DoesNotExist:
             # print(self.instance_uuid, 'instance not found')
-            await self.close()
+            await self.close(CLOSE_CODE_ERROR)
             return
 
         # The instance is in starting or in-game state
         if not self.instance.state in ['ST']:
             # print(self.instance_uuid, 'match finished')
-            await self.close()
+            await self.close(CLOSE_CODE_ERROR)
             return
 
         # User is in the instance ?
         if not self.user in [self.instance.player_one, self.instance.player_two]:
             # print(self.user, 'not in the user of the instance')
-            await self.close()
+            await self.close(CLOSE_CODE_ERROR)
             return
 
         async with self.update_lock:
@@ -48,13 +51,13 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
                 self.game_state = self.game_states[self.instance_uuid]
             except GameState.AlreadyConnected:
                 print('user already connected to the instance')
-                await self.close()
+                await self.close(CLOSE_CODE_ERROR)
                 return
         # Accept connection
         await self.accept()
 
     async def disconnect(self, close_code):
-        if close_code == 1006:
+        if close_code == CLOSE_CODE_ERROR:
             return
         # Disconnect from instance if exist
         async with self.update_lock:
@@ -141,24 +144,25 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
         self.user = self.scope["user"]
         async with self.update_lock:
             if not self.match_type in self.waiting_list.keys():
-                # print('unknown match type')
-                await self.close()
+                print(self.user, 'unknown match type')
+                await self.close(CLOSE_CODE_ERROR)
                 return
             if self.user in self.users:
-                # print('user already in waiting list')
-                await self.close()
+                print(self.user, 'user already in waiting list')
+                await self.close(CLOSE_CODE_ERROR)
                 return
             self.users += [self.user]
             self.waiting_list[self.match_type] += [self]
+            print(self.user, 'added to waiting list')
         await self.accept()
         for key in self.waiting_list.keys():
             if len(self.waiting_list[key]) > 0 and not self.matchmaking_running[self.match_type]:
-                # print('launch matchmaking for', self.match_type)
+                print(self.user, 'launch matchmaking for', self.match_type)
                 asyncio.create_task(self.matchmaking_function[self.match_type](self))
                 self.matchmaking_running[self.match_type] = True
 
     async def disconnect(self, close_code):
-        if close_code == 1006:
+        if close_code == CLOSE_CODE_ERROR:
             return
         async with self.update_lock:
             try:
@@ -181,8 +185,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                     match_uuid = await create_match(self.waiting_list['1v1'][:2])
                     for c in self.waiting_list['1v1'][:2]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
-                        await c.close()
-                    self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
+                        await c.close(CLOSE_CODE_OK)
             await asyncio.sleep(0.5)
         self.matchmaking_running['1v1'] = False
 
@@ -199,10 +202,10 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
         while len(self.waiting_list['tournament']) > 0:
             async with self.update_lock:
                 if len(self.waiting_list['tournament']) >= 4:
-                    match_uuid = await create_match(self.waiting_list['tournament'][:4])
+                    match_uuid = await create_tournament(self.waiting_list['tournament'][:4])
                     for c in self.waiting_list['tournament'][:4]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
-                        await c.close()
+                        await c.close(3001)
                     self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['tournament'] = False

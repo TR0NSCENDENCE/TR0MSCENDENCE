@@ -9,6 +9,9 @@ from .models import GameInstance
 
 import math
 
+CLOSE_CODE_ERROR = 3000
+CLOSE_CODE_OK = 3001
+
 BALL_SPEEDUP_FACTOR = 1.1
 BALL_INITIAL_VELOCITY = 0.5
 
@@ -130,11 +133,11 @@ class GameState():
             'winner_id': player.pk
         })
 
-    async def close_consumers(self):
+    async def close_consumers(self, close_code=None):
         if self.p_one_connected:
-            await self.p_one_consumer.close()
+            await self.p_one_consumer.close(close_code)
         if self.p_two_connected:
-            await self.p_two_consumer.close()
+            await self.p_two_consumer.close(close_code)
 
     #==========================================================================#
     # Pure game logic
@@ -304,4 +307,4 @@ class GameState():
             await self.logic()
         await sync_to_async(self.instance_winner)(self.winner)
         await sync_to_async(self.instance_finished)()
-        await self.close_consumers()
+        await self.close_consumers(CLOSE_CODE_OK)
