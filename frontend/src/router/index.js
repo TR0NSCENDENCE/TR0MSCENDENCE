@@ -7,6 +7,7 @@ import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
 import MultiplayerView from '@/views/play/MultiplayerView.vue'
 import Multiplayer1v1View from '@/views/play/Multiplayer1v1View.vue'
+import TournamentMatchmakingView from '@/views/play/TournamentMatchmakingView.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 /* ************************************************************************** */
 import PlayView from '@/views/PlayView.vue'
@@ -14,7 +15,7 @@ import MiniGameView from '@/views/MiniGameView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
-import OtherProfileView from '@/views/OtherProfileView.vue'
+import SearchProfileView from '@/views/SearchProfileView.vue'
 import SettingsView from '@/views/SettingsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
@@ -95,6 +96,14 @@ const router = createRouter({
 		},
 		{
 			path: '/play/tournament',
+			name: 'TournamentMatchmakingView',
+			component: TournamentMatchmakingView,
+			meta: {
+				title: 'tournament matchmaking',
+			}
+		},
+		{
+			path: '/play/tournament/:uuid',
 			name: 'TournamentView',
 			component: TournamentView,
 			meta: {
@@ -123,6 +132,14 @@ const router = createRouter({
 			component: MyProfileView,
 			meta: {
 				title: 'my profile'
+			}
+		},
+		{
+			path: '/searchprofile',
+			name: 'SearchProfileView',
+			component: SearchProfileView,
+			meta: {
+				title: 'search profile'
 			}
 		},
 		{
@@ -171,14 +188,6 @@ const router = createRouter({
 			component: CreditsView,
 			meta: {
 				title: 'credit$'
-			}
-		},
-		{
-			path: '/player_profile',
-			name: 'OtherProfileView',
-			component: OtherProfileView,
-			meta: {
-				title: 'player profile'
 			}
 		},
 		{

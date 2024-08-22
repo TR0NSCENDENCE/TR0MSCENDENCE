@@ -1,34 +1,32 @@
 <template>
-	<div>
-		<div v-if="store.getters.isAuthenticated">
-			<WaitingMatch :match_type="'1v1'" v-if="!found"/>
-			<MatchFound v-else
-				:player1="player1"
-				:player2="player2"
-				/>
+	<div class="tournament-matchmaking" v-if="store.getters.isAuthenticated">
+		<WaitingMatch :match_type="'tournament'" v-if="!found" />
+		<div class="tournament" v-else>
+			<h1>Tournament</h1>
+			<Bracket :tournamentdata="tournament" />
 		</div>
-		<div v-else
-			id="must-logged"
-			>
-			<h1> You must be logged to play online. </h1>
-			<GlowingButton
-				class="go-back-button small-button"
-				text="go back"
-				@click="() => router.go(-1)"
-				/>
-		</div>
+	</div>
+	<div v-else
+		id="must-logged"
+		>
+		<h1> You must be logged to play online. </h1>
+		<GlowingButton
+			class="go-back-button small-button"
+			text="go back"
+			@click="() => router.go(-1)"
+			/>
 	</div>
 </template>
 
 <script setup>
+import Bracket from '@/components/TournamentBracket.vue';
 import GlowingButton from '@components/GlowingButton.vue';
-import MatchFound from '@components/MatchFound.vue';
 import WaitingMatch from '@components/WaitingMatch.vue';
 import router from '@router/index';
-import { ref, onMounted, onUnmounted } from 'vue';
 import store from '@store';
-import { connectToWebsocket } from '@utils/ws';
 import { axiosInstance } from '@utils/api';
+import { connectToWebsocket } from '@utils/ws';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 const defaultUser = {
 	user_profile: {
@@ -37,15 +35,14 @@ const defaultUser = {
 }
 
 const found = ref(false);
-const player1 = ref(defaultUser);
-const player2 = ref(defaultUser);
+const tournament = ref();
 
 let global_socket = undefined;
 
 onMounted(() => {
 	if (!store.getters.isAuthenticated)
 		return ;
-	connectToWebsocket('ws/matchmaking/1v1/',
+	connectToWebsocket('ws/matchmaking/tournament/',
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
 			socket.onopen = (e) => console.log('[WS] socket connected');
@@ -56,15 +53,15 @@ onMounted(() => {
 					return ;
 				socket.close();
 				const uuid = data.uuid;
-				axiosInstance.get(`gameinstance/${uuid}/`).then(
+				const match_uuid = data.match_uuid
+				axiosInstance.get(`tournamentinstance/${uuid}/`).then(
 					(response) => {
 						console.log(response.data);
-						player1.value = response.data.player_one;
-						player2.value = response.data.player_two;
+						tournament.value = response.data;
 						found.value = true;
+						setTimeout(() => router.push(`tournament/${uuid}`), 3000);
 					}
 				);
-				setTimeout(() => router.push(`multiplayer/${uuid}`), 3000);
 			};
 		},
 		(error) => console.log(error)
@@ -78,15 +75,13 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-#must-logged
-{
+#must-logged {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 }
 
-h1
-{
+#must-logged > h1 {
 	color: var(--glow-color);
 	margin-top: 10vh;
 	text-align: center;
@@ -95,5 +90,14 @@ h1
 	letter-spacing: 0.2em;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 	position: relative;
+
+}
+
+.tournament {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	color: var(--glow-color);
+	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 </style>

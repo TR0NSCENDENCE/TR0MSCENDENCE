@@ -12,7 +12,7 @@ const type = props.glowing
 
 <style scoped>
 .glowing-text {
-	float: left;
+	/* float: left; */
 	margin-right: -0.2em;
 	-webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
 		0 0 0.45em var(--glow-color);

@@ -1,20 +1,65 @@
 <template>
-	<div class="tournament">
-		<h1>Tournament Bracket</h1>
-		<Bracket />
-	</div>
+
 </template>
 
 <script setup>
-import Bracket from '@/components/TournamentBracket.vue';
-</script>
+import router from '@router/index';
+import { axiosInstance } from '@utils/api';
+import { connectToWebsocket } from '@utils/ws';
+import { onMounted, onUnmounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 
-<style scoped>
-.tournament {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	color: var(--glow-color);
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-}
-</style>
+const ws_error = ref(false);
+const connected = ref(false);
+
+const route = useRoute();
+const UUID = route.params.uuid;
+
+let global_socket = undefined;
+
+const setup = async (/** @type {WebSocket} */ socket) => {
+	global_socket = socket;
+
+	socket.onopen = () => {
+		console.log('[WS] socket connected');
+	};
+	socket.onclose = (e) => {
+		console.log('[WS] socket closed');
+		if (!e.wasClean)
+			ws_error.value = true;
+		console.log(e);
+	};
+	socket.onerror = (e) => {
+		console.log('[WS] socket error');
+		ws_error.value = true;
+		console.log(e);
+	}
+	socket.onmessage = (e) => {
+		console.log(e);
+	}
+	try {
+		const response = await axiosInstance.get(`tournamentinstance/${UUID}/`);
+
+	} catch (e) {
+		console.log(e);
+		socket.close();
+		return;
+	}
+	connected.value = true;
+};
+
+onMounted(() => {
+	connectToWebsocket(`ws/tournamentinstance/${UUID}/`,
+		setup,
+		(error) => {
+			router.push('/');
+			console.log(error)
+		}
+	);
+});
+
+onUnmounted(() => {
+	if (global_socket)
+		global_socket.close();
+});
+</script>

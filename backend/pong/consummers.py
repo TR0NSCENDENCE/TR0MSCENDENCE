@@ -2,66 +2,17 @@ from asgiref.sync import async_to_sync, sync_to_async
 import asyncio
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import json
+
 from users.models import User
-from .models import GameInstance
+from .models import GameInstance, TournamentInstance
+from .game_state import GameState
+
+CLOSE_CODE_ERROR = 3000
+CLOSE_CODE_OK = 3001
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
 
-    update_lock = asyncio.Lock()
-
-    class GameState():
-
-        class AlreadyConnected(Exception):
-            pass
-
-        def __init__(self, instance: GameInstance):
-            self.instance = instance
-            self.p_one_connected = False
-            self.p_two_connected = False
-
-        def player_connect(self, player: User, consumer):
-            if self.instance.player_one == player:
-                if self.p_one_connected:
-                    raise self.AlreadyConnected
-                self.p_one_connected = True
-                self.p_one_consumer = consumer
-            if self.instance.player_two == player:
-                if self.p_two_connected:
-                    raise self.AlreadyConnected
-                self.p_two_connected = True
-                self.p_two_consumer = consumer
-
-        def player_disconnect(self, player: User):
-            if self.instance.player_one == player:
-                self.p_one_connected = False
-            if self.instance.player_two == player:
-                self.p_two_connected = False
-
-        def players_connected(self):
-            return self.p_one_connected and self.p_two_connected
-
-        def running(self):
-            return self.players_connected()
-
-        async def game_loop(self):
-            print('Starting ', self.instance)
-            while not self.players_connected():
-                print("waiting for player to connect...")
-                await asyncio.sleep(3.)
-            print('all player connected')
-            while self.running():
-                print("waiting for player to disconnect")
-                await asyncio.sleep(3.)
-            print('one player disconnected')
-            await self.close_consumers()
-
-        async def close_consumers(self):
-            if self.p_one_connected:
-                await self.p_one_consumer.close()
-            if self.p_two_connected:
-                await self.p_two_consumer.close()
-
-    instances = {}
+    game_states = {}
 
     update_lock = asyncio.Lock()
 
@@ -75,63 +26,107 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
             self.instance = await GameInstance.objects.select_related('player_one', 'player_two').aget(uuid=self.instance_uuid)
         except GameInstance.DoesNotExist:
             # print(self.instance_uuid, 'instance not found')
-            await self.close()
+            await self.close(CLOSE_CODE_ERROR)
             return
 
         # The instance is in starting or in-game state
-        if not self.instance.state in ['ST', 'IG']:
+        if not self.instance.state in ['ST']:
             # print(self.instance_uuid, 'match finished')
-            await self.close()
+            await self.close(CLOSE_CODE_ERROR)
             return
 
         # User is in the instance ?
         if not self.user in [self.instance.player_one, self.instance.player_two]:
             # print(self.user, 'not in the user of the instance')
+            await self.close(CLOSE_CODE_ERROR)
+            return
+
+        async with self.update_lock:
+            if not self.instance_uuid in self.game_states.keys():
+                # print('instance created')
+                self.game_states[self.instance_uuid] = GameState(self.instance)
+                asyncio.create_task(self.game_states[self.instance_uuid].game_loop())
+            try:
+                self.game_states[self.instance_uuid].player_connect(self.user, self)
+                self.game_state = self.game_states[self.instance_uuid]
+            except GameState.AlreadyConnected:
+                print('user already connected to the instance')
+                await self.close(CLOSE_CODE_ERROR)
+                return
+        # Accept connection
+        await self.accept()
+
+    async def disconnect(self, close_code):
+        if close_code == CLOSE_CODE_ERROR:
+            return
+        # Disconnect from instance if exist
+        async with self.update_lock:
+            if self.instance_uuid in self.game_states.keys():
+                self.game_states[self.instance_uuid].player_disconnect(self.user)
+
+    # Receive message from WebSocket
+    async def receive_json(self, json_data):
+        await self.game_state.player_receive_json(self, json_data)
+
+class TournamentConsumer(AsyncJsonWebsocketConsumer):
+
+    tournament_states = {}
+
+    update_lock = asyncio.Lock()
+
+    async def connect(self):
+        self.instance_uuid = self.scope["url_route"]["kwargs"]["instance_uuid"]
+        self.user = self.scope["user"]
+
+        # The instance exist ?
+        try:
+            self.instance = await TournamentInstance.objects.select_related('player_one', 'player_two', 'player_thr', 'player_fou').aget(uuid=self.instance_uuid)
+        except TournamentInstance.DoesNotExist:
+            # print(self.instance_uuid, 'instance not found')
+            await self.close()
+            return
+
+        # The instance is in starting or in-game state
+        if self.instance.state is TournamentInstance.TournamentState.FINISHED:
+            # print(self.instance_uuid, 'tournament finished')
+            await self.close()
+            return
+
+        # User is in the instance ?
+        if not self.user in [self.instance.player_one,
+                            self.instance.player_two,
+                            self.instance.player_thr,
+                            self.instance.player_fou]:
+            # print(self.user, 'not in the user of the instance')
             await self.close()
             return
 
         async with self.update_lock:
-            if not self.instance_uuid in self.instances.keys():
+            if not self.instance_uuid in self.tournament_states.keys():
                 # print('instance created')
-                self.instances[self.instance_uuid] = GameConsumer.GameState(self.instance)
-                asyncio.create_task(self.instances[self.instance_uuid].game_loop())
+                self.tournament_states[self.instance_uuid] = GameState(self.instance)
+                asyncio.create_task(self.tournament_states[self.instance_uuid].game_loop())
             try:
-                self.instances[self.instance_uuid].player_connect(self.user, self)
-            except self.GameState.AlreadyConnected:
-                # print('user already connected to the instance')
+                self.tournament_states[self.instance_uuid].player_connect(self.user, self)
+                self.game_state = self.tournament_states[self.instance_uuid]
+            except GameState.AlreadyConnected:
+                print('user already connected to the instance')
                 await self.close()
                 return
-        # Join room group and accept connection
-        await self.channel_layer.group_add(self.instance_name, self.channel_name)
+        # Accept connection
         await self.accept()
 
     async def disconnect(self, close_code):
         if close_code == 1006:
             return
-        # Leave room group
-        await self.channel_layer.group_discard(self.instance_name, self.channel_name)
         # Disconnect from instance if exist
         async with self.update_lock:
-            if self.instance_uuid in self.instances.keys():
-                self.instances[self.instance_uuid].player_disconnect(self.user)
+            if self.instance_uuid in self.tournament_states.keys():
+                self.tournament_states[self.instance_uuid].player_disconnect(self.user)
 
     # Receive message from WebSocket
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json["message"]
-        print("data receive : ", text_data)
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.instance_name, {"type": "chat.message", "message": message}
-        )
-
-    # Receive message from room group
-    async def chat_message(self, event):
-        message = event["message"]
-
-        print("message receive : ", event)
-        # Send message to WebSocket
-        await self.send(text_data="uho")
+    async def receive_json(self, json_data):
+        await self.game_state.player_receive_json(self, json_data)
 
 class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
@@ -149,24 +144,25 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
         self.user = self.scope["user"]
         async with self.update_lock:
             if not self.match_type in self.waiting_list.keys():
-                # print('unknown match type')
-                await self.close()
+                print(self.user, 'unknown match type')
+                await self.close(CLOSE_CODE_ERROR)
                 return
             if self.user in self.users:
-                # print('user already in waiting list')
-                await self.close()
+                print(self.user, 'user already in waiting list')
+                await self.close(CLOSE_CODE_ERROR)
                 return
             self.users += [self.user]
             self.waiting_list[self.match_type] += [self]
+            print(self.user, 'added to waiting list')
         await self.accept()
         for key in self.waiting_list.keys():
             if len(self.waiting_list[key]) > 0 and not self.matchmaking_running[self.match_type]:
-                # print('launch matchmaking for', self.match_type)
+                print(self.user, 'launch matchmaking for', self.match_type)
                 asyncio.create_task(self.matchmaking_function[self.match_type](self))
                 self.matchmaking_running[self.match_type] = True
 
     async def disconnect(self, close_code):
-        if close_code == 1006:
+        if close_code == CLOSE_CODE_ERROR:
             return
         async with self.update_lock:
             try:
@@ -187,16 +183,36 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
             async with self.update_lock:
                 if len(self.waiting_list['1v1']) >= 2:
                     match_uuid = await create_match(self.waiting_list['1v1'][:2])
-                    for c in [self.waiting_list['1v1'][0], self.waiting_list['1v1'][1]]:
+                    for c in self.waiting_list['1v1'][:2]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
-                        await c.close()
-                    self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
+                        await c.close(CLOSE_CODE_OK)
             await asyncio.sleep(0.5)
         self.matchmaking_running['1v1'] = False
 
+    async def matchmaking_loop_tournament(self):
+        async def create_tournament(consumers):
+            new_instance = await sync_to_async(TournamentInstance.objects.create)(
+                player_one=consumers[0].user,
+                player_two=consumers[1].user,
+                player_thr=consumers[2].user,
+                player_fou=consumers[3].user
+                )
+            return new_instance.uuid
+
+        while len(self.waiting_list['tournament']) > 0:
+            async with self.update_lock:
+                if len(self.waiting_list['tournament']) >= 4:
+                    match_uuid = await create_tournament(self.waiting_list['tournament'][:4])
+                    for c in self.waiting_list['tournament'][:4]:
+                        await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
+                        await c.close(3001)
+                    self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
+            await asyncio.sleep(0.5)
+        self.matchmaking_running['tournament'] = False
+
     matchmaking_function = {
         '1v1': matchmaking_loop_1v1,
-        'tournament': None,
+        'tournament': matchmaking_loop_tournament,
     }
 
     matchmaking_running = {
