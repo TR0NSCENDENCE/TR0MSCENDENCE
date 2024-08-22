@@ -54,6 +54,9 @@ THIRD_PARTY_APPS = [
 
 INSTALLED_APPS = ["daphne"] + DJANGO_APPS + PROJECT_APPS + THIRD_PARTY_APPS
 
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8000",

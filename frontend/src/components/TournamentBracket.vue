@@ -3,18 +3,18 @@
 		<!-- Colonne de gauche pour les demi-finales -->
 		<div class="matches-left">
 			<div class="match">
-				<div class="team"> {{ player1_name }} </div>
+				<div class="team"> {{ tournamentdata.gameinstance_half_1.player_one.username }} </div>
 				<span class="vs">VS</span>
-				<div class="team">{{ player2_name }}</div>
+				<div class="team">{{ tournamentdata.gameinstance_half_1.player_two.username }}</div>
 			</div>
 			<div class="match">
-				<div class="team">{{ player3_name }}</div>
+				<div class="team"> {{ tournamentdata.gameinstance_half_2.player_one.username }} </div>
 				<span class="vs">VS</span>
-				<div class="team">{{ player4_name }}</div>
+				<div class="team">{{ tournamentdata.gameinstance_half_2.player_two.username }}</div>
 			</div>
 		</div>
 		<!-- Section pour la finale et le gagnant -->
-		<div class="final-and-winner">
+		<div class="final-and-winner" v-if="tournamentdata.gameinstance_final">
 			<div class="final">
 				<div class="match">
 					<div class="team">Winner Match 1</div>
@@ -22,7 +22,7 @@
 					<div class="team">Winner Match 2</div>
 				</div>
 			</div>
-			<div class="winner">
+			<div class="winner" v-if="tournamentdata.winner_final">
 				<div class="team">Tournament Winner</div>
 			</div>
 		</div>
@@ -33,17 +33,7 @@
 
 import { ref } from 'vue';
 
-const player1_name = ref("tonton");
-const player2_name = ref("le haj");
-const player3_name = ref("l'ancien");
-const player4_name = ref("tintin");
-
-
-const matches = [
-	{ player1: 'player 1', player2: 'player 2' }, // Match 1
-	{ player1: 'player 3', player2: 'player 4' }, // Match 2
-	{ player1: 'Winner Match 1', player2: 'Winner Match 2' }  // Finale
-];
+const props = defineProps(['tournamentdata']);
 </script>
 
 <style scoped>

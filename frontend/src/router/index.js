@@ -7,6 +7,7 @@ import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
 import MultiplayerView from '@/views/play/MultiplayerView.vue'
 import Multiplayer1v1View from '@/views/play/Multiplayer1v1View.vue'
+import TournamentMatchmakingView from '@/views/play/TournamentMatchmakingView.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 /* ************************************************************************** */
 import PlayView from '@/views/PlayView.vue'
@@ -95,6 +96,14 @@ const router = createRouter({
 		},
 		{
 			path: '/play/tournament',
+			name: 'TournamentMatchmakingView',
+			component: TournamentMatchmakingView,
+			meta: {
+				title: 'tournament matchmaking',
+			}
+		},
+		{
+			path: '/play/tournament/:uuid',
 			name: 'TournamentView',
 			component: TournamentView,
 			meta: {

@@ -1,16 +1,37 @@
 <template>
 	<div>
-		<router-link class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank">
+		<router-link class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank" v-if="userdata">
 			<p id="username">{{ userdata.username + (store.getters.userId == userdata.pk ? ' (me)' : '') }}</p>
 			<img class="user-pp" :src="userdata.user_profile.get_thumbnail" width="50"/>
+		</router-link>
+		<router-link class="userviewer" v-bind:to="`/profile/${_userdata.pk}`" target="_blank" v-else>
+			<p id="username">{{ _userdata.username + (store.getters.userId == _userdata.pk ? ' (me)' : '') }}</p>
+			<img class="user-pp" :src="_userdata.user_profile.get_thumbnail" width="50"/>
 		</router-link>
 	</div>
 </template>
 
 <script setup>
 import store from '@store';
+import { axiosInstance } from '@utils/api';
+import { ref } from 'vue';
 
-const props = defineProps([ 'userdata' ]);
+const props = defineProps([ 'userdata', 'pk' ]);
+
+const defaultUser = {
+	user_profile: {
+		get_thumbnail: '',
+	}
+};
+
+const _userdata = ref(defaultUser);
+
+if (!props.userdata) {
+	axiosInstance.get(`/user/${props.pk}/`).then(
+		(response) => _userdata.value = response.data
+	);
+}
+
 </script>
 
 <style scoped>

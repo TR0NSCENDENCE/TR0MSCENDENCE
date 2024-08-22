@@ -93,7 +93,6 @@ export default class PongRenderer {
 	#objects = {
 		lights: {
 			ambient: undefined,
-			directional: undefined,
 			directional: undefined
 		},
 		ball: undefined,
