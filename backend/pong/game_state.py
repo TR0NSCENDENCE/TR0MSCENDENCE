@@ -13,14 +13,15 @@ CLOSE_CODE_ERROR = 3000
 CLOSE_CODE_OK = 3001
 
 BALL_SPEEDUP_FACTOR = 1.1
-BALL_INITIAL_VELOCITY = 0.5
+BALL_INITIAL_VELOCITY = 0.3
 
 WALL_DIST = 19
 PADDLE_DIST = 35
 BALL_RADIUS = 1
-PADDLE_SIZE = 7
+PADDLE_SIZE = 8
 PADDLE_MAX_POS = WALL_DIST - PADDLE_SIZE / 2
-PADDLE_VELOCITY = 1.
+PADDLE_INITIAL_VELOCITY = 0.5
+PADDLE_SPEEDUP_FACTOR = 1.03
 
 BALL_RESET_ANGLE_BOUNDS = math.atan(PADDLE_DIST / WALL_DIST)
 BALL_RESET_ANGLE_RANGE = 2 * BALL_RESET_ANGLE_BOUNDS - math.pi
@@ -49,6 +50,7 @@ class GameState():
         self.instance = instance
         self.finished = False
         self.has_round_ended = False
+        self.paddle_velocity = PADDLE_INITIAL_VELOCITY
 
         self.p_one_connected = False
         self.p_one_consumer = None
@@ -163,7 +165,7 @@ class GameState():
         while not self.players_connected():
             await asyncio.sleep(1. / 10)
 
-    TICK_RATE = 60
+    TICK_RATE = 75
 
     async def update_consumers(self):
         await self.players_send_json({
@@ -225,8 +227,8 @@ class GameState():
 
         (x1, y1) = self.p_one_pos
         (x2, y2) = self.p_two_pos
-        o1 = self.p_one_dir * PADDLE_VELOCITY
-        o2 = self.p_two_dir * PADDLE_VELOCITY
+        o1 = self.p_one_dir * self.paddle_velocity
+        o2 = self.p_two_dir * self.paddle_velocity
         y1 += o1
         y2 += o2
         y1 = crop_paddle_wall(y1)
@@ -242,6 +244,7 @@ class GameState():
         self.p_two_pos = (35, 0)
         self.ball_pos = (0, 0)
         self.ball_speed = BALL_INITIAL_VELOCITY
+        self.paddle_velocity = PADDLE_INITIAL_VELOCITY
         self.ball_vel = (
             self.ball_speed * math.cos(angle),
             self.ball_speed * math.sin(angle)
@@ -285,6 +288,7 @@ class GameState():
             angle = math.pi - angle
 
         self.ball_speed *= BALL_SPEEDUP_FACTOR
+        self.paddle_velocity *= PADDLE_SPEEDUP_FACTOR
         bvx = math.cos(angle) * self.ball_speed
         bvy = math.sin(angle) * self.ball_speed
         return (bx, by, bvx, bvy, False)
