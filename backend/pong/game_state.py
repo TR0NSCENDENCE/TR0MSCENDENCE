@@ -9,7 +9,7 @@ from .models import GameInstance
 
 import math
 
-BALL_SPEEDUP_FACTOR = 1.01
+BALL_SPEEDUP_FACTOR = 1.1
 BALL_INITIAL_VELOCITY = 0.5
 
 WALL_DIST = 19
@@ -208,10 +208,15 @@ class GameState():
         angle = BALL_RESET_ANGLE_BOUNDS + random() * BALL_RESET_ANGLE_RANGE
         if not is_ball_on_p1_side:
             angle += math.pi
-        self.ball_pos = (0, 0)
-        self.ball_vel = (BALL_INITIAL_VELOCITY * math.cos(angle), BALL_INITIAL_VELOCITY * math.sin(angle))
         self.p_one_pos = (-35, 0)
         self.p_two_pos = (35, 0)
+        self.ball_pos = (0, 0)
+        self.ball_speed = BALL_INITIAL_VELOCITY
+        self.ball_vel = (
+            self.ball_speed * math.cos(angle),
+            self.ball_speed * math.sin(angle)
+        )
+        self.next_bounce = 1
 
     def round_end(self, winner: User):
         if winner == self.p_one:
@@ -225,21 +230,34 @@ class GameState():
         self.has_round_ended = True
 
     def handle_paddle_physics(self, id):
-        def collides(y, player):
-            return abs(player[1] - y) <= (PADDLE_SIZE / 2) + BALL_RADIUS
-
         assert(id in [1, 2])
+
+        def collides(y, player):
+            return abs(player[1] - y) <= (PADDLE_SIZE / 2.)
+
         (bx, by) = self.ball_pos
         (bvx, bvy) = self.ball_vel
+
+        # if id != self.next_bounce:
+        #     return (bx, by, bvx, bvy, False)
+        # self.next_bounce = (self.next_bounce % 2) + 1
+
         player = self.p_one_pos if id == 1 else self.p_two_pos
-        bounce = collides(by, player)
-        if bounce:
-            sign = math.copysign(1, bx)
-            offset = abs(bx) - PADDLE_DIST - BALL_RADIUS
-            bx = sign * (PADDLE_DIST - BALL_RADIUS - offset)
-            bvx = -bvx * BALL_SPEEDUP_FACTOR
-            bvy = bvy * BALL_SPEEDUP_FACTOR
-        return (bx, by, bvx, bvy, not bounce)
+
+        if not collides(by, player):
+            return (bx, by, bvx, bvy, True)
+
+        bx = math.copysign(PADDLE_DIST - BALL_RADIUS, bx)
+
+        angle = math.atan2(PADDLE_SIZE / 2., player[1] - by)
+        angle = angle - math.pi / 2.
+        if id == 2:
+            angle = math.pi - angle
+
+        self.ball_speed *= BALL_SPEEDUP_FACTOR
+        bvx = math.cos(angle) * self.ball_speed
+        bvy = math.sin(angle) * self.ball_speed
+        return (bx, by, bvx, bvy, False)
 
     def handle_physics(self):
         (bx, by) = self.ball_pos

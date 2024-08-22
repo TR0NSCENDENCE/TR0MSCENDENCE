@@ -316,10 +316,33 @@ export default class PongRenderer {
 	}
 
 	cleanup = () => {
-		Object.keys(this).forEach((key) => {
-			if (typeof this[key].dispose === 'function')
-				this[key].dispose();
-			this[key] = null;
-		});
+		if (this.#objects.ball.geometry)
+			this.#objects.ball.geometry.dispose();
+		if (this.#objects.paddle_1.geometry)
+			this.#objects.paddle_1.geometry.dispose();
+		if (this.#objects.paddle_2.geometry)
+			this.#objects.paddle_2.geometry.dispose();
+		if (this.#objects.map.geometry)
+			this.#objects.map.geometry.dispose();
+		this.#objects.map.traverse((e) => {
+			if (!e.isMesh)
+				return ;
+			e.geometry.dispose();
+			e.material.dispose();
+		})
+		if (this.#materials.neon)
+			this.#materials.neon.dispose();
+		if (this.#textures.ball)
+			this.#textures.ball.dispose();
+		if (this.#textures.paddle)
+			this.#textures.paddle.dispose();
+		if (this.#composer)
+			this.#composer.dispose();
+		if (this.#render_pass)
+			this.#render_pass.dispose();
+		if (this.#bloom_pass)
+			this.#bloom_pass.dispose();
+		if (this.#renderer)
+			this.#renderer.dispose();
 	}
 }
