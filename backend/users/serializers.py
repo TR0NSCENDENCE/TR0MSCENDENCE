@@ -77,7 +77,12 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     user_profile = UserProfileSerializer()
 
+    # Used in LoaderboardListView
+    num_wins = serializers.IntegerField(required=False, read_only=True)
+    num_played = serializers.IntegerField(required=False, read_only=True)
+    win_rate = serializers.FloatField(required=False, read_only=True)
+    rank = serializers.IntegerField(required=False, read_only=True)
     class Meta:
         model = User
-        fields = ['email', 'username', 'user_profile', 'pk']
+        fields = ['email', 'username', 'user_profile', 'pk', 'num_wins', 'num_played', 'win_rate', 'rank']
         read_only_fields = ['user_profile', 'pk']

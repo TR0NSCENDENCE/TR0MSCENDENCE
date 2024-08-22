@@ -1,11 +1,23 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Count, F, ExpressionWrapper, FloatField, functions, expressions, Case, When, IntegerField
 from users.models import User
 from django.http import Http404
 import json
 from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status
 from .serializers import *
 from .models import GameInstance, TournamentInstance
+
+def get_user_rank():
+    return User.objects.filter(Q(gameinstance_player_one__state='FD')|Q(gameinstance_player_two__state='FD')).annotate(
+            num_wins=Count('gameinstance_winner', filter=Q(gameinstance_winner__state='FD'), distinct=True),
+            num_played=Count('gameinstance_player_one', filter=Q(gameinstance_player_one__state='FD'), distinct=True) + Count('gameinstance_player_two', filter=Q(gameinstance_player_two__state='FD'), distinct=True,)
+            ).annotate(
+                win_rate=ExpressionWrapper((F('num_wins') * 1.0 / F('num_played')) * 100, output_field=FloatField())
+            ).annotate(
+                rank=expressions.Window(
+                expression=functions.RowNumber(),
+                order_by=('-num_wins',))
+            )
 
 class GameInstanceRetrieveView(generics.RetrieveAPIView):
     queryset = GameInstance.objects.all()
@@ -26,6 +38,13 @@ class UserGameListView(generics.ListAPIView):
     def get_queryset(self):
         pk = self.kwargs['pk']
         return GameInstance.objects.filter(Q(player_one__pk=pk) | Q(player_two__pk=pk)).filter(state='FD').order_by('-finished_at')
+
+class LeaderboardListView(generics.ListAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return get_user_rank().order_by('rank')
 
 class UserGameWinnedCount(views.APIView):
 
