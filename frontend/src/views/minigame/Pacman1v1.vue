@@ -1,7 +1,15 @@
 <template>
 	<div class="canvas">
 		<div class="score-header">
-			lives: {{ lives }}<br>Score: {{ score }}<br>Time: {{ time }}
+			<div class="score-line">
+				lives: <br> {{ lives }}
+			</div>
+			<div class="score-line">
+				Score: <br> {{ score }}
+			</div>
+			<div class="score-line">
+				Time: <br> {{ time }}
+			</div>
 		</div>
 		<canvas ref="gameCanvas"></canvas>
 		<PacmanWin v-if="winOrLose === 2" :score="score" :lives="lives" :time="time" />
@@ -69,13 +77,23 @@ const gameCanvas = ref(null);
 </script>
 
 <style scoped>
+.canvas {
+	display: flex;
+	flex-direction: row;
+	width: 70vw;
+	height: 70vh;
+	box-sizing: border-box;
+	justify-content: space-between;
+	gap: 8vw;
+}
+
 .score-header {
-	margin: 3vh;
+	margin: 3vh 15vw;
 	color: var(--glow-color);
 	font-family: 'SpaceTron';
-	font-size: 5vh;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
+	text-align: center;
+	font-size: 3vh;
+	gap: 10vh;
 	-webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
 		0 0 0.45em var(--glow-color);
 	-moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
@@ -83,12 +101,46 @@ const gameCanvas = ref(null);
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
-.canvas {
-	display: flex;
+.score-line {
+	letter-spacing: 0.2em;
+	margin: 8vh 0;
+	padding: 2vh 3vw;
+	border: 0.15em solid var(--glow-color);
+	border-radius: 0.45em;
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
 }
 
-canvas {
-	display: flex;
-	background: black;
+@media (max-width: 980px) {
+		.canvas {
+		display: flex;
+		flex-direction: row;
+		width: 50vw;
+		height: 50vh;
+		box-sizing: border-box;
+		justify-content: space-between;
+		gap: 8vw;
+	}
+
+	.score-header {
+		margin: 3vh 15vw;
+		color: var(--glow-color);
+		font-family: 'SpaceTron';
+		text-align: center;
+		font-size: 3vh;
+		-webkit-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+			0 0 0.45em var(--glow-color);
+		-moz-text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3),
+			0 0 0.45em var(--glow-color);
+		text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+	}
+
+	#gameCanvas {
+		transform: translateY(5vh);
+	}
 }
 </style>
