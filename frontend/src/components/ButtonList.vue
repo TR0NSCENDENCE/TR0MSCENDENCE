@@ -24,6 +24,5 @@ const props = defineProps([ 'buttons' ]);
 	justify-content: center;
 	gap: 2vh;
 	align-self: center;
-	justify-self: center;
 }
 </style>
