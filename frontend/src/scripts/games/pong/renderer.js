@@ -72,6 +72,7 @@ const assets = {
 
 export default class PongRenderer {
 	#canvas;
+	#canvas_container;
 
 	#renderer;
 	#render_pass;
@@ -101,25 +102,25 @@ export default class PongRenderer {
 		map: undefined
 	};
 
-	#callbacks;
-
 	constructor(
 		canvas,
-		theme_color,
-		callbacks={
-			need_resize: () => { return false; },
-			get_dims: () => { return { width: 0, height: 0 }; }
-		}
+		canvas_container,
+		theme_color
 	) {
 		const create_composer = () => {
 			const renderer_config = {
 				antialias: true,
-				canvas: canvas
+				canvas: canvas.value
 			};
 			
 			this.#canvas = canvas;
+			this.#canvas_container = canvas_container;
 			this.#renderer = new THREE.WebGLRenderer(renderer_config);
-			this.#renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+			const setup_resize = () => {
+				window.addEventListener('resize', this.onWindowResize, false);
+			}
+			this.#renderer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight, true);
+			setup_resize();
 			this.#composer = new EffectComposer(this.#renderer);
 			this.#render_pass = new RenderPass(this.#scene, this.#camera);
 			this.#bloom_pass = new UnrealBloomPass(
@@ -254,8 +255,7 @@ export default class PongRenderer {
 			setup_camera();
 		};
 
-		this.#callbacks = callbacks;
-		this.#camera = new THREE.PerspectiveCamera(FOV, 1, ZNEAR, ZFAR);
+		this.#camera = new THREE.PerspectiveCamera(FOV, 16 / 9, ZNEAR, ZFAR);
 		this.#scene = new THREE.Scene();
 		create_composer();
 		load_textures();
@@ -299,22 +299,20 @@ export default class PongRenderer {
 		update_paddle_2();
 	}
 
-	#resize_renderer_to_display_size = () => {
-		if (!this.#callbacks.need_resize())
-			return ;
-		const { width, height } = this.#callbacks.get_dims();
-		this.#renderer.setSize(width, height, false);
-		this.#bloom_pass.setSize(width, height);
-		this.#camera.aspect = width / height;
-		this.#camera.updateProjectionMatrix();
+	onWindowResize = () => {
+		console.log("canvas container client : ", this.#canvas_container.value.clientWidth + "x" + this.#canvas_container.value.clientHeight);
+		this.#renderer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight, true);
+		this.#composer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
+		this.#render_pass.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
+		this.#bloom_pass.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
 	};
 
 	render() {
-		this.#resize_renderer_to_display_size();
 		this.#composer.render();
 	}
 
 	cleanup = () => {
+		window.removeEventListener('resize', this.onWindowResize);
 		if (this.#objects.ball.geometry)
 			this.#objects.ball.geometry.dispose();
 		if (this.#objects.paddle_1.geometry)

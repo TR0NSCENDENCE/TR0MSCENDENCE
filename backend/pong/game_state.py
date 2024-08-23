@@ -337,6 +337,7 @@ class GameState():
         await self.counter()
         while self.running():
             await self.logic()
-        await sync_to_async(self.instance_winner)(self.winner)
-        await sync_to_async(self.instance_finished)()
+        if self.finished:
+            await sync_to_async(self.instance_winner)(self.winner)
+            await sync_to_async(self.instance_finished)()
         await self.close_consumers(CLOSE_CODE_OK)
