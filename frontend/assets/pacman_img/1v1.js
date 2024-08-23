@@ -746,7 +746,6 @@ function resetForJail(ghost) {
 		ghost.position = { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 };
 	ghost.velocity.y = 0;
 	ghost.velocity.x = 0;
-	score += 30;
 	setTimeout(() => { ghost.inJail = false }, 3000)
 }
 
@@ -774,7 +773,10 @@ function loseCondition(ghost, id) {
 		return (true);
 	}
 	else if (calLoseHitBox(Pacman.position.y - ghost.position.y) && calLoseHitBox(Pacman.position.x - ghost.position.x) && ghost.shatter === true)
+	{
 		resetForJail(ghost);
+		score += 30;
+	}
 	return (false);
 }
 
