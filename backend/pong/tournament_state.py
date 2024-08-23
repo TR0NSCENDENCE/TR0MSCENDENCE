@@ -3,6 +3,7 @@ import json
 from asgiref.sync import async_to_sync, sync_to_async
 from users.models import User
 from autobahn.exception import Disconnected
+from datetime import datetime, timedelta
 from functools import reduce
 
 from .userconnection import UserConnection
@@ -16,12 +17,18 @@ class TournamentState():
 
     # Fields:
     #   instance: TournamentInstance
-    #   players: UserConnection
+    #   players: UserConnectionc
+    #   half_1_timeout: bool
+    #   half_2_timeout: bool
+    #   final_timeout: bool
 
 
     def __init__(self, instance: TournamentInstance):
         self.instance = instance
         self.player_connections = [UserConnection() for _i in range(4)]
+        self.half_1_timeout = False
+        self.half_2_timeout = False
+        self.final_timeout = False
 
     def player_connect(self, user: User, consumer):
         if self.instance.player_one == user:
@@ -117,21 +124,6 @@ class TournamentState():
         message = f'{RED}[{BLUE}TI#{self.instance.uuid}{RED}]{RESET}'
         print(message, *args)
 
-    async def wait_for_players(self):
-        self.log("Waiting for player to connect...")
-        while not self.players_connected():
-            await asyncio.sleep(1. / 10)
-
-    async def wait_for_winners(self):
-        self.log("Waiting for winners to connect...")
-        winners = []
-        for uc in self.player_connections:
-            if uc.user == self.instance.winner_half_1 or uc.user == self.instance.winner_half_2:
-                winners += [uc]
-        assert(len(winners) == 2)
-        while not winners[0].connected or not winners[1].connected:
-            await asyncio.sleep(1. / 10)
-
     async def start_halfs(self):
         for game_instance in await sync_to_async(self.get_half_matchs)():
             for uc in self.player_connections:
@@ -149,13 +141,50 @@ class TournamentState():
                     'match_uuid': str(self.instance.gameinstance_final.uuid)
                 })
 
+    MATCH_START_TIMEOUT = 20
+
     async def wait_for_halfs(self):
+        t_start = datetime.now()
         while self.instance.gameinstance_half_1.state != 'FD' or self.instance.gameinstance_half_2.state != 'FD':
+            if datetime.now() - t_start > timedelta(seconds=self.MATCH_START_TIMEOUT):
+                if self.instance.gameinstance_half_1.state == 'ST' \
+                        and self.instance.gameinstance_half_2.state == 'ST':
+                    self.half_1_timeout = True
+                    self.half_2_timeout = True
+                    break
+                elif self.instance.gameinstance_half_1.state == 'ST' \
+                        and self.instance.gameinstance_half_2.state == 'FD':
+                    self.half_1_timeout = True
+                    self.log(self.instance.gameinstance_half_1.uuid, 'match timeout')
+                    break
+                elif self.instance.gameinstance_half_2.state == 'ST' \
+                        and self.instance.gameinstance_half_1.state == 'FD':
+                    self.half_2_timeout = True
+                    self.log(self.instance.gameinstance_half_2.uuid, 'match timeout')
+                    break
             await asyncio.sleep(1.)
             await self.half_refresh_from_db()
             await self.instance_refresh_from_db()
             await self.update_tournamentstate_consumers()
             self.log('Waiting for matchs to finish...')
+
+    async def wait_for_players(self):
+        self.log("Waiting for player to connect...")
+        while not self.players_connected():
+            await asyncio.sleep(1. / 10)
+
+    async def wait_for_winners(self):
+        winners = []
+        for uc in self.player_connections:
+            if uc.user == self.instance.winner_half_1 or uc.user == self.instance.winner_half_2:
+                winners += [uc]
+        assert(len(winners) == 2)
+        while not winners[0].connected or not winners[1].connected:
+            await asyncio.sleep(1.)
+            await self.half_refresh_from_db()
+            await self.instance_refresh_from_db()
+            await self.update_tournamentstate_consumers()
+            self.log("Waiting for winners to connect...")
 
     async def wait_for_final(self):
         while self.instance.gameinstance_final.state != 'FD':
@@ -169,6 +198,16 @@ class TournamentState():
         await self.wait_for_players()
         await self.start_halfs()
         await self.wait_for_halfs()
+        if self.half_1_timeout and self.half_2_timeout:
+            self.log('2 halfs timeout...')
+            await self.close_consumers(CLOSE_CODE_OK)
+            return
+        elif self.half_1_timeout or self.half_2_timeout:
+            self.instance.winner_final = await sync_to_async(lambda: self.instance.gameinstance_half_2.winner if self.half_1_timeout else self.instance.gameinstance_half_1.winner)()
+            await sync_to_async(self.instance.save)()
+            await self.update_tournamentstate_consumers()
+            await self.close_consumers(CLOSE_CODE_OK)
+            return
         await sync_to_async(self.create_final)()
         await self.wait_for_winners()
         await self.start_final()

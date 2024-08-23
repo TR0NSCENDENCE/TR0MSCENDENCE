@@ -17,9 +17,9 @@
 		<div class="final-and-winner">
 			<div class="final">
 				<div class="match" v-if="tournamentdata.winner_half_1 || tournamentdata.winner_half_2">
-					<UserViewer :pk="tournamentdata.winner_half_1"/>
+					<UserViewer :pk="tournamentdata.winner_half_1" v-if="tournamentdata.winner_half_1"/>
 					<span class="vs">VS</span>
-					<UserViewer :pk="tournamentdata.winner_half_2"/>
+					<UserViewer :pk="tournamentdata.winner_half_2" v-if="tournamentdata.winner_half_2"/>
 				</div>
 			</div>
 			<div class="winner" v-if="tournamentdata.winner_final">
