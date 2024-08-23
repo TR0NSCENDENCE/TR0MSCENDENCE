@@ -33,6 +33,21 @@ function updateData(newScore, newlives, newTime) {
 	time.value = newTime;
 }
 
+// Fonction pour sauvegarder le score
+function saveData(score, time) {
+    // Récupérer les scores existants
+    let scores = JSON.parse(localStorage.getItem('pacman_scores')) || [];
+	let times = JSON.parse(localStorage.getItem('pacman_times')) || [];
+
+    // Ajouter le nouveau score
+    scores.push(score);
+	times.push(time);
+
+    // Sauvegarder les scores mis à jour dans le Local Storage
+    localStorage.setItem('pacman_scores', JSON.stringify(scores));
+	localStorage.setItem('pacman_times', JSON.stringify(times));
+}
+
 function initializeCanvas() {
 	const canvas = gameCanvas.value;
 	const ctx = canvas.getContext('2d');
@@ -64,6 +79,7 @@ function stopGame() {
 			module.stopAnimate();
 		}
 	});
+	saveData(score.value, time.value);
 }
 
 onMounted(() => {

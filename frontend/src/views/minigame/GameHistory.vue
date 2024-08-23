@@ -44,8 +44,19 @@
 </template>
 
 <script setup>
+// Fonction pour récupérer les scores
+function getScores() {
+    return (JSON.parse(localStorage.getItem('pacman_scores')) || []);
+}
+
+// Fonction pour récupérer les scores
+function getTimes() {
+    return (JSON.parse(localStorage.getItem('pacman_times')) || []);
+}
+
+
 const solo = [
-	{ best_score: 1, best_time: 'Alice', game_played: 92, winrate: 1500 },
+	{ best_score: getScores(), best_time: getTimes(), game_played: 92, winrate: 1500 },
 ];
 
 const versus = [
