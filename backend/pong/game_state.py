@@ -6,43 +6,140 @@ from autobahn.exception import Disconnected
 from random import random
 
 from .models import GameInstance
+from enum import Enum
+
+from .game_defaults import DEFAULTS
 
 import math
 
 CLOSE_CODE_ERROR = 3000
 CLOSE_CODE_OK = 3001
 
-BALL_SPEEDUP_FACTOR = 1.1
-BALL_INITIAL_VELOCITY = 0.3
+TICK_RATE = 75
 
-WALL_DIST = 19
-PADDLE_DIST = 35
-BALL_RADIUS = 1
-PADDLE_SIZE = 8
-PADDLE_MAX_POS = WALL_DIST - PADDLE_SIZE / 2
-PADDLE_INITIAL_VELOCITY = 0.5
-PADDLE_SPEEDUP_FACTOR = 1.03
+OPTIMIZATION = {
+    'disable_paddle': False
+}
 
-BALL_RESET_ANGLE_BOUNDS = math.atan(PADDLE_DIST / WALL_DIST)
-BALL_RESET_ANGLE_RANGE = 2 * BALL_RESET_ANGLE_BOUNDS - math.pi
+Direction = Enum('Direction', ['NONE', 'LEFT', 'RIGHT'])
+Side = Enum('Side', ['ONE', 'TWO'])
+
+class AlreadyConnected(Exception):
+    pass
+
+class Player():
+    # Attributes
+    #   connected: Boolean
+    #   consumer: GameConsumer
+    #   user: User
+    #   position: (Float, Float)
+    #   direction: Direction
+    #   score: Int
+    def __init__(self, side):
+        self.connected = False
+        self.consumer = None
+        self.user = None
+        self.score = 0
+        self.side = side
+        self.reset()
+
+    def reset(self):
+        self.direction = Direction.NONE
+        self.velocity = DEFAULTS['paddle']['velocity']
+        self.position = DEFAULTS['scene']['paddle_distance']
+        if self.side == Side.ONE:
+            self.position = -self.position
+
+    def update_position(self):
+        def get_offset(direction):
+            return                                      \
+                 0 if direction == Direction.NONE else  \
+                 1 if direction == Direction.RIGHT else \
+                -1
+
+        def can_move(position):
+            half_pad = DEFAULTS['paddle']['size'] / 2.
+            limit = DEFAULTS['scene']['wall_distance'] - half_pad
+            return abs(position) <= limit
+
+        (x, y) = self.position
+        y += get_offset(self.direction) * self.velocity
+        if not can_move(y):
+            y = math.copysign(DEFAULTS['paddle']['max_position'], y)
+        self.position = (x, y)
+
+    def increase_score(self):
+        self.score += 1
+
+    def increase_velocity(self):
+        self.velocity *= DEFAULTS['paddle']['speedup_factor']
+
+    def get_score(self):
+        return (self.score)
+
+    def get_position(self):
+        return (self.position)
+    
+    def get_direction(self):
+        return (self.direction)
+
+    def get_user(self):
+        return (self.user)
+
+    def is_connected(self):
+        return (self.connected)
+
+    def is_consumer(self, consumer):
+        return (self.consumer == consumer)
+
+    def as_json(self):
+        return ({
+            'position': {
+                'x': self.position[0],
+                'y': self.position[1]
+            }
+        })
+
+    def connect(self, user, consumer):
+        if self.is_connected():
+            raise AlreadyConnected
+        self.connected = True
+        self.consumer = consumer
+        self.user= user
+
+    async def close_consumer(self, close_code):
+        await self.consumer.close(close_code)
+
+    def disconnect(self):
+        self.connected = False
+        self.consumer = None
+        self.user= None
+
+    def receive(self, data):
+        if data['type'] == 'player_direction':
+            def invert(direction):
+                return                                                  \
+                    Direction.RIGHT if direction == Direction.LEFT else \
+                    Direction.LEFT if direction == Direction.RIGHT else \
+                    Direction.NONE
+
+            payload = data['payload']
+            self.direction =                                                \
+                Direction.NONE if payload['right'] and payload['left'] else \
+                Direction.RIGHT if payload['right'] else                    \
+                Direction.LEFT if payload['left'] else                      \
+                Direction.NONE
+            if self.side == Side.TWO:
+                self.direction = invert(self.direction)
+
+    async def send(self, data):
+        await self.consumer.send_json(data)
 
 class GameState():
-    class AlreadyConnected(Exception):
-        pass
-
     # Fields:
     #   finished: Boolean
     #   has_round_ended: Boolean
-    #   p_one_connected: Boolean
-    #   p_two_connected: Boolean
-    #   p_one_consumer: GameConsumer
-    #   p_two_consumer: GameConsumer
-    #   p_one_pos: (float, float)
-    #   p_two_pos: (float, float)
-    #   p_one: User
-    #   p_two: User
-    #   p_one_dir: int
-    #   p_two_dir: int
+    #   players: [Player, Player]
     #   ball_pos: (float, float)
     #   ball_vel: (float, float)
 
@@ -50,74 +147,36 @@ class GameState():
         self.instance = instance
         self.finished = False
         self.has_round_ended = False
-        self.paddle_velocity = PADDLE_INITIAL_VELOCITY
-
-        self.p_one_connected = False
-        self.p_one_consumer = None
-        self.p_one_dir = 0
-        self.p_one_score = 0
-
-        self.p_two_connected = False
-        self.p_two_consumer = None
-        self.p_two_dir = 0
-        self.p_two_score = 0
-
+        self.players = [ Player(Side.ONE), Player(Side.TWO) ]
         self.reset_game_state()
 
     def player_connect(self, player: User, consumer):
         if self.instance.player_one == player:
-            if self.p_one_connected:
-                raise self.AlreadyConnected
-            self.p_one_connected = True
-            self.p_one_consumer = consumer
-            self.p_one = player
+            self.players[0].connect(player, consumer)
         if self.instance.player_two == player:
-            if self.p_two_connected:
-                raise self.AlreadyConnected
-            self.p_two_connected = True
-            self.p_two_consumer = consumer
-            self.p_two = player
+            self.players[1].connect(player, consumer)
 
     def player_disconnect(self, player: User):
         if self.instance.player_one == player:
-            self.p_one_connected = False
+            self.players[0].disconnect()
         if self.instance.player_two == player:
-            self.p_two_connected = False
+            self.players[1].disconnect()
 
     async def player_receive_json(self, consumer, json_data):
-        if self.p_one_consumer == consumer:
-            if json_data['type'] == 'player_direction':
-                self.p_one_dir = 1 if json_data['payload']['right'] else 0
-                self.p_one_dir -= 1 if json_data['payload']['left'] else 0
-                # (x, y) = self.p_one_pos
-                # y += offset
-                # if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
-                #     tmp = PADDLE_MAX_POS
-                #     y = math.copysign(tmp, y)
-                # self.p_one_pos = (x, y)
-        if self.p_two_consumer == consumer:
-            if json_data['type'] == 'player_direction':
-                self.p_two_dir = -1 if json_data['payload']['right'] else 0
-                self.p_two_dir += 1 if json_data['payload']['left'] else 0
-                # (x, y) = self.p_two_pos
-                # offset = json_data['payload']['offset']
-                # y += offset
-                # if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
-                #     tmp = PADDLE_MAX_POS
-                #     y = math.copysign(tmp, y)
-                # self.p_two_pos = (x, y)
+        for player in self.players:
+            if player.is_consumer(consumer):
+                player.receive(json_data)
 
     async def players_send_json(self, data):
         try:
-            if self.p_one_connected:
-                await self.p_one_consumer.send_json(data)
-            if self.p_two_connected:
-                await self.p_two_consumer.send_json(data)
+            for player in self.players:
+                if player.is_connected():
+                    await player.send(data)
         except Disconnected:
             pass
 
     def players_connected(self):
-        return self.p_one_connected and self.p_two_connected
+        return all(player.is_connected() for player in self.players)
 
     def running(self):
         return self.players_connected() and not self.finished
@@ -133,21 +192,20 @@ class GameState():
         self.instance.save()
 
     def instance_winner(self, player: User):
-        self.log('Winner :', player.username)
+        self.log(f'Winner: {player.username}' if player else 'Tie')
         self.instance.winner = player
-        self.instance.player_one_score = self.p_one_score
-        self.instance.player_two_score = self.p_two_score
+        self.instance.player_one_score = self.players[0].get_score()
+        self.instance.player_two_score = self.players[1].get_score()
         self.instance.save()
         async_to_sync(self.players_send_json)({
             'type': 'winner',
-            'winner_id': player.pk
+            'winner_id': player.pk if player else -1
         })
 
     async def close_consumers(self, close_code=None):
-        if self.p_one_connected:
-            await self.p_one_consumer.close(close_code)
-        if self.p_two_connected:
-            await self.p_two_consumer.close(close_code)
+        for player in self.players:
+            if player.is_connected():
+                await player.close_consumer(close_code)
 
     #==========================================================================#
     # Pure game logic
@@ -165,8 +223,6 @@ class GameState():
         while not self.players_connected():
             await asyncio.sleep(1. / 10)
 
-    TICK_RATE = 75
-
     async def update_consumers(self):
         await self.players_send_json({
             'type': 'sync',
@@ -181,18 +237,8 @@ class GameState():
                         'y': self.ball_vel[1]
                     }
                 },
-                'paddle_1': {
-                    'position': {
-                        'x': self.p_one_pos[0],
-                        'y': self.p_one_pos[1]
-                    },
-                },
-                'paddle_2': {
-                    'position': {
-                        'x': self.p_two_pos[0],
-                        'y': self.p_two_pos[1]
-                    },
-                }
+                'paddle_1': self.players[0].as_json(),
+                'paddle_2': self.players[1].as_json()
             }
         })
 
@@ -200,8 +246,8 @@ class GameState():
         await self.players_send_json({
             'type': 'score',
             'scores': {
-                'p1': self.p_one_score,
-                'p2': self.p_two_score
+                'p1': self.players[0].get_score(),
+                'p2': self.players[1].get_score()
             }
         })
 
@@ -218,79 +264,66 @@ class GameState():
         self.ball_pos = (x, y)
 
     def update_paddle_pos(self):
-        def crop_paddle_wall(y):
-            if abs(y) + PADDLE_SIZE / 2 > WALL_DIST:
-                tmp = PADDLE_MAX_POS
-                y = math.copysign(tmp, y)
-            return y
-
-
-        (x1, y1) = self.p_one_pos
-        (x2, y2) = self.p_two_pos
-        o1 = self.p_one_dir * self.paddle_velocity
-        o2 = self.p_two_dir * self.paddle_velocity
-        y1 += o1
-        y2 += o2
-        y1 = crop_paddle_wall(y1)
-        y2 = crop_paddle_wall(y2)
-        self.p_one_pos = (x1, y1)
-        self.p_two_pos = (x2, y2)
+        for player in self.players:
+            player.update_position()
 
     def reset_game_state(self, is_ball_on_p1_side=False):
-        angle = BALL_RESET_ANGLE_BOUNDS + random() * BALL_RESET_ANGLE_RANGE
+        angle = DEFAULTS['ball']['reset_angle_bounds']
+        angle += random() * DEFAULTS['ball']['reset_angle_range']
         if not is_ball_on_p1_side:
             angle += math.pi
-        self.p_one_pos = (-35, 0)
-        self.p_two_pos = (35, 0)
+        for player in self.players:
+            player.reset()
         self.ball_pos = (0, 0)
-        self.ball_speed = BALL_INITIAL_VELOCITY
-        self.paddle_velocity = PADDLE_INITIAL_VELOCITY
+        self.ball_speed = DEFAULTS['ball']['velocity']
+        self.paddle_velocity = DEFAULTS['paddle']['velocity']
         self.ball_vel = (
             self.ball_speed * math.cos(angle),
             self.ball_speed * math.sin(angle)
         )
-        self.next_bounce = 1
+        if OPTIMIZATION['disable_paddle']:
+            self.next_bounce = 0 if is_ball_on_p1_side else 1
 
-    def round_end(self, winner: User):
-        if winner == self.p_one:
-            self.p_one_score = self.p_one_score + 1
-        else:
-            self.p_two_score = self.p_two_score + 1
-        if 3 in [self.p_one_score, self.p_two_score]:
-            self.winner = winner
+    def round_end(self, loser_id):
+        winner_player = self.players[1 - loser_id]
+        winner_player.increase_score()
+        if winner_player.get_score() == DEFAULTS['game']['win_score']:
+            self.winner = winner_player.get_user()
             self.finished = True
-            return
-        self.has_round_ended = True
+        else:
+            self.has_round_ended = True
 
     def handle_paddle_physics(self, id):
-        assert(id in [1, 2])
-
         def collides(y, player):
-            return abs(player[1] - y) <= (PADDLE_SIZE / 2.)
+            return abs(player[1] - y) <= (DEFAULTS['paddle']['size'] / 2.)
 
         (bx, by) = self.ball_pos
         (bvx, bvy) = self.ball_vel
 
-        # if id != self.next_bounce:
-        #     return (bx, by, bvx, bvy, False)
-        # self.next_bounce = (self.next_bounce % 2) + 1
+        if OPTIMIZATION['disable_paddle']:
+            if id != self.next_bounce:
+                return (bx, by, bvx, bvy, False)
+            self.next_bounce = (self.next_bounce + 1) % 2
 
-        player = self.p_one_pos if id == 1 else self.p_two_pos
+        player = self.players[id].get_position()
 
         if not collides(by, player):
             return (bx, by, bvx, bvy, True)
 
-        bx = math.copysign(PADDLE_DIST - BALL_RADIUS, bx)
+        new_position = DEFAULTS['scene']['paddle_distance']
+        new_position -= DEFAULTS['ball']['radius']
+        bx = math.copysign(new_position, bx)
 
-        angle = math.atan2(PADDLE_SIZE / 2., player[1] - by)
+        angle = math.atan2(DEFAULTS['paddle']['size'] / 2., player[1] - by)
         angle = angle - math.pi / 2.
-        if id == 2:
+        if id == 1:
             angle = math.pi - angle
 
-        self.ball_speed *= BALL_SPEEDUP_FACTOR
-        self.paddle_velocity *= PADDLE_SPEEDUP_FACTOR
+        self.ball_speed *= DEFAULTS['ball']['speedup_factor']
         bvx = math.cos(angle) * self.ball_speed
         bvy = math.sin(angle) * self.ball_speed
+
+        self.players[id].increase_velocity()
         return (bx, by, bvx, bvy, False)
 
     def handle_physics(self):
@@ -298,25 +331,27 @@ class GameState():
         (bvx, bvy) = self.ball_vel
 
         # Ball bounce on side walls
-        if abs(by) >= WALL_DIST - BALL_RADIUS:
+        ball_radius = DEFAULTS['ball']['radius']
+        bounds = DEFAULTS['scene']['wall_distance'] - ball_radius
+        if abs(by) >= bounds:
             # Make ball stay within (-WALL_DIST; WALL_DIST)
-            sign = math.copysign(1, by)
-            offset = abs(by) - (WALL_DIST - BALL_RADIUS)
-            by = sign * (WALL_DIST - BALL_RADIUS - offset)
+            by = math.copysign(2 * bounds - abs(by), by)
             # Change path of ball
             bvy = -bvy
             self.ball_pos = (bx, by)
             self.ball_vel = (bvx, bvy)
 
         # Ball bounce on paddle or win / lose
-        if abs(bx) >= PADDLE_DIST - BALL_RADIUS:
+        bounds = DEFAULTS['scene']['paddle_distance'] - ball_radius
+        if abs(bx) >= bounds:
             ball_on_p1_side = bx < 0
-            result = self.handle_paddle_physics(1 if ball_on_p1_side else 2)
+            player_id = 0 if ball_on_p1_side else 1
+            result = self.handle_paddle_physics(player_id)
             (bx, by, bvx, bvy, lost) = result
             self.ball_pos = (bx, by)
             self.ball_vel = (bvx, bvy)
             if lost:
-                self.round_end(self.p_two if ball_on_p1_side else self.p_one)
+                self.round_end(player_id)
                 self.reset_game_state(ball_on_p1_side)
 
     async def logic(self):
@@ -329,7 +364,7 @@ class GameState():
             await self.update_score()
             await self.counter()
         else:
-            await asyncio.sleep(1. / self.TICK_RATE)
+            await asyncio.sleep(1. / TICK_RATE)
 
     async def game_loop(self):
         await self.wait_for_players()
@@ -337,7 +372,19 @@ class GameState():
         await self.counter()
         while self.running():
             await self.logic()
-        if self.finished:
-            await sync_to_async(self.instance_winner)(self.winner)
-            await sync_to_async(self.instance_finished)()
+        if not self.finished:
+            # If the game ended before one of the players won,
+            # the winner is:
+            #   - The last one connected
+            #   - If no one is left, the one with the highest score
+            #   - If they also have the same score, it's a tie
+            winner_player =                                                                                     \
+                self.players[0] if self.players[0].is_connected() else                                          \
+                self.players[1] if self.players[1].is_connected() else                                          \
+                self.players[0].get_score() if self.players[0].get_score() > self.players[1].get_score() else   \
+                self.players[1].get_score() if self.players[1].get_score() > self.players[0].get_score() else   \
+                None
+            self.winner = winner_player.get_user() if winner_player else None
+        await sync_to_async(self.instance_winner)(self.winner)
+        await sync_to_async(self.instance_finished)()
         await self.close_consumers(CLOSE_CODE_OK)
