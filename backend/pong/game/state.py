@@ -1,6 +1,7 @@
 import asyncio
 import json
 import math
+import time
 
 from asgiref.sync import async_to_sync, sync_to_async
 from users.models import User
@@ -17,6 +18,19 @@ CLOSE_CODE_OK = 3001
 
 TICK_RATE = 75
 PULLING_RATE = 10
+
+class Timer:
+    def __init__(self):
+        self.__start = None
+
+    def start(self):
+        self.__start = time.perf_counter()
+
+    def get_elapsed_time(self):
+        now = time.perf_counter()
+        elapsed_time = now - self.__start
+        self.__start = now
+        return (elapsed_time)
 
 class GameState():
 
@@ -146,31 +160,35 @@ class GameState():
         else:
             self.__has_round_ended = True
 
-    def __handle_physics(self):
+    def __handle_physics(self, delta):
         def on_lose(loser_id):
             self.__round_end(loser_id)
             self.__reset_game_state(loser_id)
 
         for player in self.__players:
-            player.update_position()
-        self.__ball.update(self.__players, on_lose)
+            player.update_position(delta)
+        self.__ball.update(delta, self.__players, on_lose)
 
-    async def __logic(self):
-        self.__handle_physics()
+    async def __logic(self, delta):
+        self.__handle_physics(delta)
         await self.__update_consumers()
-        if self.__has_round_ended:
-            self.__has_round_ended = False
-            await self.__update_score()
-            await self.__counter()
-        else:
-            await asyncio.sleep(1. / TICK_RATE)
 
     async def game_loop(self):
         await self.__wait_for_players()
         await sync_to_async(self.__instance_ingame)()
         await self.__counter()
+        timer = Timer()
+        timer.start()
+
         while self.__running():
-            await self.__logic()
+            await self.__logic(timer.get_elapsed_time() * TICK_RATE)
+            if self.__has_round_ended:
+                self.__has_round_ended = False
+                await self.__update_score()
+                await self.__counter()
+                timer.get_elapsed_time()
+            await asyncio.sleep(1. / TICK_RATE)
+
         if not self.__finished:
             # If the game ended before one of the players won,
             # the winner is:

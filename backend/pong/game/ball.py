@@ -14,9 +14,7 @@ class Ball():
     #   next_bounce: Side
 
     def __init__(self):
-        print('ALEEEEEEED')
         self.__radius = DEFAULTS['ball']['radius']
-        print('ALEEEEEEED:', self.__radius)
         self.reset(Side.TWO)
 
     def reset(self, side: Side):
@@ -30,8 +28,8 @@ class Ball():
         if OPTIMIZATION['disable_paddle']:
             self.__side = side
 
-    def update(self, paddles: tuple[Player, Player], on_lose):
-        remaining_distance = self.__speed
+    def update(self, delta, paddles: tuple[Player, Player], on_lose):
+        remaining_distance = self.__speed * delta
         while remaining_distance > 0:
             step = min(remaining_distance, 1)
             remaining_distance -= step

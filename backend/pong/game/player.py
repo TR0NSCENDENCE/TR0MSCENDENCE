@@ -35,7 +35,7 @@ class Player():
             position = -position
         self.__position = (position, 0)
 
-    def update_position(self):
+    def update_position(self, delta):
         def get_offset(direction):
             return                                      \
                  0 if direction == Direction.NONE else  \
@@ -48,7 +48,7 @@ class Player():
             return abs(position) <= limit
 
         (x, y) = self.__position
-        y += get_offset(self.__direction) * self.__velocity
+        y += get_offset(self.__direction) * self.__velocity * delta
         if not can_move(y):
             y = math.copysign(DEFAULTS['paddle']['max_position'], y)
         self.__position = (x, y)
