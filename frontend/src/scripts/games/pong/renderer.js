@@ -4,6 +4,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import store from '@store';
 
 class ColorMaterial extends THREE.MeshStandardMaterial {
 	constructor(p, color) {
@@ -38,7 +39,7 @@ const assets = {
 		depth: 7
 	},
 	map: {
-		model: '/ressources/map_scene/TronStadiumUltimo.glb',
+		model: store.getters.selectedMapPath,
 		scale: 20
 	},
 	lights: {
@@ -125,10 +126,10 @@ export default class PongRenderer {
 			this.#render_pass = new RenderPass(this.#scene, this.#camera);
 			this.#bloom_pass = new UnrealBloomPass(
 				// HACK: Will be fixed when the game canvas becomes responsive
-				undefined,
-				0.3,  // strength
-				0.5,  // radius
-				0.2   // threshold
+				new THREE.Vector2(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight),
+				0.2,  // strength
+				0.2,  // radius
+				0.1   // threshold
 			);
 			this.#composer.addPass(this.#render_pass);
 			this.#composer.addPass(this.#bloom_pass);

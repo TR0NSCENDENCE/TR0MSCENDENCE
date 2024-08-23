@@ -41,7 +41,7 @@ onMounted(() => {
 	game.renderer = new PongRenderer(
 		pong_game_canvas,
 		canvas_container,
-		0xff0000
+		document.documentElement.style.getPropertyValue('--glow-color')
 	);
 	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
 	requestAnimationFrame(animate);
