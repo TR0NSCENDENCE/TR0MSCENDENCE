@@ -26,19 +26,21 @@ class Ball():
             angle += math.pi
         self.__speed = DEFAULTS['ball']['velocity']
         self.__position = (0, 0)
-        self.__velocity = (
-            self.__speed * math.cos(angle),
-            self.__speed * math.sin(angle)
-        )
+        self.__velocity = (math.cos(angle), math.sin(angle))
         if OPTIMIZATION['disable_paddle']:
             self.__side = side
 
     def update(self, paddles: tuple[Player, Player], on_lose):
-        self.__update_position()
-        self.__wall_collision()
-        loser_id = self.__paddle_collision(paddles)
-        if loser_id != None:
-            on_lose(loser_id)
+        remaining_distance = self.__speed
+        while remaining_distance > 0:
+            step = min(remaining_distance, 1)
+            remaining_distance -= step
+            self.__update_position(step)
+            self.__wall_collision()
+            loser_id = self.__paddle_collision(paddles)
+            if loser_id != None:
+                on_lose(loser_id)
+                remaining_distance = 0
 
     def as_json(self):
         return ({
@@ -49,14 +51,15 @@ class Ball():
             'velocity': {
                 'x': self.__velocity[0],
                 'y': self.__velocity[1]
-            }
+            },
+            'speed': self.__speed
         })
 
-    def __update_position(self):
+    def __update_position(self, step):
         (x, y) = self.__position
         (vx, vy) = self.__velocity
-        x += vx
-        y += vy
+        x += vx * step
+        y += vy * step
         self.__position = (x, y)
 
     def __wall_collision(self):
@@ -99,8 +102,8 @@ class Ball():
             angle = math.pi - angle
 
         self.__speed *= DEFAULTS['ball']['speedup_factor']
-        bvx = math.cos(angle) * self.__speed
-        bvy = math.sin(angle) * self.__speed
+        bvx = math.cos(angle)
+        bvy = math.sin(angle)
 
         paddle.increase_velocity()
         return (bx, by, bvx, bvy, False)

@@ -178,7 +178,7 @@ class GameState():
             #   - If no one is left, the one with the highest score
             #   - If they also have the same score, it's a tie
             diff = self.__players[0].get_score() - self.__players[1].get_score()
-            winner_player =                                             \
+            winner_player =                                                 \
                 self.__players[0] if self.__players[0].is_connected() else  \
                 self.__players[1] if self.__players[1].is_connected() else  \
                 self.__players[0] if diff > 0 else                          \
