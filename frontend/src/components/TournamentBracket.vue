@@ -3,27 +3,27 @@
 		<!-- Colonne de gauche pour les demi-finales -->
 		<div class="matches-left">
 			<div class="match">
-				<div class="team"> {{ tournamentdata.gameinstance_half_1.player_one.username }} </div>
+				<UserViewer :userdata="tournamentdata.gameinstance_half_1.player_one"/>
 				<span class="vs">VS</span>
-				<div class="team">{{ tournamentdata.gameinstance_half_1.player_two.username }}</div>
+				<UserViewer :userdata="tournamentdata.gameinstance_half_1.player_two"/>
 			</div>
 			<div class="match">
-				<div class="team"> {{ tournamentdata.gameinstance_half_2.player_one.username }} </div>
+				<UserViewer :userdata="tournamentdata.gameinstance_half_2.player_one"/>
 				<span class="vs">VS</span>
-				<div class="team">{{ tournamentdata.gameinstance_half_2.player_two.username }}</div>
+				<UserViewer :userdata="tournamentdata.gameinstance_half_2.player_two"/>
 			</div>
 		</div>
 		<!-- Section pour la finale et le gagnant -->
-		<div class="final-and-winner" v-if="tournamentdata.gameinstance_final">
+		<div class="final-and-winner">
 			<div class="final">
-				<div class="match">
-					<div class="team">Winner Match 1</div>
+				<div class="match" v-if="tournamentdata.winner_half_1 || tournamentdata.winner_half_2">
+					<UserViewer :pk="tournamentdata.winner_half_1"/>
 					<span class="vs">VS</span>
-					<div class="team">Winner Match 2</div>
+					<UserViewer :pk="tournamentdata.winner_half_2"/>
 				</div>
 			</div>
 			<div class="winner" v-if="tournamentdata.winner_final">
-				<div class="team">Tournament Winner</div>
+				<UserViewer :pk="tournamentdata.winner_final"/>
 			</div>
 		</div>
 	</div>
@@ -32,6 +32,7 @@
 <script setup>
 
 import { ref } from 'vue';
+import UserViewer from './UserViewer.vue';
 
 const props = defineProps(['tournamentdata']);
 </script>

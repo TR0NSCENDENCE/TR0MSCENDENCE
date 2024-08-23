@@ -6,7 +6,9 @@ import json
 from users.models import User
 from .models import GameInstance, TournamentInstance
 from .game.state import GameState
+from .tournament_state import TournamentState
 from .game.player import Player
+from .userconnection import UserConnection
 
 CLOSE_CODE_ERROR = 3000
 CLOSE_CODE_OK = 3001
@@ -93,7 +95,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
             return
 
         # The instance is in starting or in-game state
-        if self.instance.state is TournamentInstance.TournamentState.FINISHED:
+        if self.instance.state == 'FD':
             # print(self.instance_uuid, 'tournament finished')
             await self.reject()
             return
@@ -109,14 +111,14 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 
         async with self.update_lock:
             if not self.instance_uuid in self.tournament_states.keys():
-                # print('instance created')
-                self.tournament_states[self.instance_uuid] = GameState(self.instance)
-                asyncio.create_task(self.tournament_states[self.instance_uuid].game_loop())
+                print('instance created')
+                self.tournament_states[self.instance_uuid] = TournamentState(self.instance)
+                asyncio.create_task(self.tournament_states[self.instance_uuid].tournament_loop())
             try:
-                self.tournament_states[self.instance_uuid].player_connect(self, self.user)
-                self.tournament_states = self.tournament_states[self.instance_uuid]
-            except Player.AlreadyConnected:
-                print('user already connected to the instance')
+                self.tournament_states[self.instance_uuid].player_connect(self.user, self)
+                self.tournament_state = self.tournament_states[self.instance_uuid]
+            except UserConnection.AlreadyConnected:
+                # print('user already connected to the instance')
                 await self.reject()
                 return
         # Accept connection
@@ -136,7 +138,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive_json(self, json_data):
-        await self.tournament_states.player_receive_json(self, json_data)
+        await self.tournament_state.player_receive_json(self, json_data)
 
 class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 

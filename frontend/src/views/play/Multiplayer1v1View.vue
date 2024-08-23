@@ -170,6 +170,8 @@ const setup = (/** @type {WebSocket} */ socket) => {
 			winner.value = players.value[winner_index].user.username;
 			loser.value = players.value[1 - winner_index].user.username;
 			game_running.value = false;
+			if (route.query.redirect)
+				setTimeout(() => router.push(route.query.redirect), 4000);
 		}
 	}
 };

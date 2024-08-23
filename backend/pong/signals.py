@@ -17,3 +17,24 @@ def create_halfs_match(sender, instance: TournamentInstance, created, **kwargs):
         instance.gameinstance_half_1.save()
         instance.gameinstance_half_2.save()
         instance.save()
+
+@receiver(post_save, sender=GameInstance)
+def update_tournament_winner(sender, instance: GameInstance, **kwargs):
+    try:
+        if instance.state == 'FD' and not instance.tournament_1.winner_half_1:
+            instance.tournament_1.winner_half_1 = instance.winner
+            instance.tournament_1.save()
+    except:
+        pass
+    try:
+        if instance.state == 'FD' and not instance.tournament_2.winner_half_2:
+            instance.tournament_2.winner_half_2 = instance.winner
+            instance.tournament_2.save()
+    except:
+        pass
+    try:
+        if instance.state == 'FD' and not instance.tournament_3.winner_final:
+            instance.tournament_3.winner_final = instance.winner
+            instance.tournament_3.save()
+    except:
+        pass
