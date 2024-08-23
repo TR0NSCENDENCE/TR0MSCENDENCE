@@ -5,7 +5,8 @@ import json
 
 from users.models import User
 from .models import GameInstance, TournamentInstance
-from .game_state import GameState
+from .game.state import GameState
+from .game.player import Player
 
 CLOSE_CODE_ERROR = 3000
 CLOSE_CODE_OK = 3001
@@ -49,7 +50,7 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
             try:
                 self.game_states[self.instance_uuid].player_connect(self.user, self)
                 self.game_state = self.game_states[self.instance_uuid]
-            except GameState.AlreadyConnected:
+            except Player.AlreadyConnected:
                 print('user already connected to the instance')
                 await self.reject()
                 return
@@ -113,7 +114,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
             try:
                 self.tournament_states[self.instance_uuid].player_connect(self.user, self)
                 self.game_state = self.tournament_states[self.instance_uuid]
-            except GameState.AlreadyConnected:
+            except Player.AlreadyConnected:
                 print('user already connected to the instance')
                 await self.close(CLOSE_CODE_ERROR)
                 return

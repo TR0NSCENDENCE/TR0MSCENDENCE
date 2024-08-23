@@ -38,3 +38,7 @@ DEFAULTS = {
         'reset_angle_range': BALL___RESET_ANGLE_RANGE
     }
 }
+
+OPTIMIZATION = {
+    'disable_paddle': False
+}
