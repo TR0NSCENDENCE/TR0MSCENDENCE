@@ -82,19 +82,20 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.instance_uuid = self.scope["url_route"]["kwargs"]["instance_uuid"]
         self.user = self.scope["user"]
+        self._rejected = False
 
         # The instance exist ?
         try:
             self.instance = await TournamentInstance.objects.select_related('player_one', 'player_two', 'player_thr', 'player_fou').aget(uuid=self.instance_uuid)
         except TournamentInstance.DoesNotExist:
             # print(self.instance_uuid, 'instance not found')
-            await self.close(CLOSE_CODE_ERROR)
+            await self.reject()
             return
 
         # The instance is in starting or in-game state
         if self.instance.state is TournamentInstance.TournamentState.FINISHED:
             # print(self.instance_uuid, 'tournament finished')
-            await self.close(CLOSE_CODE_ERROR)
+            await self.reject()
             return
 
         # User is in the instance ?
@@ -103,7 +104,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
                             self.instance.player_thr,
                             self.instance.player_fou]:
             # print(self.user, 'not in the user of the instance')
-            await self.close(CLOSE_CODE_ERROR)
+            await self.reject()
             return
 
         async with self.update_lock:
@@ -112,17 +113,21 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
                 self.tournament_states[self.instance_uuid] = GameState(self.instance)
                 asyncio.create_task(self.tournament_states[self.instance_uuid].game_loop())
             try:
-                self.tournament_states[self.instance_uuid].player_connect(self.user, self)
-                self.game_state = self.tournament_states[self.instance_uuid]
+                self.tournament_states[self.instance_uuid].player_connect(self, self.user)
+                self.tournament_states = self.tournament_states[self.instance_uuid]
             except Player.AlreadyConnected:
                 print('user already connected to the instance')
-                await self.close(CLOSE_CODE_ERROR)
+                await self.reject()
                 return
         # Accept connection
         await self.accept()
 
+    async def reject(self):
+        self._rejected = True
+        await self.close()
+
     async def disconnect(self, close_code):
-        if close_code == CLOSE_CODE_ERROR:
+        if self._rejected:
             return
         # Disconnect from instance if exist
         async with self.update_lock:
@@ -131,7 +136,7 @@ class TournamentConsumer(AsyncJsonWebsocketConsumer):
 
     # Receive message from WebSocket
     async def receive_json(self, json_data):
-        await self.game_state.player_receive_json(self, json_data)
+        await self.tournament_states.player_receive_json(self, json_data)
 
 class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
 
@@ -147,15 +152,16 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.match_type = self.scope["url_route"]["kwargs"]["match_type"]
         self.user = self.scope["user"]
+        self._rejected = False
 
         async with self.update_lock:
             if not self.match_type in self.waiting_list.keys():
                 print(self.user, 'unknown match type')
-                await self.close(CLOSE_CODE_ERROR)
+                await self.reject()
                 return
             if self.user in self.users:
                 print(self.user, 'user already in waiting list')
-                await self.close(CLOSE_CODE_ERROR)
+                await self.reject()
                 return
             self.users += [self.user]
             self.waiting_list[self.match_type] += [self]
@@ -167,8 +173,12 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                 asyncio.create_task(self.matchmaking_function[self.match_type](self))
                 self.matchmaking_running[self.match_type] = True
 
+    async def reject(self):
+        self._rejected = True
+        await self.close()
+
     async def disconnect(self, close_code):
-        if close_code == CLOSE_CODE_ERROR:
+        if self._rejected:
             return
         async with self.update_lock:
             try:
