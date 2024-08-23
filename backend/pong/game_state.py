@@ -256,14 +256,14 @@ class GameState():
         await asyncio.sleep(3)
         await self.players_send_json({'type': 'counter_stop'})
 
-    def update_ball_pos(self):
+    def update_ball_position(self):
         (x, y) = self.ball_pos
         (vx, vy) = self.ball_vel
         x += vx
         y += vy
         self.ball_pos = (x, y)
 
-    def update_paddle_pos(self):
+    def update_paddle_position(self):
         for player in self.players:
             player.update_position()
 
@@ -355,8 +355,8 @@ class GameState():
                 self.reset_game_state(ball_on_p1_side)
 
     async def logic(self):
-        self.update_ball_pos()
-        self.update_paddle_pos()
+        self.update_ball_position()
+        self.update_paddle_position()
         self.handle_physics()
         await self.update_consumers()
         if self.has_round_ended:
@@ -378,11 +378,12 @@ class GameState():
             #   - The last one connected
             #   - If no one is left, the one with the highest score
             #   - If they also have the same score, it's a tie
-            winner_player =                                                                                     \
-                self.players[0] if self.players[0].is_connected() else                                          \
-                self.players[1] if self.players[1].is_connected() else                                          \
-                self.players[0].get_score() if self.players[0].get_score() > self.players[1].get_score() else   \
-                self.players[1].get_score() if self.players[1].get_score() > self.players[0].get_score() else   \
+            scores = (self.players[0].get_score(), self.players[1].get_score())
+            winner_player =                                             \
+                self.players[0] if self.players[0].is_connected() else  \
+                self.players[1] if self.players[1].is_connected() else  \
+                self.players[0] if scores[0] > scores[1] else           \
+                self.players[1] if scores[1] > scores[0] else           \
                 None
             self.winner = winner_player.get_user() if winner_player else None
         await sync_to_async(self.instance_winner)(self.winner)
