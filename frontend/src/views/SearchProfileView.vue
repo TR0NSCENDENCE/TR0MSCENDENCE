@@ -10,12 +10,12 @@
 				</li>
 			</ul>
 			<div id="nav-pages">
-				<GlowingButton v-if="prev" @click="_updateUserList(prev)" :text="'previous'"/>
+				<GlowingButton style="width: 15vw;height: 5vh;" v-if="prev" @click="_updateUserList(prev)" :text="'previous'"/>
 				<h1 v-if="prev || next" >page {{ curpage }}/{{ totalpage }}</h1>
-				<GlowingButton v-if="next" @click="_updateUserList(next)" :text="'next'"/>
+				<GlowingButton style="width: 15vw;height: 5vh;" v-if="next" @click="_updateUserList(next)" :text="'next'"/>
 			</div>
 		</div>
-		<button @click="bomb()">bomb</button>
+		<!-- <button @click="bomb()">bomb</button> -->
 	</div>
 </template>
 
@@ -72,12 +72,21 @@ onMounted(updateUserList);
 	display: flex;
 	justify-content:space-around;
 	align-items: center;
-	margin: 4%;
+	margin: 1%;
+	font-size: 1em;
+}
+
+#result-list {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 #search-profile-view {
 	display: flex;
 	flex-direction: column;
+	font-size: 2vmin;
+	height: 100%;
 }
 
 h1 {
@@ -88,6 +97,7 @@ h1 {
 ul {
 	list-style-type: none;
 	padding-left: 5vw;
+	padding-right: 5vw;
 	width: fit-content;
 	display: flex;
 	flex-direction: column;
