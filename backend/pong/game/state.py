@@ -44,7 +44,7 @@ class GameState():
     def __init__(self, instance: GameInstance):
         self.__instance = instance
         self.__finished = False
-        self.__has_round_ended = False
+        self.__has_round_ended = True
         self.__players = [ Player(Side.ONE), Player(Side.TWO) ]
         self.__ball = Ball()
         self.__reset_game_state()
@@ -142,8 +142,12 @@ class GameState():
         })
 
     async def __counter(self):
+        SECONDS_TO_WAIT = 3
+        PULL_RATE = 20
+
         await self.__players_send_json({'type': 'counter_start'})
-        await asyncio.sleep(3)
+        for _ in range(PULL_RATE):
+            await asyncio.sleep(SECONDS_TO_WAIT / PULL_RATE)
         await self.__players_send_json({'type': 'counter_stop'})
 
     def __reset_game_state(self, loser_id=1):
@@ -155,7 +159,6 @@ class GameState():
         winner_player = self.__players[1 - loser_id]
         winner_player.increase_score()
         if winner_player.get_score() == DEFAULTS['game']['win_score']:
-            self.__winner = winner_player.get_user()
             self.__finished = True
         else:
             self.__has_round_ended = True
@@ -173,36 +176,44 @@ class GameState():
         self.__handle_physics(delta)
         await self.__update_consumers()
 
-    async def game_loop(self):
-        await self.__wait_for_players()
-        await sync_to_async(self.__instance_ingame)()
-        await self.__counter()
+    def __set_winner(self):
+        # If the game ended before one of the players won,
+        # the winner is:
+        #   - The player who's score is 3
+        #   - If none has a score of 3, the last one connected
+        #   - If no one is left, the one with the highest score
+        #   - If they also have the same score, it's a tie
+        winner_player =                                                     \
+            self.__players[0] if self.__players[0].get_score() == 3 else    \
+            self.__players[1] if self.__players[1].get_score() == 3 else    \
+            self.__players[0] if self.__players[0].is_connected() else      \
+            self.__players[1] if self.__players[1].is_connected() else      \
+            self.__players[0] if score_delta > 0 else                       \
+            self.__players[1] if score_delta < 0 else                       \
+            None
+        self.__winner = winner_player.get_user() if winner_player else None
+
+    async def __game_loop(self):
+        SIMULATION_STEP = 1. / TICK_RATE
+
         timer = Timer()
         timer.start()
 
         while self.__running():
-            await self.__logic(timer.get_elapsed_time())
             if self.__has_round_ended:
                 self.__has_round_ended = False
                 await self.__update_score()
                 await self.__counter()
                 timer.get_elapsed_time()
-            await asyncio.sleep(1. / TICK_RATE)
+            delta = timer.get_elapsed_time()
+            await self.__logic(delta)
+            await asyncio.sleep(SIMULATION_STEP)
 
-        if not self.__finished:
-            # If the game ended before one of the players won,
-            # the winner is:
-            #   - The last one connected
-            #   - If no one is left, the one with the highest score
-            #   - If they also have the same score, it's a tie
-            diff = self.__players[0].get_score() - self.__players[1].get_score()
-            winner_player =                                                 \
-                self.__players[0] if self.__players[0].is_connected() else  \
-                self.__players[1] if self.__players[1].is_connected() else  \
-                self.__players[0] if diff > 0 else                          \
-                self.__players[1] if diff < 0 else                          \
-                None
-            self.__winner = winner_player.get_user() if winner_player else None
+    async def game_loop(self):
+        await self.__wait_for_players()
+        await sync_to_async(self.__instance_ingame)()
+        await self.__game_loop()
+        self.__set_winner()
         await sync_to_async(self.__instance_winner)(self.__winner)
         await sync_to_async(self.__instance_finished)()
         # await self.__close_consumers(CLOSE_CODE_OK) DO NOT UNCOMMENT
