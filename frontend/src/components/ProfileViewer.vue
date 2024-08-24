@@ -58,9 +58,9 @@
 					</li>
 				</ul>
 				<div id="nav-pages">
-					<GlowingButton v-if="matchs_page.prev" @click="_updateMatchsList(matchs_page.prev)" :text="'previous'"/>
-					<h2 v-if="matchs_page.prev || matchs_page.next" >page {{ matchs_page.curpage }}/{{ matchs_page.totalpage }}</h2>
-					<GlowingButton v-if="matchs_page.next" @click="_updateMatchsList(matchs_page.next)" :text="'next'"/>
+					<GlowingButton v-if="tournaments_page.prev" @click="_updateTournamentsList(tournaments_page.prev)" :text="'previous'"/>
+					<h2 v-if="tournaments_page.prev || tournaments_page.next" >page {{ tournaments_page.curpage }}/{{ tournaments_page.totalpage }}</h2>
+					<GlowingButton v-if="tournaments_page.next" @click="_updateTournamentsList(tournaments_page.next)" :text="'next'"/>
 				</div>
 			</div>
 		</div>

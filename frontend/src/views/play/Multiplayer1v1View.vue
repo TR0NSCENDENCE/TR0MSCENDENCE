@@ -8,6 +8,12 @@
 					dest="/"
 					/>
 			</div>
+			<div v-else-if="winner">
+				<MatchWon
+					:winner="winner"
+					:loser="loser"
+					/>
+			</div>
 			<div v-else-if="ws_connected">
 				<div v-if="game_running">
 					<GameOponentsBar
@@ -19,12 +25,6 @@
 						@onUpdateRequested="update"
 						/>
 				</div>
-			</div>
-			<div v-else-if="winner">
-				<MatchWon
-					:winner="winner"
-					:loser="loser"
-					/>
 			</div>
 			<h1 v-else> Waiting for connection... </h1>
 		</div>

@@ -205,4 +205,4 @@ class GameState():
             self.__winner = winner_player.get_user() if winner_player else None
         await sync_to_async(self.__instance_winner)(self.__winner)
         await sync_to_async(self.__instance_finished)()
-        await self.__close_consumers(CLOSE_CODE_OK)
+        # await self.__close_consumers(CLOSE_CODE_OK) DO NOT UNCOMMENT

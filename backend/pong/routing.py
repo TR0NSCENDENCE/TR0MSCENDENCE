@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import *
-from .consummers import GameConsumer, MatchmakingConsumer, TournamentConsumer
+from .consumers import GameConsumer, MatchmakingConsumer, TournamentConsumer
 
 ws_urlpatterns = [
     path('api/ws/gameinstance/<uuid:instance_uuid>/', GameConsumer.as_asgi()),
