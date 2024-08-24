@@ -165,10 +165,10 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                 print(self.user, 'user already in waiting list')
                 await self.reject()
                 return
+            await self.accept()
             self.users += [self.user]
             self.waiting_list[self.match_type] += [self]
             print(self.user, 'added to waiting list')
-        await self.accept()
         for key in self.waiting_list.keys():
             if len(self.waiting_list[key]) > 0 and not self.matchmaking_running[self.match_type]:
                 print(self.user, 'launch matchmaking for', self.match_type)
@@ -223,7 +223,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                     match_uuid = await create_tournament(self.waiting_list['tournament'][:4])
                     for c in self.waiting_list['tournament'][:4]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
-                        await c.close(3001)
+                        await c.close(CLOSE_CODE_OK)
                     self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['tournament'] = False
