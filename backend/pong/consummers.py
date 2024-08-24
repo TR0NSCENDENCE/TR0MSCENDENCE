@@ -204,6 +204,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
                     for c in self.waiting_list['1v1'][:2]:
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
                         await c.close(CLOSE_CODE_OK)
+                    self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['1v1'] = False
 
