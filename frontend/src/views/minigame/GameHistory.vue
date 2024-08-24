@@ -1,42 +1,21 @@
 <template>
-	<div class="leaderboard_solo ">
-        <h1 class="solo"> solo </h1>
+	<div class="history">
+        <h1 class="history"></h1>
 		<table>
 			<thead>
 				<tr>
-					<th>best score</th>
-					<th>best time</th>
-					<th>games played</th>
-					<th>winrate</th>
+					<th>score</th>
+					<th>time</th>
+					<th>mode</th>
+					<th>status</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(solo) in solo" :key="solo.id">
-					<td>{{ solo.best_score }}</td>
-					<td>{{ solo.best_time }}</td>
-					<td>{{ solo.game_played }} </td>
-					<td>{{ solo.winrate }}</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-    <div class="leaderboard_1v1">
-        <h1 class="versus"> 1v1 </h1>
-		<table>
-			<thead>
-				<tr>
-					<th>best score</th>
-					<th>best time</th>
-					<th>games played</th>
-					<th>winrate</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="(versus) in versus" :key="versus.id">
-					<td>{{ versus.best_score }}</td>
-					<td>{{ versus.best_time }}</td>
-					<td>{{ versus.game_played }} </td>
-					<td>{{ versus.winrate }}</td>
+				<tr v-for="(entry, index) in history" :key="index">
+					<td>{{ entry.score }}</td>
+					<td>{{ entry.time }}</td>
+					<td>{{ entry.mode }}</td>
+					<td>{{ entry.status }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -44,92 +23,27 @@
 </template>
 
 <script setup>
-// Fonction pour récupérer les scores
-function getScores() {
-    return (JSON.parse(localStorage.getItem('pacman_scores')) || []);
+
+function getStats() {
+	const jsonData = localStorage.getItem('stats');
+	const statsArray = JSON.parse(jsonData) || [];
+
+	const lastFiveGames = statsArray.slice(-5).reverse();
+
+	return lastFiveGames.map(history => ({
+		score: history.score,
+		time: history.time,
+		mode: history.mode,
+		status: history.status,
+	}));
 }
 
-// Fonction pour récupérer les scores
-function getTimes() {
-    return (JSON.parse(localStorage.getItem('pacman_times')) || []);
-}
+const history = getStats('history');
 
-
-const solo = [
-	{ best_score: getScores(), best_time: getTimes(), game_played: 92, winrate: 1500 },
-];
-
-const versus = [
-	{ best_score: 1, best_time: 'Alice', game_played: 92, winrate: 1500 },
-];
 </script>
 
-<!-- <template>
-	<div class="leaderboard_solo">
-	  <h1 class="solo">Solo</h1>
-	  <table>
-		<thead>
-		  <tr>
-			<th>Best Score</th>
-			<th>Best Time</th>
-			<th>Games Played</th>
-			<th>Winrate</th>
-		  </tr>
-		</thead>
-		<tbody>
-		  <tr v-for="(entry) in soloData" :key="entry.id">
-			<td>{{ entry.best_score }}</td>
-			<td>{{ entry.best_time }}</td>
-			<td>{{ entry.game_played }}</td>
-			<td>{{ entry.winrate }}</td>
-		  </tr>
-		</tbody>
-	  </table>
-	</div>
-	<div class="leaderboard_1v1">
-	  <h1 class="versus">1v1</h1>
-	  <table>
-		<thead>
-		  <tr>
-			<th>Best Score</th>
-			<th>Best Time</th>
-			<th>Games Played</th>
-			<th>Winrate</th>
-		  </tr>
-		</thead>
-		<tbody>
-		  <tr v-for="(entry) in versusData" :key="entry.id">
-			<td>{{ entry.best_score }}</td>
-			<td>{{ entry.best_time }}</td>
-			<td>{{ entry.game_played }}</td>
-			<td>{{ entry.winrate }}</td>
-		  </tr>
-		</tbody>
-	  </table>
-	</div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue';
-  
-  const soloData = ref([]);
-  const versusData = ref([]);
-  
-  onMounted(async () => {
-	try {
-	  const response = await fetch('@assets/data/pacman_data.json');
-	  const data = await response.json();
-	  soloData.value = data.solo;
-	  versusData.value = data.versus;
-	} catch (error) {
-	  console.error('Error fetching data:', error);
-	}
-  });
-  </script>
-   -->
-
 <style scoped>
-.leaderboard_solo, .leaderboard_1v1 {
+.history {
 	margin: 2vh 7vh 2vh 7vh;
 	text-align: center;
 	color: var(--glow-color);

@@ -197,21 +197,13 @@ function	createGhosts() {
 	return (temp_ghosts);
 }
 
-// const ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
-// new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
-// new ghost({ position: { x: boundary.width * (GHOST_SPAWN - 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: INKY_COLOR, name: INKY }),
-// new ghost({ position: { x: boundary.width * (GHOST_SPAWN + 1) + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: CLYDE_COLOR, name: CLYDE })
-// ]
-
 function createImage(src, onLoadCallback, onErrorCallback) {
 	const image = new Image();
 
-	// Gérer le cas où l'image est chargée avec succès
 	image.onload = () => {
 		if (onLoadCallback) onLoadCallback(image);
 	};
 
-	// Gérer les erreurs de chargement de l'image
 	image.onerror = () => {
 		console.error(`Failed to load image at ${src}`);
 		if (onErrorCallback) onErrorCallback(image);
@@ -307,10 +299,8 @@ function stockMap(textureMap) {
 			}
 		});
 	});
-	return Promise.all(imagePromises); // Attendre que toutes les images soient chargées
+	return Promise.all(imagePromises);
 }
-
-// boundary.image = applyColorFilterToImage(boundary.image);
 
 function getCssVariableValue(varColor) {
 	const color_style = getComputedStyle(document.documentElement);
@@ -328,38 +318,28 @@ function applyColorFilterToImage(image, color) {
 	const canvas = document.createElement('canvas');
 	const ctx = canvas.getContext('2d');
 
-	// Assurez-vous que le canvas a la même taille que l'image
 	canvas.width = image.width;
 	canvas.height = image.height;
 
-	// Dessinez l'image sur le canvas
 	ctx.drawImage(image, 0, 0);
 
-	// Obtenez les données des pixels
 	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 	const data = imageData.data;
 
-	// Décomposez la couleur souhaitée en ses composantes rouge, vert, bleu
 	const r = parseInt(color.slice(1, 3), 16);
 	const g = parseInt(color.slice(3, 5), 16);
 	const b = parseInt(color.slice(5, 7), 16);
-
-	// Parcourez chaque pixel
 	for (let i = 0; i < data.length; i += 4) {
-		const grayscale = data[i]; // Puisque l'image est en noir et blanc, r=g=b
-
-		// Si le pixel n'est pas complètement blanc, appliquez la couleur
+		const grayscale = data[i];
 		if (grayscale > 30) {
-			data[i] = r * (grayscale / 255);       // Rouge
-			data[i + 1] = g * (grayscale / 255);   // Vert
-			data[i + 2] = b * (grayscale / 255);   // Bleu
+			data[i] = r * (grayscale / 255);
+			data[i + 1] = g * (grayscale / 255);
+			data[i + 2] = b * (grayscale / 255);
 		}
 	}
 
-	// Mettez à jour le canvas avec les nouvelles données de pixels
 	ctx.putImageData(imageData, 0, 0);
 
-	// Retournez le canvas pour affichage
 	return canvas;
 }
 

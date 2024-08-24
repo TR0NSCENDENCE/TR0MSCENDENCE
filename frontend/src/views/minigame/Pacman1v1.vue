@@ -27,11 +27,31 @@ const lives = ref(3);
 const winOrLose = ref(0);
 const time = ref('0');
 
+const gameStat = {
+    score:  0,
+    time: 0,
+	status: 'lose',
+	mode: '',
+};
+
 function updateData(newScore, newlives, newTime) {
 	score.value = newScore;
 	lives.value = newlives;
 	time.value = newTime;
 }
+
+function saveData(score, time, winOrLose) {
+    gameStat.score = score;
+    gameStat.time = time;
+    gameStat.status = winOrLose === 2 ? 'win' : 'lose';
+	gameStat.mode = '1v1';
+
+    let data = JSON.parse(localStorage.getItem('stats')) || [];
+    data.push(gameStat);
+    localStorage.setItem('stats', JSON.stringify(data));
+}
+
+
 function initializeCanvas() {
 	const canvas = gameCanvas.value;
 	const ctx = canvas.getContext('2d');
@@ -63,6 +83,7 @@ function stopGame() {
 			module.stopAnimate();
 		}
 	});
+	saveData(score.value, time.value, winOrLose.value);
 }
 
 onMounted(() => {

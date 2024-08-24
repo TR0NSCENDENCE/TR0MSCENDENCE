@@ -27,25 +27,28 @@ const lives = ref(3);
 const winOrLose = ref(0);
 const time = ref('0');
 
+const gameStat = {
+    score:  0,
+    time: 0,
+	status: 'lose',
+	mode: '',
+};
+
 function updateData(newScore, newlives, newTime) {
 	score.value = newScore;
 	lives.value = newlives;
 	time.value = newTime;
 }
 
-// Fonction pour sauvegarder le score
-function saveData(score, time) {
-    // Récupérer les scores existants
-    let scores = JSON.parse(localStorage.getItem('pacman_scores')) || [];
-	let times = JSON.parse(localStorage.getItem('pacman_times')) || [];
+function saveData(score, time, winOrLose) {
+    gameStat.score = score;
+    gameStat.time = time;
+    gameStat.status = winOrLose === 2 ? 'win' : 'lose';
+	gameStat.mode = 'solo';
 
-    // Ajouter le nouveau score
-    scores.push(score);
-	times.push(time);
-
-    // Sauvegarder les scores mis à jour dans le Local Storage
-    localStorage.setItem('pacman_scores', JSON.stringify(scores));
-	localStorage.setItem('pacman_times', JSON.stringify(times));
+    let data = JSON.parse(localStorage.getItem('stats')) || [];
+    data.push(gameStat);
+    localStorage.setItem('stats', JSON.stringify(data));
 }
 
 function initializeCanvas() {
@@ -79,7 +82,7 @@ function stopGame() {
 			module.stopAnimate();
 		}
 	});
-	saveData(score.value, time.value);
+	saveData(score.value, time.value, winOrLose.value);
 }
 
 onMounted(() => {
