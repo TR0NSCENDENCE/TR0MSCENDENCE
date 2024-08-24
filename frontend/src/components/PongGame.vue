@@ -19,13 +19,18 @@ import Counter321 from '@components/Counter321.vue';
 import PongLogic from '@scripts/games/pong/logic';
 import PongRenderer from '@scripts/games/pong/renderer';
 import store from '@store';
+import PongModel from '@scripts/games/pong/model';
 
 const emits = defineEmits(['onUpdateRequested']);
 
 const game = {
-	logic: new PongLogic(),
+	model: undefined,
+	logic: undefined,
 	renderer: undefined
 };
+
+game.model = new PongModel();
+game.logic = new PongLogic(game.model);
 
 const counter = ref(null);
 const pong_game_canvas = ref(null);
@@ -65,9 +70,9 @@ defineExpose({
 			counter.value.stop();
 	},
 	setters: {
-		ball: game.logic.setBall,
-		paddle_1: game.logic.setPaddle1,
-		paddle_2: game.logic.setPaddle2
+		ball: game.model.setBall,
+		paddle_1: game.model.setPaddle1,
+		paddle_2: game.model.setPaddle2
 	}
 })
 
