@@ -42,6 +42,7 @@ class GameInstance(models.Model):
 
 class TournamentInstance(models.Model):
     uuid = models.UUIDField(default=uuid4, editable=False)
+    finished_at = models.DateTimeField(null=True, blank=True, default=None)
 
     class TournamentState(models.TextChoices):
         WAITING_PLAYERS = 'WP', _('Waiting for players')

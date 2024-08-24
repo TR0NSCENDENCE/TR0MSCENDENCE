@@ -9,6 +9,12 @@ def update_finish_data(sender, instance: GameInstance, **kwargs):
         if not instance.finished_at:
             instance.finished_at = timezone.now()
 
+@receiver(pre_save, sender=TournamentInstance)
+def update_tournament_finish_data(sender, instance: TournamentInstance, **kwargs):
+    if instance.state == 'FD':
+        if not instance.finished_at:
+            instance.finished_at = timezone.now()
+
 @receiver(post_save, sender=TournamentInstance)
 def create_halfs_match(sender, instance: TournamentInstance, created, **kwargs):
     if created:

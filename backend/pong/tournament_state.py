@@ -100,6 +100,10 @@ class TournamentState():
     async def instance_refresh_from_db(self):
         await self.instance.arefresh_from_db(from_queryset=TournamentInstance.objects.select_related('player_one', 'player_two', 'player_thr', 'player_fou'))
 
+    async def instance_set_state(self, state):
+        self.instance.state = state
+        await sync_to_async(self.instance.save)()
+
     def get_tournament_instance_data(self):
         return TournamentInstanceInfoSerializer(self.instance).data
 
@@ -125,6 +129,7 @@ class TournamentState():
         print(message, *args)
 
     async def start_halfs(self):
+        await self.instance_set_state('IH')
         for game_instance in await sync_to_async(self.get_half_matchs)():
             for uc in self.player_connections:
                 if uc.user in [game_instance.player_one, game_instance.player_two]:
@@ -134,6 +139,7 @@ class TournamentState():
                     })
 
     async def start_final(self):
+        await self.instance_set_state('IF')
         for uc in self.player_connections:
             if uc.user in [self.instance.gameinstance_final.player_one, self.instance.gameinstance_final.player_two]:
                 await uc.send_json({
@@ -166,7 +172,7 @@ class TournamentState():
             await self.half_refresh_from_db()
             await self.instance_refresh_from_db()
             await self.update_tournamentstate_consumers()
-            self.log('Waiting for matchs to finish...')
+            # self.log('Waiting for matchs to finish...')
 
     async def wait_for_players(self):
         self.log("Waiting for player to connect...")
@@ -184,7 +190,7 @@ class TournamentState():
             await self.half_refresh_from_db()
             await self.instance_refresh_from_db()
             await self.update_tournamentstate_consumers()
-            self.log("Waiting for winners to connect...")
+            # self.log("Waiting for winners to connect...")
 
     async def wait_for_final(self):
         while self.instance.gameinstance_final.state != 'FD':
@@ -192,7 +198,7 @@ class TournamentState():
             await self.final_refresh_from_db()
             await self.instance_refresh_from_db()
             await self.update_tournamentstate_consumers()
-            self.log('Waiting for final to finish...')
+            # self.log('Waiting for final to finish...')
 
     async def tournament_loop(self):
         await self.wait_for_players()
@@ -213,4 +219,5 @@ class TournamentState():
         await self.start_final()
         await self.wait_for_final()
         self.log('TOURNAMENT FINISHED')
+        await self.instance_set_state('FD')
         await self.close_consumers(CLOSE_CODE_OK)

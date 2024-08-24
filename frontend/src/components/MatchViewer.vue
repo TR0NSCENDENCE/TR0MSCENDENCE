@@ -1,12 +1,16 @@
 <template>
-	<div class="match-viewer">
+	<div class="tournament-viewer">
 		<p>
 			{{ new Date(data.finished_at).toLocaleString() }}
 		</p>
 		<div class="match-oponants-result">
-			<UserViewer :userdata="data.player_one"/>
+			<UserViewer
+				:class="{ user_looser: !isInstanceWinner(data, data.player_one.pk) }"
+				:userdata="data.player_one"/>
 			<span id="vs">vs</span>
-			<UserViewer :userdata="data.player_two"/>
+			<UserViewer
+				:class="{ user_looser: !isInstanceWinner(data, data.player_two.pk) }"
+				:userdata="data.player_two"/>
 			<p class="score"><span class="score-number">{{ data.player_one_score }}</span> - <span class="score-number">{{ data.player_two_score }}</span></p>
 		</div>
 	</div>
@@ -14,6 +18,10 @@
 
 <script setup>
 import UserViewer from './UserViewer.vue';
+
+function isInstanceWinner(instance, player) {
+	return instance.winner == player;
+}
 
 const props = defineProps(['data']);
 </script>
@@ -31,6 +39,10 @@ const props = defineProps(['data']);
 	white-space: nowrap;
 }
 
+.user_looser {
+	--glow-color: rgb(150, 150, 150);
+}
+
 .match-oponants-result {
 	display: flex;
 	flex-direction: row;
@@ -38,7 +50,7 @@ const props = defineProps(['data']);
 	justify-content: center;
 }
 
-.match-viewer {
+.tournament-viewer {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
