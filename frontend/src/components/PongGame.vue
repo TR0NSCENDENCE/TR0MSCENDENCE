@@ -30,11 +30,13 @@ const counter = ref(null);
 const pong_game_canvas = ref(null);
 const canvas_container = ref(null);
 
+let animation_frame_handle = undefined;
+
 function animate() {
 	emits('onUpdateRequested')
 	game.logic.step();
 	game.renderer.render();
-	requestAnimationFrame(animate);
+	animation_frame_handle = requestAnimationFrame(animate);
 }
 
 onMounted(() => {
@@ -44,10 +46,12 @@ onMounted(() => {
 		document.documentElement.style.getPropertyValue('--glow-color')
 	);
 	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
-	requestAnimationFrame(animate);
+	animation_frame_handle = requestAnimationFrame(animate);
 });
 
 onUnmounted(() => {
+	if (animation_frame_handle)
+		cancelAnimationFrame(animation_frame_handle);
 	if (game.renderer)
 		game.renderer.cleanup();
 })
