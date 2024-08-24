@@ -181,7 +181,7 @@ class GameState():
         timer.start()
 
         while self.__running():
-            await self.__logic(timer.get_elapsed_time() * TICK_RATE)
+            await self.__logic(timer.get_elapsed_time())
             if self.__has_round_ended:
                 self.__has_round_ended = False
                 await self.__update_score()
