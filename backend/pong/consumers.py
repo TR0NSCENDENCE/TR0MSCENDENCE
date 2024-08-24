@@ -169,8 +169,7 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
             self.users += [self.user]
             self.waiting_list[self.match_type] += [self]
             print(self.user, 'added to waiting list')
-        for key in self.waiting_list.keys():
-            if len(self.waiting_list[key]) > 0 and not self.matchmaking_running[self.match_type]:
+            if len(self.waiting_list[self.match_type]) > 0 and not self.matchmaking_running[self.match_type]:
                 print(self.user, 'launch matchmaking for', self.match_type)
                 asyncio.create_task(self.matchmaking_function[self.match_type](self))
                 self.matchmaking_running[self.match_type] = True
