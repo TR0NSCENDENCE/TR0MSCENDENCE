@@ -18,6 +18,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import Counter321 from '@components/Counter321.vue';
 import PongLogic from '@scripts/games/pong/logic';
 import PongRenderer from '@scripts/games/pong/renderer';
+import store from '@store';
 
 const emits = defineEmits(['onUpdateRequested']);
 
@@ -43,7 +44,7 @@ onMounted(() => {
 	game.renderer = new PongRenderer(
 		pong_game_canvas,
 		canvas_container,
-		document.documentElement.style.getPropertyValue('--glow-color')
+		store.getters.theme
 	);
 	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
 	animation_frame_handle = requestAnimationFrame(animate);

@@ -35,8 +35,7 @@ function stop() {
 }
 
 onUnmounted(() => {
-	if (timer)
-		clearTimeout(timer)
+	stop()
 })
 
 defineExpose({

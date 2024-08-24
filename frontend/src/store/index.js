@@ -195,6 +195,11 @@ export default createStore({
 		},
 		selectedMapPath(state) {
 			return state.map_selector[state.selected_map];
+		},
+		theme(state) {
+			const style = document.documentElement.style;
+
+			return (style.getPropertyValue('--glow-color'));
 		}
 	}
 });
