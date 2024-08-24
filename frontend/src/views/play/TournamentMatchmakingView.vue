@@ -51,7 +51,6 @@ onMounted(() => {
 				const data = JSON.parse(e.data);
 				if (data.type != 'found')
 					return ;
-				socket.close();
 				const uuid = data.uuid;
 				router.push(`tournament/${uuid}`);
 			};

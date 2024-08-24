@@ -200,11 +200,13 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
         while len(self.waiting_list['1v1']) > 0:
             async with self.update_lock:
                 if len(self.waiting_list['1v1']) >= 2:
-                    match_uuid = await create_match(self.waiting_list['1v1'][:2])
-                    for c in self.waiting_list['1v1'][:2]:
+                    match_players = self.waiting_list['1v1'][:2]
+                    self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
+                    match_uuid = await create_match(match_players)
+                    for c in match_players:
+                        self.users.remove(c.user)
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
                         await c.close(CLOSE_CODE_OK)
-                    self.waiting_list['1v1'] = self.waiting_list['1v1'][2:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['1v1'] = False
 
@@ -221,11 +223,13 @@ class MatchmakingConsumer(AsyncJsonWebsocketConsumer):
         while len(self.waiting_list['tournament']) > 0:
             async with self.update_lock:
                 if len(self.waiting_list['tournament']) >= 4:
-                    match_uuid = await create_tournament(self.waiting_list['tournament'][:4])
-                    for c in self.waiting_list['tournament'][:4]:
+                    match_players = self.waiting_list['tournament'][:4]
+                    self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
+                    match_uuid = await create_tournament(match_players)
+                    for c in match_players:
+                        self.users.remove(c.user)
                         await c.send_json({'type': 'found', 'uuid': str(match_uuid)})
                         await c.close(CLOSE_CODE_OK)
-                    self.waiting_list['tournament'] = self.waiting_list['tournament'][4:]
             await asyncio.sleep(0.5)
         self.matchmaking_running['tournament'] = False
 
