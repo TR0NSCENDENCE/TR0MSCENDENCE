@@ -42,6 +42,7 @@ class GameInstance(models.Model):
 
 class TournamentInstance(models.Model):
     uuid = models.UUIDField(default=uuid4, editable=False)
+    finished_at = models.DateTimeField(null=True, blank=True, default=None)
 
     class TournamentState(models.TextChoices):
         WAITING_PLAYERS = 'WP', _('Waiting for players')
@@ -77,7 +78,7 @@ class TournamentInstance(models.Model):
         self.save()
 
     def create_match_final(self):
-        self.gameinstance_final = GameInstance.objects.create(player_one=winner_half_1, player_two=winner_half_2)
+        self.gameinstance_final = GameInstance.objects.create(player_one=self.winner_half_1, player_two=self.winner_half_2)
 
     def __str__(self):
         return f"TOURNAMENT INSTANCE (uuid: {self.uuid})"

@@ -43,9 +43,24 @@
 					</li>
 				</ul>
 				<div id="nav-pages">
-					<GlowingButton v-if="prev" @click="_updateMatchsList(prev)" :text="'previous'"/>
-					<h2 v-if="prev || next" >page {{ curpage }}/{{ totalpage }}</h2>
-					<GlowingButton v-if="next" @click="_updateMatchsList(next)" :text="'next'"/>
+					<GlowingButton v-if="matchs_page.prev" @click="_updateMatchsList(matchs_page.prev)" :text="'previous'"/>
+					<h2 v-if="matchs_page.prev || matchs_page.next" >page {{ matchs_page.curpage }}/{{ matchs_page.totalpage }}</h2>
+					<GlowingButton v-if="matchs_page.next" @click="_updateMatchsList(matchs_page.next)" :text="'next'"/>
+				</div>
+			</div>
+		</div>
+		<div class="profile-matchs" v-if="store.getters.isAuthenticated">
+			<h2>Last Tournaments</h2>
+			<div id="matchs-list-pages">
+				<ul>
+					<li v-for="tournament in tournaments">
+						<TournamentViewer :tournamentdata="tournament"/>
+					</li>
+				</ul>
+				<div id="nav-pages">
+					<GlowingButton v-if="tournaments_page.prev" @click="_updateTournamentsList(tournaments_page.prev)" :text="'previous'"/>
+					<h2 v-if="tournaments_page.prev || tournaments_page.next" >page {{ tournaments_page.curpage }}/{{ tournaments_page.totalpage }}</h2>
+					<GlowingButton v-if="tournaments_page.next" @click="_updateTournamentsList(tournaments_page.next)" :text="'next'"/>
 				</div>
 			</div>
 		</div>
@@ -58,6 +73,7 @@ import { onMounted, ref } from 'vue';
 import GlowingButton from './GlowingButton.vue';
 import store from '@store';
 import MatchViewer from './MatchViewer.vue';
+import TournamentViewer from './TournamentViewer.vue';
 
 const props = defineProps([ 'pk' ]);
 // const win_rate = Math.round(100 * props.userdata.stats.wins / props.userdata.stats.played);
@@ -82,11 +98,20 @@ const new_username = ref(null);
 const winned = ref(0);
 const losed = ref(0);
 const matchs = ref('');
+const tournaments = ref('');
 const file_picker = ref();
-const next = ref(null);
-const prev = ref(null);
-const curpage = ref(0);
-const totalpage = ref(0);
+const matchs_page = ref({
+	next: null,
+	prev: null,
+	curpage: 0,
+	totalpage: 0
+});
+const tournaments_page = ref({
+	next: null,
+	prev: null,
+	curpage: 0,
+	totalpage: 0
+});
 
 function loadNewProfilePicture() {
 	file_picker.value.click();
@@ -95,10 +120,10 @@ function loadNewProfilePicture() {
 function _updateMatchsList(url) {
 	axiosInstance.get(url).then(
 		(response) => {
-			curpage.value = new URL(response.request.responseURL).searchParams.get('page') || 1
-			totalpage.value = Math.ceil(response.data.count / 5);
-			next.value = response.data.next;
-			prev.value = response.data.previous
+			matchs_page.value.curpage = new URL(response.request.responseURL).searchParams.get('page') || 1
+			matchs_page.value.totalpage = Math.ceil(response.data.count / 5);
+			matchs_page.value.next = response.data.next;
+			matchs_page.value.prev = response.data.previous
 			matchs.value = response.data.results;
 		}
 	);
@@ -106,6 +131,22 @@ function _updateMatchsList(url) {
 
 function updateMatchsList() {
 	_updateMatchsList(`/user/${props.pk}/matchs`);
+}
+
+function _updateTournamentsList(url) {
+	axiosInstance.get(url).then(
+		(response) => {
+			tournaments_page.value.curpage = new URL(response.request.responseURL).searchParams.get('page') || 1
+			tournaments_page.value.totalpage = Math.ceil(response.data.count / 5);
+			tournaments_page.value.next = response.data.next;
+			tournaments_page.value.prev = response.data.previous
+			tournaments.value = response.data.results;
+		}
+	);
+}
+
+function updateTournamentsList() {
+	_updateTournamentsList(`/user/${props.pk}/tournaments`);
 }
 
 function newUsername() {
@@ -152,6 +193,7 @@ function loadProfile() {
 			(response) => losed.value = response.data.losed_count
 		);
 		updateMatchsList();
+		updateTournamentsList();
 	}
 }
 

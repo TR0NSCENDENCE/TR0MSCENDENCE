@@ -8,8 +8,8 @@
 <style scoped>
 
 .logo-container {
-	width: 4vw;
-	height: 4vw;
+	width: 8vmin;
+	height: 8vmin;
 	border-radius: 50%;
 	overflow: hidden;
 	margin: 1vw;

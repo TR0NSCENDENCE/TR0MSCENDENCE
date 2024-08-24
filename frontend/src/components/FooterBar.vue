@@ -31,8 +31,7 @@ import AudioPlayer from './AudioPlayer.vue';
 	text-align: begin;
 	letter-spacing: 0.6em;
 	font-family: "SpaceTron", sans-serif;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
+	font-size: 1vw;
 	font-weight: 900;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);

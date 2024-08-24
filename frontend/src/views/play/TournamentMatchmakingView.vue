@@ -53,15 +53,7 @@ onMounted(() => {
 					return ;
 				socket.close();
 				const uuid = data.uuid;
-				const match_uuid = data.match_uuid
-				axiosInstance.get(`tournamentinstance/${uuid}/`).then(
-					(response) => {
-						console.log(response.data);
-						tournament.value = response.data;
-						found.value = true;
-						setTimeout(() => router.push(`tournament/${uuid}`), 3000);
-					}
-				);
+				router.push(`tournament/${uuid}`);
 			};
 		},
 		(error) => console.log(error)

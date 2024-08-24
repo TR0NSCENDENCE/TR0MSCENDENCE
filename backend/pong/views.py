@@ -31,6 +31,18 @@ class TournamentInstanceRetrieveView(generics.RetrieveAPIView):
     lookup_field = 'uuid'
     serializer_class = TournamentInstanceInfoSerializer
 
+class UserTournamentListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = TournamentInstanceInfoSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return TournamentInstance.objects.filter(Q(player_one__pk=pk) \
+                                                | Q(player_two__pk=pk) \
+                                                | Q(player_thr__pk=pk) \
+                                                | Q(player_fou__pk=pk) \
+                                            ).filter(state='FD').order_by('-finished_at')
+
 class UserGameListView(generics.ListAPIView):
     serializer_class = GameInstanceInfoSerializer
     permission_classes = [permissions.IsAuthenticated]

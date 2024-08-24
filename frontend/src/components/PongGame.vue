@@ -2,11 +2,13 @@
 	<div class="pong_game">
 		<div class="pong_game_container">
 			<Counter321 ref="counter"/>
-			<canvas
-				ref="pong_game_canvas"
-				style="width: 90%; height:100%;"
-				>
-			</canvas>
+			<div id="canvas_container" ref="canvas_container">
+				<canvas
+					id="pong_game_canvas"
+					ref="pong_game_canvas"
+					>
+				</canvas>
+			</div>
 		</div>
 	</div>
 </template>
@@ -16,6 +18,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import Counter321 from '@components/Counter321.vue';
 import PongLogic from '@scripts/games/pong/logic';
 import PongRenderer from '@scripts/games/pong/renderer';
+import store from '@store';
 
 const emits = defineEmits(['onUpdateRequested']);
 
@@ -26,45 +29,30 @@ const game = {
 
 const counter = ref(null);
 const pong_game_canvas = ref(null);
+const canvas_container = ref(null);
+
+let animation_frame_handle = undefined;
 
 function animate() {
 	emits('onUpdateRequested')
 	game.logic.step();
 	game.renderer.render();
-	requestAnimationFrame(animate);
+	animation_frame_handle = requestAnimationFrame(animate);
 }
 
 onMounted(() => {
-	const need_resize = () => {
-		const canvas = pong_game_canvas.value;
-		if (!canvas) return (false);
-		const width = pong_game_canvas.value.clientWidth;
-		const height = pong_game_canvas.value.clientHeight;
-		return (pong_game_canvas.value.width !== width || pong_game_canvas.value.height !== height);
-	};
-
-	const get_dims = () => {
-		const canvas = pong_game_canvas.value;
-		if (!canvas) return ;
-		const width = canvas.clientWidth;
-		const height = canvas.clientHeight;
-
-		return ({width, height});
-	}
-
 	game.renderer = new PongRenderer(
-		pong_game_canvas.value,
-		0xff0000,
-		{
-			need_resize,
-			get_dims
-		}
+		pong_game_canvas,
+		canvas_container,
+		store.getters.theme
 	);
 	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
-	requestAnimationFrame(animate);
+	animation_frame_handle = requestAnimationFrame(animate);
 });
 
 onUnmounted(() => {
+	if (animation_frame_handle)
+		cancelAnimationFrame(animation_frame_handle);
 	if (game.renderer)
 		game.renderer.cleanup();
 })
@@ -93,6 +81,12 @@ defineExpose({
 	font-style: normal;
 }
 
+#canvas_container {
+	width: 100vmin;
+	/* (100/16) * 9 */
+	height: 56.25vmin;
+}
+
 .pong_game {
 	height: 100%;
 	width: 100%;
@@ -110,8 +104,9 @@ defineExpose({
 }
 
 .pong_game_container {
-	height: 90%;
-	width: 100%;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
 }
 
 .pong_game_canvas_container {

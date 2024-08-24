@@ -1,14 +1,20 @@
 <template>
 	<div>
 		<div v-if="store.getters.isAuthenticated">
-			<div v-if="ws_error">
+			<div v-if="error" style="display: flex; flex-direction: column; align-items: center;">
 				<h1> A server error occured... </h1>
 				<GlowingButton
 					text="main menu"
 					dest="/"
 					/>
 			</div>
-			<div v-else-if="connected">
+			<div v-else-if="winner">
+				<MatchWon
+					:winner="winner"
+					:loser="loser"
+					/>
+			</div>
+			<div v-else-if="ws_connected">
 				<div v-if="game_running">
 					<GameOponentsBar
 						:player_1="players[0]"
@@ -19,10 +25,6 @@
 						@onUpdateRequested="update"
 						/>
 				</div>
-				<MatchWon v-else
-					:winner="winner"
-					:loser="loser"
-					/>
 			</div>
 			<h1 v-else> Waiting for connection... </h1>
 		</div>
@@ -52,10 +54,10 @@ import MatchWon from './MatchWon.vue';
 
 let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
-const connected = ref(false);
 const game = ref(null);
-const ws_error = ref(false);
+const error = ref(false);
 const ws_connected = ref(false);
+const game_running = ref(true);
 
 const default_player = {
 	score: 0,
@@ -72,9 +74,8 @@ const players = ref([
 	structuredClone(default_player),
 	structuredClone(default_player)
 ]);
-const winner = ref('');
-const loser = ref('');
-const game_running = ref(true);
+const winner = ref(null);
+const loser = ref(null);
 
 // const VELOCITY = 0.4;
 
@@ -104,7 +105,7 @@ const update = () => {
 	}
 };
 
-const setup = async (/** @type {WebSocket} */ socket) => {
+const setup = (/** @type {WebSocket} */ socket) => {
 	global_socket = socket;
 
 	socket.onopen = () => {
@@ -115,16 +116,19 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 		console.log('[WS] socket closed');
 		ws_connected.value = false;
 		if (!e.wasClean)
-			ws_error.value = true;
+			error.value = true;
 		console.log(e)
 	};
 	socket.onerror = (e) => {
 		console.log('[WS] socket error');
-		ws_error.value = true;
+		error.value = true;
 		console.log(e)
 	}
 	socket.onmessage = (e) => {
 		const event = JSON.parse(e.data);
+
+		if (!game.value)
+			return ;
 
 		if (event.type === 'sync') {
 			let state = event.state;
@@ -163,26 +167,26 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 			const has_won = store.getters.userId == winner_id;
 			const winner_index = has_won ^ inversed() ? 1 : 0;
 
-			game_running.value = false;
 			winner.value = players.value[winner_index].user.username;
 			loser.value = players.value[1 - winner_index].user.username;
+			game_running.value = false;
+			if (route.query.redirect)
+				setTimeout(() => router.push(route.query.redirect), 4000);
 		}
 	}
+};
+
+onMounted(async () => {
 	try {
 		const response = await axiosInstance.get(`gameinstance/${UUID}/`);
-
 		players.value[0].user = response.data.player_one;
 		players.value[1].user = response.data.player_two;
 		p1 = response.data.player_one.pk;
 	} catch (e) {
 		console.log(e);
-		socket.close();
-		return;
+		error.value = true;
+		return ;
 	}
-	connected.value = true;
-};
-
-onMounted(() => {
 	connectToWebsocket(`ws/gameinstance/${UUID}/`,
 		setup,
 		(error) => {

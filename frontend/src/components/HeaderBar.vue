@@ -65,11 +65,16 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+h1 {
+	margin: 1vmin;
+}
+
 .header {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	text-align: center;
+	height: fit-content;
 	width: 100%;
 }
 
@@ -80,15 +85,19 @@ onUnmounted(() => {
 .sub-header {
 	flex: 1 1 0;
 	display: flex;
+	font-size: 1vw;
+	/* @media screen and (max-width: 600px) {
+		font-size: 1.5vmin;
+	}
+	@media screen and (min-width: 801px) {
+		font-size: 2vmin;
+	} */
 }
 
 .sub-header-link {
 	display: flex;
 	justify-content: space-between;
 	width: fit-content;
-	padding: 0 2%;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
 }
 
 .header-box {
@@ -98,10 +107,8 @@ onUnmounted(() => {
 	border-radius: 0.45em;
 	background: none;
 	white-space: nowrap;
-	perspective: 2em;
+	perspective: 1em;
 	font-family: "SpaceTron", sans-serif;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
 	font-weight: 900;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
@@ -145,7 +152,8 @@ onUnmounted(() => {
 .signIn {
 	flex: 1 0 40%;
 	text-align: center;
-	margin-right: 1em;
+	margin-right: 1vw;
+	margin-left: 1vw;
 	letter-spacing: 0.1em;
 }
 
