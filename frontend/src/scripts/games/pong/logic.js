@@ -27,7 +27,7 @@ export default class PongLogic {
 		this.#callbacks = callbacks;
 	}
 
-	step = () => {
+	step = (delta) => {
 		this.#callbacks.onUpdateFinished(
 			this.#model.getBall(),
 			this.#model.getPaddle1(),

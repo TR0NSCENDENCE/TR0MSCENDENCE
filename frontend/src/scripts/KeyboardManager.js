@@ -10,7 +10,7 @@ class KeyboardManager {
 	}
 
 	isKeyDown = (key) => {
-		return (this.keys[key]);
+		return (this.keys[key] ?? false);
 	}
 }
 

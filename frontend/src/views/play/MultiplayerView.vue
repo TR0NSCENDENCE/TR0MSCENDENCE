@@ -48,8 +48,7 @@ onMounted(() => {
 	connectToWebsocket('ws/matchmaking/1v1/',
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
-			socket.onopen = (e) => console.log('[WS] socket connected');
-			socket.onclose = (e) => console.log('[WS] socket closed');
+			// TODO: Update view if error or premature close ?
 			socket.onmessage = (e) => {
 				const data = JSON.parse(e.data);
 				if (data.type != 'found')
@@ -58,7 +57,6 @@ onMounted(() => {
 				const uuid = data.uuid;
 				axiosInstance.get(`gameinstance/${uuid}/`).then(
 					(response) => {
-						console.log(response.data);
 						player1.value = response.data.player_one;
 						player2.value = response.data.player_two;
 						found.value = true;

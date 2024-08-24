@@ -301,7 +301,6 @@ export default class PongRenderer {
 	}
 
 	onWindowResize = () => {
-		console.log("canvas container client : ", this.#canvas_container.value.clientWidth + "x" + this.#canvas_container.value.clientHeight);
 		this.#renderer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight, true);
 		this.#composer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
 		this.#render_pass.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);

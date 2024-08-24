@@ -35,17 +35,12 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 		socket.close();
 		return;
 	}
-	socket.onopen = () => {
-		console.log('[WS] socket connected');
-	};
 	socket.onclose = (e) => {
-		console.log('[WS] socket closed');
 		if (!e.wasClean)
 			ws_error.value = true;
 		console.log(e);
 	};
 	socket.onerror = (e) => {
-		console.log('[WS] socket error');
 		ws_error.value = true;
 		console.log(e);
 	}
@@ -59,7 +54,6 @@ const setup = async (/** @type {WebSocket} */ socket) => {
 		if (data.type == 'tournament_update') {
 			const tournament_data = data.tournament_data;
 			tournament.value = tournament_data;
-			console.log(tournament_data);
 		}
 	}
 	connected.value = true;

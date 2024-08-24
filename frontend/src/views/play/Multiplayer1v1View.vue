@@ -70,59 +70,51 @@ const default_player = {
 };
 
 const players = ref([
-	// structuredClone to avoid referencing
 	structuredClone(default_player),
 	structuredClone(default_player)
 ]);
 const winner = ref(null);
 const loser = ref(null);
 
-// const VELOCITY = 0.4;
-
 const route = useRoute();
 const UUID = route.params.uuid;
 const inversed = () => p1 === parseInt(store.getters.userId);
 
 let last_dir = {
-	right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
-	left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+	right: KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'),
+	left: KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')
 };
 
 const update = () => {
-	if (ws_connected.value)
-	{
-		const dir = {
-			right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
-			left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
-		};
-		if (dir === last_dir)
-			return ;
-		last_dir = dir;
-		global_socket.send(JSON.stringify({
-			type: 'player_direction',
-			payload: dir
-		}));
-	}
+	if (!ws_connected.value)
+		return ;
+	const dir = {
+		right: KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'),
+		left: KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')
+	};
+	if (dir === last_dir)
+		return ;
+	last_dir = dir;
+	global_socket.send(JSON.stringify({
+		type: 'player_direction',
+		payload: dir
+	}));
 };
 
 const setup = (/** @type {WebSocket} */ socket) => {
 	global_socket = socket;
 
 	socket.onopen = () => {
-		console.log('[WS] socket connected');
 		ws_connected.value = true;
 	};
 	socket.onclose = (e) => {
-		console.log('[WS] socket closed');
 		ws_connected.value = false;
 		if (!e.wasClean)
 			error.value = true;
-		console.log(e)
 	};
 	socket.onerror = (e) => {
-		console.log('[WS] socket error');
 		error.value = true;
-		console.log(e)
+		console.log(e);
 	}
 	socket.onmessage = (e) => {
 		const event = JSON.parse(e.data);
@@ -158,7 +150,6 @@ const setup = (/** @type {WebSocket} */ socket) => {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
 		} else if (event.type === 'counter_start') {
-			console.log('hehe boi')
 			game.value.setCounterActive(true)
 		} else if (event.type === 'counter_stop') {
 			game.value.setCounterActive(false)
