@@ -154,7 +154,10 @@ function newUsername() {
 	axiosInstance.patch(`/user/${props.pk}/update-cred/`, {
 		username: new_username.value.value
 	}).then(
-		(response) => loadProfile()
+		(response) => {
+			store.dispatch('updateProfile');
+			loadProfile();
+		}
 	).catch(handleError)
 }
 

@@ -16,6 +16,18 @@ function parseJwt (token) {
 	return JSON.parse(jsonPayload);
 }
 
+async function updateProfile(context) {
+	axiosInstance.get('/me/').then(
+		(response) => {
+			const payload = {
+				authUser: response.data.username,
+				isAuthenticated: true,
+			};
+			context.commit('setAuthUser', payload);
+		}
+	).catch((error) => context.dispatch('deauthentificate'));
+}
+
 async function authentificate(context, { username, password }) {
 	let result = undefined;
 	let _ = await axiosInstance
@@ -33,15 +45,7 @@ async function authentificate(context, { username, password }) {
 			const ID = parseJwt(response.data.access).user_id;
 			context.commit('setUserID', ID);
 
-			axiosInstance.get('/me/').then(
-				(response) => {
-					const payload = {
-						authUser: response.data.username,
-						isAuthenticated: true,
-					};
-					context.commit('setAuthUser', payload);
-				}
-			).catch((error) => console.log(error));
+			context.dispatch('updateProfile');
 		}).catch((error) => {
 			result = error;
 		});
@@ -53,8 +57,8 @@ function deauthentificate(context) {
 		authUser: undefined,
 		isAuthenticated: false,
 	}
-	context.commit('removeToken');
 	context.commit('setAuthUser', payload);
+	context.commit('removeToken');
 	context.commit('setUserID', undefined);
 }
 
@@ -125,8 +129,8 @@ export default createStore({
 		selected_map: localStorage.getItem('selected_map') ?? 'map1',
 		map_selector: map_selector,
 		endpoints: {
-			obtainJWT:  'token/',
-			refreshJWT: "token/refresh",
+			obtainJWT:  '/token/',
+			refreshJWT: "/token/refresh/",
 			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
 		}
 	},
@@ -176,6 +180,7 @@ export default createStore({
 		}
 	},
 	actions: {
+		updateProfile: updateProfile,
 		authentificate: authentificate,
 		deauthentificate: deauthentificate
 	},

@@ -9,6 +9,8 @@ import { setupInstance } from '@utils/api';
 
 setupInstance();
 
+store.dispatch('updateProfile');
+
 createApp(App)
 	.use(router)
 	.use(store)
