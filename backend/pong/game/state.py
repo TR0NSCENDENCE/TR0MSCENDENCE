@@ -164,17 +164,9 @@ class GameState():
             self.__has_round_ended = True
 
     def __handle_physics(self, delta):
-        def on_lose(loser_id):
-            self.__round_end(loser_id)
-            self.__reset_game_state(loser_id)
-
         for player in self.__players:
             player.update_position(delta)
-        self.__ball.update(delta, self.__players, on_lose)
-
-    async def __logic(self, delta):
-        self.__handle_physics(delta)
-        await self.__update_consumers()
+        self.__ball.update(delta, self.__players, self.__round_end)
 
     def __set_winner(self):
         # If the game ended before one of the players won,
@@ -202,11 +194,14 @@ class GameState():
         while self.__running():
             if self.__has_round_ended:
                 self.__has_round_ended = False
+                self.__reset_game_state()
+                await self.__update_consumers()
                 await self.__update_score()
                 await self.__counter()
                 timer.get_elapsed_time()
+            await self.__update_consumers()
             delta = timer.get_elapsed_time()
-            await self.__logic(delta)
+            self.__handle_physics(delta)
             await asyncio.sleep(SIMULATION_STEP)
 
     async def game_loop(self):

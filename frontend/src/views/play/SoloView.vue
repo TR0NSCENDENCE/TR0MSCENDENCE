@@ -1,12 +1,11 @@
 <template>
 	<div class="container">
-		<PongGame :config="config" />
+		<PongGame />
 	</div>
 </template>
 
 <script setup>
 import PongGame from '@components/PongGame.vue';
-import { config } from '@assets/game_config/pong/solo'
 </script>
 
 <style scoped>

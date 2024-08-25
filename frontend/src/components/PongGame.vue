@@ -16,21 +16,28 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import Counter321 from '@components/Counter321.vue';
-import PongLogic from '@scripts/games/pong/logic';
+import PongController from '@scripts/games/pong/controller';
 import PongRenderer from '@scripts/games/pong/renderer';
 import store from '@store';
 import PongModel from '@scripts/games/pong/model';
+import { Direction } from '@scripts/games/pong/utils';
 
-const emits = defineEmits(['onUpdateRequested']);
+const emits = defineEmits([
+	'onUpdateRequested'
+]);
+const props = defineProps([
+	'onPlayerOneInputRequested',
+	'onPlayerTwoInputRequested'
+])
 
 const game = {
-	model: undefined,
-	logic: undefined,
-	renderer: undefined
+	/** @type {PongModel} */ model: undefined,
+	/** @type {PongController} */ controller: undefined,
+	/** @type {PongRenderer} */ renderer: undefined
 };
 
 game.model = new PongModel();
-game.logic = new PongLogic(game.model);
+game.controller = new PongController(game.model);
 
 const counter = ref(null);
 const pong_game_canvas = ref(null);
@@ -40,9 +47,39 @@ let animation_frame_handle = undefined;
 
 function animate() {
 	emits('onUpdateRequested')
-	game.logic.step();
+	game.controller.step();
 	game.renderer.render();
 	animation_frame_handle = requestAnimationFrame(animate);
+}
+
+const get_state = () => {
+	return ({
+		ball: game.model.getBall(),
+		paddles: [
+			game.model.getPaddle1(),
+			game.model.getPaddle2()
+		]
+	});
+}
+
+const setupController = () => {
+	const model = game.model;
+	const controller = game.controller;
+	const renderer = game.renderer;
+
+	controller.onUpdateFinished = () => renderer.updateState(get_state());
+	controller.onCountdownStart = () => counter.value.start();
+	controller.onCountdownStop = () => counter.value.stop();
+	controller.onPlayerOneInputRequested = props.onPlayerOneInputRequested ?? Direction.None;
+	controller.onPlayerTwoInputRequested = props.onPlayerTwoInputRequested ?? Direction.None;
+	controller.onResetRequested = model.reset;
+	controller.onBallRequested = model.getBall;
+	controller.onPaddle1Requested = model.getPaddle1;
+	controller.onPaddle2Requested = model.getPaddle2;
+	controller.onBallUpdated = model.setBall;
+	controller.onPaddle1Updated = model.setPaddle1;
+	controller.onPaddle2Updated = model.setPaddle2;
+	controller.onElapsedTimeRequested = model.getElapsedTime;
 }
 
 onMounted(() => {
@@ -51,7 +88,7 @@ onMounted(() => {
 		canvas_container,
 		store.getters.theme
 	);
-	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
+	setupController();
 	animation_frame_handle = requestAnimationFrame(animate);
 });
 
@@ -64,16 +101,12 @@ onUnmounted(() => {
 
 defineExpose({
 	setCounterActive: (active) => {
-		if (active)
-			counter.value.start();
-		else
-			counter.value.stop();
+		// if (active)
+		// 	counter.value.start();
+		// else
+		// 	counter.value.stop();
 	},
-	setters: {
-		ball: game.model.setBall,
-		paddle_1: game.model.setPaddle1,
-		paddle_2: game.model.setPaddle2
-	}
+	forceUpdate: game.model.forceUpdate
 })
 
 </script>

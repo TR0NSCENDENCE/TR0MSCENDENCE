@@ -51,6 +51,7 @@ import { KEYBOARD } from '@scripts/KeyboardManager';
 import { axiosInstance } from '@utils/api';
 import GameOponentsBar from '@components/GameOponentsBar.vue';
 import MatchWon from './MatchWon.vue';
+import { Direction } from '@scripts/games/pong/utils';
 
 let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
@@ -59,7 +60,7 @@ const error = ref(false);
 const ws_connected = ref(false);
 const game_running = ref(true);
 
-const default_player = {
+const default_player = Object.freeze({
 	score: 0,
 	user: {
 		username: undefined,
@@ -67,7 +68,7 @@ const default_player = {
 			get_thumbnail: undefined,
 		},
 	},
-};
+});
 
 const players = ref([
 	structuredClone(default_player),
@@ -143,9 +144,13 @@ const setup = (/** @type {WebSocket} */ socket) => {
 					y: -state.paddle_2.position.y
 				};
 			}
-			game.value.setters.ball(state.ball.position, state.ball.velocity);
-			game.value.setters.paddle_1(state.paddle_1.position);
-			game.value.setters.paddle_2(state.paddle_2.position);
+			game.value.forceUpdate({
+				ball: state.ball,
+				paddles: [
+					state.paddle_1,
+					state.paddle_2
+				]
+			});
 		} else if (event.type === 'score') {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
