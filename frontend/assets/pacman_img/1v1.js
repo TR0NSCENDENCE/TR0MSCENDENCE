@@ -18,7 +18,7 @@ import PrisonDoor from '@assets/pacman_img/PrisonDoor.png';
 
 let textureMap = new Map();
 const SPEED = 2;
-const PACMAN_SPEED = 3;
+const PACMAN_SPEED = 2;
 const RADIUS = 18;
 const PELLET_RADIUS = 4;
 const BLOCK_SIZE = 42;
