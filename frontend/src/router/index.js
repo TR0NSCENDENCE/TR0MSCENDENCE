@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '@/views/HomeView.vue'
 import UnknownView from '@/views/UnknownPageView.vue'
+import ActivationView from '@/views/ActivationView.vue'
 /* ************************************************************************** */
 import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
@@ -36,6 +37,14 @@ const router = createRouter({
 			component: HomeView,
 			meta: {
 				title: 'ft_transcendence'
+			}
+		},
+		{
+			path: '/activation/:uuid',
+			name: 'ActivationView',
+			component: ActivationView,
+			meta: {
+				title: 'activation'
 			}
 		},
 		{

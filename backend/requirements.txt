@@ -13,6 +13,7 @@ cryptography==43.0.0
 daphne==4.1.2
 defusedxml==0.8.0rc2
 Django==5.1
+django-anymail==11.1
 django-channels-jwt==0.0.3
 django-cors-headers==4.4.0
 django-rest==0.8.7
@@ -39,6 +40,7 @@ redis==5.0.8
 requests==2.32.3
 requests-oauthlib==2.0.0
 service-identity==24.1.0
+setuptools==72.2.0
 six==1.16.0
 social-auth-app-django==5.4.2
 social-auth-core==4.5.4

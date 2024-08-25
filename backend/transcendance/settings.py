@@ -24,6 +24,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool(int(os.environ.get('DEBUG', default='0')))
+ORIGIN_HOSTNAME = str(os.environ.get('ORIGIN_HOSTNAME', default='localhost'))
 
 ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', default='').split(' ')
 
@@ -42,12 +43,14 @@ DJANGO_APPS = [
 
 PROJECT_APPS = [
     "users",
+    "otp",
     "pong"
 ]
 
 THIRD_PARTY_APPS = [
     "rest_framework",
     'rest_framework_simplejwt',
+    'anymail',
     "corsheaders",
     "channels",
 ]
@@ -87,6 +90,17 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+ANYMAIL = {
+    "MAILJET_API_KEY": "348c0441cc0b59a6c257c1fa4915390c",
+    "MAILJET_SECRET_KEY": "db4ec11cba8b542ee6ef9a4f6ec39146",
+}
+
+MAILJET_API_URL = "https://api.mailjet.com/v3.1/"
+
+EMAIL_BACKEND = "anymail.backends.mailjet.EmailBackend"
+
+DEFAULT_FROM_EMAIL = 'alanlebouder@gmail.com'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -194,10 +208,7 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(seconds=60),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-    'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
-    'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
-    'SLIDING_TOKEN_LIFETIME_LATE_USER': timedelta(days=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),
 }
 
 # Internationalization

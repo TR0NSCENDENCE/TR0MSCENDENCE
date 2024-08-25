@@ -50,8 +50,7 @@ async function login() {
 	justify-content: center;
 	align-items: center;
 	color: var(--glow-color);
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(8 * var(--size-factor));
+	font-size: 3vmin;
 }
 
 .form-group {

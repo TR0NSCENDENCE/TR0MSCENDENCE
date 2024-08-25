@@ -17,15 +17,17 @@ function parseJwt (token) {
 }
 
 async function updateProfile(context) {
-	axiosInstance.get('/me/').then(
-		(response) => {
-			const payload = {
-				authUser: response.data.username,
-				isAuthenticated: true,
-			};
-			context.commit('setAuthUser', payload);
-		}
-	).catch((error) => context.dispatch('deauthentificate'));
+	if (context.state.refreshToken) {
+		axiosInstance.get('/me/').then(
+			(response) => {
+				const payload = {
+					authUser: response.data.username,
+					isAuthenticated: true,
+				};
+				context.commit('setAuthUser', payload);
+			}
+		).catch((error) => context.dispatch('deauthentificate'));
+	}
 }
 
 async function authentificate(context, { username, password }) {

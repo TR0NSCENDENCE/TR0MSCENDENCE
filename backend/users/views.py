@@ -41,3 +41,15 @@ class UserUpdateView(generics.UpdateAPIView):
 class MyUserView(views.APIView):
     def get(self, request, format=None):
         return response.Response(UserSerializer(request.user).data)
+
+class UserActivationView(views.APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, activation_uuid, format=None):
+        try:
+            user = User.objects.get(activation_uuid=activation_uuid)
+        except User.DoesNotExist:
+            return response.Response(status=404)
+        user.is_active = True
+        user.save()
+        return response.Response(status=200)
