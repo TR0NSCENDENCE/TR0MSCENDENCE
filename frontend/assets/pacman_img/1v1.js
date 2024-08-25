@@ -189,7 +189,7 @@ class Pacgum {
 		ctx.closePath();
 	}
 }
-
+//create and return an array of ghosts and initialise their pos, velocity, name and color
 function createGhosts() {
 	const temp_ghosts = [new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * (GHOST_SPAWN - 1) + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: BLINKY_COLOR, name: BLINKY }),
 	new ghost({ position: { x: boundary.width * GHOST_SPAWN + boundary.width / 2, y: boundary.height * GHOST_SPAWN + boundary.height / 2 }, velocity: { x: 0, y: 0 }, color: PINKY_COLOR, name: PINKY }),
@@ -199,15 +199,14 @@ function createGhosts() {
 	return (temp_ghosts);
 }
 
+//create an image and wait for them to load for display
 function createImage(src, onLoadCallback, onErrorCallback) {
 	const image = new Image();
 
-	// Gérer le cas où l'image est chargée avec succès
 	image.onload = () => {
 		if (onLoadCallback) onLoadCallback(image);
 	};
 
-	// Gérer les erreurs de chargement de l'image
 	image.onerror = () => {
 		console.error(`Failed to load image at ${src}`);
 		if (onErrorCallback) onErrorCallback(image);
@@ -217,17 +216,63 @@ function createImage(src, onLoadCallback, onErrorCallback) {
 	return image;
 }
 
-//permet d'avoir un chiffre random de 0 jusqu'au max renseigner en parametre
+//get the website color for sync with image color
+function getCssVariableValue(varColor) {
+	const color_style = getComputedStyle(document.documentElement);
+	return color_style.getPropertyValue(varColor).trim();
+}
+
+//apply a filter on all the image to change the color
+function changeColorImage() {
+	const hexColor = getCssVariableValue('--mesh-color');
+	boundaries.forEach((boundary) => {
+		boundary.image = applyColorFilterToImage(boundary.image, hexColor);
+	})
+}
+
+//create a temporary canvas for each image and change each pixel with the right color
+function applyColorFilterToImage(image, color) {
+	const canvas = document.createElement('canvas');
+	const ctx = canvas.getContext('2d');
+
+	canvas.width = image.width;
+	canvas.height = image.height;
+
+	ctx.drawImage(image, 0, 0);
+
+	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	const data = imageData.data;
+
+	const r = parseInt(color.slice(1, 3), 16);
+	const g = parseInt(color.slice(3, 5), 16);
+	const b = parseInt(color.slice(5, 7), 16);
+
+	for (let i = 0; i < data.length; i += 4) {
+		const grayscale = data[i];
+
+		if (grayscale > 30) {
+			data[i] = r * (grayscale / 255);
+			data[i + 1] = g * (grayscale / 255);
+			data[i + 2] = b * (grayscale / 255);
+		}
+	}
+	ctx.putImageData(imageData, 0, 0);
+	return canvas;
+}
+
+//return a random int between 0 and max
 function getRandomInt(max) {
 	return Math.floor(Math.random() * max);
 }
 
+//updates all the ghost variable
 function all_ghosts_updates() {
 	ghosts.forEach(ghost => {
 		ghost.update();
 	})
 }
 
+//create a time format with minutes and seconds
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -237,12 +282,13 @@ function formatTime(seconds) {
     return `${minutes}:${paddedSeconds}`;
 }
 
+//increment the timer for the ghost and the real timer
 function clock() {
 	time++;
 	real_time++;
 }
 
-//Stock dans une map les signes et leur pass pour l'affichage de la map
+//create a map to link each symbol with the right path for the image
 function initMap(textureMap) {
 	textureMap.set("|", pipeVertical);
 	textureMap.set("_", pipeConnectorBottom);
@@ -263,6 +309,7 @@ function initMap(textureMap) {
 	textureMap.set("~", PrisonDoor);
 }
 
+//create all the boundary, pellets, pacgums and stock into array, and create Pacman
 function stockMap(textureMap) {
 	initMap(textureMap);
 
@@ -306,50 +353,7 @@ function stockMap(textureMap) {
 	return Promise.all(imagePromises); // Attendre que toutes les images soient chargées
 }
 
-// boundary.image = applyColorFilterToImage(boundary.image);
-
-function getCssVariableValue(varColor) {
-	const color_style = getComputedStyle(document.documentElement);
-	return color_style.getPropertyValue(varColor).trim();
-}
-
-function changeColorImage() {
-	const hexColor = getCssVariableValue('--mesh-color');
-	boundaries.forEach((boundary) => {
-		boundary.image = applyColorFilterToImage(boundary.image, hexColor);
-	})
-}
-
-function applyColorFilterToImage(image, color) {
-	const canvas = document.createElement('canvas');
-	const ctx = canvas.getContext('2d');
-
-	canvas.width = image.width;
-	canvas.height = image.height;
-
-	ctx.drawImage(image, 0, 0);
-
-	const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	const data = imageData.data;
-
-	const r = parseInt(color.slice(1, 3), 16);
-	const g = parseInt(color.slice(3, 5), 16);
-	const b = parseInt(color.slice(5, 7), 16);
-
-	for (let i = 0; i < data.length; i += 4) {
-		const grayscale = data[i];
-
-		if (grayscale > 30) {
-			data[i] = r * (grayscale / 255);
-			data[i + 1] = g * (grayscale / 255);
-			data[i + 2] = b * (grayscale / 255);
-		}
-	}
-	ctx.putImageData(imageData, 0, 0);
-	return canvas;
-}
-
-//Affiche la map et les pellets
+//display everything
 function affMapAndPellets() {
 	boundaries.forEach((boundary) => {
 		boundary.draw(ctx);
@@ -394,7 +398,7 @@ function affMapAndPellets() {
 	})
 }
 
-//Renvoie un booleen si la case donner en parametre est en contact avec un joueur ou un ghost
+//return a bool if the circle (ghost or Pacman) will collide with the boundary in parameter
 function collidersDetector({ circle, rectangle }) {
 	const padding = boundary.width / 2 - circle.radius - 1;
 	return (circle.position.y - circle.radius + circle.velocity.y <= rectangle.position.y + rectangle.height + padding
@@ -403,7 +407,7 @@ function collidersDetector({ circle, rectangle }) {
 		&& circle.position.x - circle.radius + circle.velocity.x <= rectangle.position.x + rectangle.width + padding);
 }
 
-//Permet les mouvements du joueur et empeches le joueur de s'arreter en cours de route
+//allow the mouvement of the player
 function pacmanMouvement(key, x, y) {
 	if (key === 'w' || key === 's') {
 		for (let i = 0; i < boundaries.length; i++) {
@@ -429,7 +433,7 @@ function pacmanMouvement(key, x, y) {
 	}
 }
 
-//Permet les mouvements du joueur et empeches le joueur de s'arreter en cours de route
+//allow the mouvement of the red ghost
 function blinkyMouvement(key, x, y) {
 	if (Blinky.inJail === true)
 		return ;
@@ -462,7 +466,7 @@ function blinkyMouvement(key, x, y) {
 	}
 }
 
-//permet de detecter avec quelles cases le fantomes est en collisions
+//detect what boundary the ghost is actually colliding with
 function ghostDetectCollisions(ghost, boundary) {
 	if (!ghost.collisions.includes('right') && collidersDetector({ circle: { ...ghost, velocity: { x: ghost.speed, y: 0 } }, rectangle: boundary }))
 		ghost.collisions.push('right');
@@ -475,7 +479,7 @@ function ghostDetectCollisions(ghost, boundary) {
 		ghost.collisions.push('down');
 }
 
-//compare le tableau des collisions avec celui des directions, permet de n'obtenir que les directions disponibles
+//erase the directions in common with the collisions array to know wich way the ghost can go
 function createAvailableDirection(ghost, directions) {
 	for (let i = 0; i < directions.length; i++) {
 		if (ghost.collisions.includes(directions[i])) {
@@ -485,7 +489,7 @@ function createAvailableDirection(ghost, directions) {
 	}
 }
 
-//Permet d'empecher les fantomes de revenirs sur leur pas et empecher les blocages
+//prevent ghost from going back
 function removePrevDirection(ghost, directions) {
 	let toRemove = -1;
 	if (directions.length > 1) {
@@ -510,23 +514,30 @@ function removePrevDirection(ghost, directions) {
 	}
 }
 
-//Modes de chasse de blinky, dans ce mode il predira les mouvements du joueur pour le pieger
+//make the ghost go directly at Pacman
+function	directChase(ghost, directions, target)
+{
+	const randDir = getRandomInt(directions.length);
+	if (ghost.target.y < ghost.position.y && directions.includes('up'))
+		ghost.currentDir = 'up';
+	else if (ghost.target.y > ghost.position.y && directions.includes('down'))
+		ghost.currentDir = 'down';
+	else if (ghost.target.x < ghost.position.x && directions.includes('left'))
+		ghost.currentDir = 'left';
+	else if (ghost.target.x > ghost.position.x && directions.includes('right'))
+		ghost.currentDir = 'right';
+	else
+		ghost.currentDir = directions[randDir];
+}
+
+//Pinky chase algorithm : will try to go in front of pacman to block it
 function chaseBehaviorPinky(ghost, directions, target) {
 	ghost.target = target;
 	const randDir = getRandomInt(directions.length);
 
 	if (Math.abs(ghost.target.y - ghost.position.y) < 4 * BLOCK_SIZE
 		&& Math.abs(ghost.target.x - ghost.position.x) < 4 * BLOCK_SIZE) {
-		if (ghost.target.y < ghost.position.y && directions.includes('up'))
-			ghost.currentDir = 'up';
-		else if (ghost.target.y > ghost.position.y && directions.includes('down'))
-			ghost.currentDir = 'down';
-		else if (ghost.target.x < ghost.position.x && directions.includes('left'))
-			ghost.currentDir = 'left';
-		else if (ghost.target.x > ghost.position.x && directions.includes('right'))
-			ghost.currentDir = 'right';
-		else
-			ghost.currentDir = directions[randDir];
+			directChase(ghost, directions, ghost.target);
 	}
 	else {
 		if (ghost.target.y - 4 * BLOCK_SIZE < ghost.position.y && directions.includes('up'))
@@ -542,43 +553,27 @@ function chaseBehaviorPinky(ghost, directions, target) {
 	}
 }
 
+//Inky chase algorithm : will go random directions until he is too close to pacman and go after it
 function chaseBehaviorInky(ghost, directions, target) {
 	ghost.target = target;
 	const randDir = getRandomInt(directions.length);
 
 	if (Math.abs(ghost.target.y - ghost.position.y) < 4 * BLOCK_SIZE
 		&& Math.abs(ghost.target.x - ghost.position.x) < 4 * BLOCK_SIZE) {
-		if (ghost.target.y < ghost.position.y && directions.includes('up'))
-			ghost.currentDir = 'up';
-		else if (ghost.target.y > ghost.position.y && directions.includes('down'))
-			ghost.currentDir = 'down';
-		else if (ghost.target.x < ghost.position.x && directions.includes('left'))
-			ghost.currentDir = 'left';
-		else if (ghost.target.x > ghost.position.x && directions.includes('right'))
-			ghost.currentDir = 'right';
-		else
-			ghost.currentDir = directions[randDir];
+			directChase(ghost, directions, ghost.target);
 	}
 	else
 		ghost.currentDir = directions[randDir];
 }
 
+//Clyde chase algorithm : will go directly at pacman then be scared of him and try to run away
 function chaseBehaviorClyde(ghost, directions, target) {
 	ghost.target = target;
 	const randDir = getRandomInt(directions.length);
 
 	if (Math.abs(ghost.target.y - ghost.position.y) < 4 * BLOCK_SIZE
 		&& Math.abs(ghost.target.x - ghost.position.x) < 4 * BLOCK_SIZE) {
-		if (ghost.target.y > ghost.position.y && directions.includes('up'))
-			ghost.currentDir = 'up';
-		else if (ghost.target.y < ghost.position.y && directions.includes('down'))
-			ghost.currentDir = 'down';
-		else if (ghost.target.x > ghost.position.x && directions.includes('left'))
-			ghost.currentDir = 'left';
-		else if (ghost.target.x < ghost.position.x && directions.includes('right'))
-			ghost.currentDir = 'right';
-		else
-			ghost.currentDir = directions[randDir];
+			directChase(ghost, directions, ghost.target);
 	}
 	else {
 		if (ghost.target.y < ghost.position.y && directions.includes('up'))
@@ -594,28 +589,19 @@ function chaseBehaviorClyde(ghost, directions, target) {
 	}
 }
 
-//Modes de chasse de blinky, dans ce mode il va dans sa zone
+//Scatter algorithm : they will stay in a corner of the map
 function scatterBehavior(ghost, directions, target) {
 	ghost.target = target;
-	const randDir = getRandomInt(directions.length);
-	if (ghost.target.y < ghost.position.y && directions.includes('up'))
-		ghost.currentDir = 'up';
-	else if (ghost.target.y > ghost.position.y && directions.includes('down'))
-		ghost.currentDir = 'down';
-	else if (ghost.target.x < ghost.position.x && directions.includes('left'))
-		ghost.currentDir = 'left';
-	else if (ghost.target.x > ghost.position.x && directions.includes('right'))
-		ghost.currentDir = 'right';
-	else
-		ghost.currentDir = directions[randDir];
+	directChase(ghost, directions, ghost.target);
 }
 
+//Shatter algorithm : they only go random directions
 function shatterBehavior(ghost, directions) {
 	const randDir = getRandomInt(directions.length);
 	ghost.currentDir = directions[randDir];
 }
 
-//choix de la maniere dont le fantome vas suivre le joueur en fonction de qui il est
+//choose the good chase algorithm for each ghosts
 function chaseTarget(ghost, directions) {
 
 	if (ghost.name === PINKY)
@@ -630,7 +616,7 @@ function chaseTarget(ghost, directions) {
 	}
 }
 
-//choix de la maniere dont le fantome vas faire des rondes en fonction de qui il est
+//choose the good scatter algorithm for each ghosts with different targets
 function scatterTarget(ghost, directions) {
 	if (ghost.name === BLINKY)
 		scatterBehavior(ghost, directions, { x: 63, y: 63 });
@@ -646,7 +632,7 @@ function scatterTarget(ghost, directions) {
 	}
 }
 
-//ajoute la velocity necessaire au mouvement en fonction de leur direction choisis par le modes
+//allow the ghost mouvement by giving the speed necessary
 function ghostMouvement(ghost) {
 	switch (ghost.currentDir) {
 		case 'down':
@@ -671,7 +657,7 @@ function ghostMouvement(ghost) {
 	ghost.collisions = [];
 }
 
-//Calcule les collisions des fantomes, cree les directions qui leurs sont disponible, choisis un mode de deplace et les deplaces en fonction
+//all the previous step and calculations in one function, their mouvement is define by the mode they are into
 function AvailableDirectionAndGhostModes(ghost) {
 	let directions = ['up', 'down', 'right', 'left'];
 
@@ -692,7 +678,7 @@ function AvailableDirectionAndGhostModes(ghost) {
 	}
 }
 
-//Centre de control des fantomes, ajoute la notion de temps pour la sortie des fantomes, et lance le processus de mouvement
+//Control Center, each ghost can only move after a defined amount of time, check the lose condition
 function ghostControlCenter() {
 	ghosts.forEach(ghost => {
 		if (ghost.start === true && ghost.name !== BLINKY)
@@ -711,18 +697,22 @@ function ghostControlCenter() {
 				ghost.scatterTime = time + SCATTER_TIME;
 			}
 		}
-		if (loseCondition(ghost, id) === true)
-			return;
+		loseCondition(ghost, id);
 	})
 }
 
-//calcule la diff de deux positions (Pacman et un fantome) pour savoir si Pacman c'est fait toucher
-function calLoseHitBox(diff) {
-	if (diff >= -Pacman.radius / 2 && diff <= Pacman.radius / 2)
-		return (true);
-	return (false);
+//return the blinky ghost
+function	get_blinky()
+{
+	let blinky = undefined;
+	ghosts.forEach(ghost => {
+		if (ghost.name === BLINKY)
+			blinky = ghost;
+	})
+	return (blinky);
 }
 
+//when a ghost is eat by pacman while in shatter mode, reset their mode and velocity and tp them to the jail
 function resetForJail(ghost) {
 	ghost.inJail = true;
 	ghost.shatter = false;
@@ -739,6 +729,7 @@ function resetForJail(ghost) {
 	setTimeout(() => { ghost.inJail = false }, 3000)
 }
 
+//reset the game and take one life from pacman
 function pacManGotCaught() {
 	ghosts.forEach(ghost => {
 		ghost.start = false;
@@ -754,6 +745,14 @@ function pacManGotCaught() {
 	return (false);
 }
 
+//return true when Pacman and a ghost are colliding
+function calLoseHitBox(diff) {
+	if (diff >= -Pacman.radius / 2 && diff <= Pacman.radius / 2)
+		return (true);
+	return (false);
+}
+
+//if pacman collides with a ghost in shatter mode take the ghost to jail, if not in shatter mode the game is reset and Pacman lose a life
 function loseCondition(ghost, id) {
 	if (calLoseHitBox(Pacman.position.y - ghost.position.y) && calLoseHitBox(Pacman.position.x - ghost.position.x) && ghost.shatter === false) {
 		if (pacManGotCaught() === true) {
@@ -770,6 +769,7 @@ function loseCondition(ghost, id) {
 	return (false);
 }
 
+//check if all the pellets in the array are gone, if yes stop the game
 function winCondition(id) {
 	if (pellets.length === 0) {
 		cancelAnimationFrame(id);
@@ -778,16 +778,27 @@ function winCondition(id) {
 	}
 }
 
-function	get_blinky()
-{
-	let blinky = undefined;
-	ghosts.forEach(ghost => {
-		if (ghost.name === BLINKY)
-			blinky = ghost;
-	})
-	return (blinky);
+//export the res of the game to get it in the view file
+export	function checkWinOrLose() { return (winOrLose); }
+
+//stop the animation and reset all the variable who needs to be new for the next game
+export function stopAnimate() {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	cancelAnimationFrame(id);
+	time = 0;
+	id;
+	lastKey_j1 = '';
+	score = 0;
+
+	pellets.length = 0;
+	pacgums.length = 0;
+	boundaries.length = 0;
+	ghosts.length = 0;
+	winOrLose = 0;
+	real_time = 0;
 }
 
+//animate the canvas with Pacman Mouvement, Ghosts mouvement, check the win conditions
 function animate(checkWin, updateData) {
 	id = requestAnimationFrame(() => animate(checkWin, updateData));
 	const now = Date.now();
@@ -826,24 +837,7 @@ function animate(checkWin, updateData) {
 	}
 }
 
-export function stopAnimate() {
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	cancelAnimationFrame(id);
-	time = 0;
-	id;
-	lastKey_j1 = '';
-	score = 0;
-
-	pellets.length = 0;
-	pacgums.length = 0;
-	boundaries.length = 0;
-	ghosts.length = 0;
-	winOrLose = 0;
-	real_time = 0;
-}
-
-export	function checkWinOrLose() { return (winOrLose); }
-
+//initialise the fps limiter, create the ghost stock the map and start the animate function
 export function initialize(context, c, updateData, scoreRef, checkWin) {
 	return new Promise((resolve, reject) => {
 		fpsInterval = 1000 / 60;
@@ -866,7 +860,7 @@ export function initialize(context, c, updateData, scoreRef, checkWin) {
 }
 
 
-//Permet d'ecouter les events du clavier si une touche est presser
+//listen the event from the keyboard when a key is down
 addEventListener('keydown', ({ key }) => {
 	switch (key) {
 		case 'w':
@@ -904,7 +898,7 @@ addEventListener('keydown', ({ key }) => {
 	}
 })
 
-//Permet d'ecouter les events du clavier si une touche est lever
+//listen the event from the keyboard when a key is up
 addEventListener('keyup', ({ key }) => {
 	switch (key) {
 		case 'w':
