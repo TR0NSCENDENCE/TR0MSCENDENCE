@@ -127,8 +127,7 @@ class GameState():
             'type': 'sync',
             'state': {
                 'ball': self.__ball.as_json(),
-                'paddle_1': self.__players[0].as_json(),
-                'paddle_2': self.__players[1].as_json()
+                'paddles': [self.__players[0].as_json(), self.__players[1].as_json()]
             }
         })
 

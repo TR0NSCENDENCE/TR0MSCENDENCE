@@ -22,6 +22,7 @@
 						/>
 					<PongGame
 						ref="game"
+						:enable_simulation="false"
 						@onUpdateRequested="onUpdateRequested"
 						/>
 				</div>
@@ -141,32 +142,30 @@ const setup = (/** @type {WebSocket} */ socket) => {
 					x: -state.ball.velocity.x,
 					y: -state.ball.velocity.y,
 				};
-				state.paddle_1.position = {
-					x: -state.paddle_1.position.x,
-					y: -state.paddle_1.position.y
+				state.paddles[0].position = {
+					x: -state.paddles[0].position.x,
+					y: -state.paddles[0].position.y
 				};
-				state.paddle_2.position = {
-					x: -state.paddle_2.position.x,
-					y: -state.paddle_2.position.y
+				state.paddles[1].position = {
+					x: -state.paddles[1].position.x,
+					y: -state.paddles[1].position.y
 				};
 			}
 			game.value.forceUpdate({
 				ball: state.ball,
 				paddles: [
-					state.paddle_1,
-					state.paddle_2
+					state.paddles[0],
+					state.paddles[1]
 				]
 			});
 		} else if (event.type === 'score') {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
 		} else if (event.type === 'counter_start') {
-			game.value.onResetRequested();
-		}
-		// else if (event.type === 'counter_stop') {
-		// 	game.value.setCounterActive(false)
-		// }
-		else if (event.type === 'winner') {
+			game.value.onCountdownStart();
+		} else if (event.type === 'counter_stop') {
+			game.value.onCountdownStop();
+		} else if (event.type === 'winner') {
 			const winner_id = event.winner_id;
 			const has_won = store.getters.userId == winner_id;
 			const winner_index = has_won ^ inversed() ? 1 : 0;

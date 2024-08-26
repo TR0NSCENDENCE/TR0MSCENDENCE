@@ -8,25 +8,13 @@ defaults.paddle.max_position = defaults.scene.wall_distance - defaults.paddle.si
 defaults.ball.reset_angle_bounds = Math.atan2(defaults.scene.paddle_distance, defaults.scene.wall_distance);
 defaults.ball.reset_angle_range = 2. * defaults.ball.reset_angle_bounds - Math.PI
 
-const Side = Object.freeze({
-	ONE: 0,
-	TWO: 1
-});
-
 export default class PongController {
-	#has_round_ended = true;
-	#countdown_active = false;
-
 	/** @type {PongModel} */
 	#model;
 	/** @type {PongRenderer} */
 	#renderer;
-
+	#countdown_active;
 	#simulation_enabled;
-
-	#finished;
-	#loser_id;
-	#scores;
 
 	constructor(
 		/** @type {PongModel} */ model,
@@ -43,6 +31,7 @@ export default class PongController {
 		this.onPlayerTwoInputRequested = () => Direction.NONE;
 		this.onResetRequested = () => {};
 		this.#model.onRestart = this.#start_round;
+		this.#countdown_active = false;
 	}
 
 	#start_countdown = () => {
@@ -58,7 +47,7 @@ export default class PongController {
 		this.onCountdownStart();
 	}
 
-	#start_round = (loser_side) => {
+	#start_round = () => {
 		this.#start_countdown();
 	}
 
@@ -167,8 +156,8 @@ export default class PongController {
 	}
 
 	step = () => {
+		this.onUpdateRequested();
 		if (this.#simulation_enabled && !this.#countdown_active) {
-			this.onUpdateRequested();
 			const delta = this.#model.getElapsedTime();
 			this.#handle_physics(delta);
 		}
