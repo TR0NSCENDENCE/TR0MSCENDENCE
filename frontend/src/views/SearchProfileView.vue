@@ -15,7 +15,7 @@
 				<GlowingButton style="width: 15vw;height: 5vh;" v-if="next" @click="_updateUserList(next)" :text="'next'"/>
 			</div>
 		</div>
-		<!-- <button @click="bomb()">bomb</button> -->
+		<button @click="bomb()">bomb</button>
 	</div>
 </template>
 
@@ -74,12 +74,6 @@ onMounted(updateUserList);
 	align-items: center;
 	margin: 1%;
 	font-size: 1em;
-}
-
-#result-list {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-between;
 }
 
 #search-profile-view {

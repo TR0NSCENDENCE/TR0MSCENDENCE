@@ -8,16 +8,28 @@
 					<GlowingButton style="font-size: 2vmin; width: 30vmin;padding: 0; height: 5vmin;" :text="'remove friend'" @click="removeFriend(friend.pk)"/>
 				</li>
 			</ul>
+			<div id="nav-pages">
+				<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-right: 2vw;" v-if="friends_page.prev" @click="_updateFriendsList(friends_page.prev)" :text="'previous'"/>
+				<h2 v-if="friends_page.prev || friends_page.next" >page {{ friends_page.curpage }}/{{ friends_page.totalpage }}</h2>
+				<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-left: 2vw;" v-if="friends_page.next" @click="_updateFriendsList(friends_page.next)" :text="'next'"/>
+			</div>
 		</div>
 		<div id="requests-container">
 			<h1>Requests list</h1>
-			<ul>
-				<li v-for="request in requests_list">
-					<UserViewer style="margin-right: 2vw;" :pk="request.from_user"/>
-					<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-right: 2vw;" :text="'accept'" @click="acceptRequest(request.id)"/>
-					<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;" :text="'reject'" @click="rejectRequest(request.id)"/>
-				</li>
-			</ul>
+			<div id="requests-list">
+				<ul>
+					<li v-for="request in requests_list">
+						<UserViewer style="margin-right: 2vw;" :pk="request.from_user"/>
+						<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-right: 2vw;" :text="'accept'" @click="acceptRequest(request.id)"/>
+						<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;" :text="'reject'" @click="rejectRequest(request.id)"/>
+					</li>
+				</ul>
+				<div id="nav-pages">
+					<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-right: 2vw;" v-if="requests_page.prev" @click="_updateRequestsList(requests_page.prev)" :text="'previous'"/>
+					<h2 v-if="requests_page.prev || requests_page.next" >page {{ requests_page.curpage }}/{{ requests_page.totalpage }}</h2>
+					<GlowingButton style="font-size: 2vmin; width: 18vmin;padding: 0; height: 5vmin;margin-left: 2vw;" v-if="requests_page.next" @click="_updateRequestsList(requests_page.next)" :text="'next'"/>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -80,7 +92,7 @@ async function _updateFriendsList(url) {
 		friends_page.value.curpage = new URL(response.request.responseURL).searchParams.get('page') || 1;
 		friends_page.value.totalpage = Math.ceil(data.count / 5);
 		friends_page.value.next = data.next;
-		friends_page.value.prev = data.prev;
+		friends_page.value.prev = data.previous;
 	} catch (e) {
 		console.log(e);
 	}
@@ -99,7 +111,7 @@ async function _updateRequestsList(url) {
 		requests_page.value.curpage = new URL(response.request.responseURL).searchParams.get('page') || 1;
 		requests_page.value.totalpage = Math.ceil(data.count / 5);
 		requests_page.value.next = data.next;
-		requests_page.value.prev = data.prev;
+		requests_page.value.prev = data.previous;
 	} catch (e) {
 		console.log(e);
 	}
@@ -125,14 +137,31 @@ onMounted(setup);
 }
 
 #friends-container, #requests-container {
+	display: flex;
+	flex-direction: column;
 	width: 100%;
 	padding-left: 4vw;
+	height: 100%;
+}
+
+#requests-list, #friends-list {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	height: 100%;
+}
+
+h1, h2 {
+	color: var(--glow-color);
+	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 }
 
 h1 {
 	font-size: 4vmin;
-	color: var(--glow-color);
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+h2 {
+	font-size: 3vmin;
 }
 
 ul {
@@ -149,4 +178,11 @@ li {
 	align-items: center;
 }
 
+#nav-pages {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	margin: 1%;
+	font-size: 1em;
+}
 </style>
