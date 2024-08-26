@@ -22,7 +22,8 @@
 						/>
 					<PongGame
 						ref="game"
-						@onUpdateRequested="update"
+						:enable_simulation="false"
+						@onUpdateRequested="onUpdateRequested"
 						/>
 				</div>
 			</div>
@@ -51,6 +52,7 @@ import { KEYBOARD } from '@scripts/KeyboardManager';
 import { axiosInstance } from '@utils/api';
 import GameOponentsBar from '@components/GameOponentsBar.vue';
 import MatchWon from './MatchWon.vue';
+import { Direction } from '@scripts/games/pong/utils';
 
 let /** @type {WebSocket} */ global_socket = undefined;
 let p1 = undefined;
@@ -59,7 +61,7 @@ const error = ref(false);
 const ws_connected = ref(false);
 const game_running = ref(true);
 
-const default_player = {
+const default_player = Object.freeze({
 	score: 0,
 	user: {
 		username: undefined,
@@ -67,62 +69,60 @@ const default_player = {
 			get_thumbnail: undefined,
 		},
 	},
-};
+});
 
 const players = ref([
-	// structuredClone to avoid referencing
 	structuredClone(default_player),
 	structuredClone(default_player)
 ]);
 const winner = ref(null);
 const loser = ref(null);
 
-// const VELOCITY = 0.4;
-
 const route = useRoute();
 const UUID = route.params.uuid;
 const inversed = () => p1 === parseInt(store.getters.userId);
 
-let last_dir = {
-	right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
-	left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+let player_one_dir = {
+	right: false,
+	left: false
 };
 
-const update = () => {
-	if (ws_connected.value)
-	{
-		const dir = {
-			right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
-			left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
-		};
-		if (dir === last_dir)
-			return ;
-		last_dir = dir;
-		global_socket.send(JSON.stringify({
-			type: 'player_direction',
-			payload: dir
-		}));
-	}
+let player_two_dir = {
+	right: false,
+	left: false
 };
+
+const onUpdateRequested = () => {
+	const dir = {
+		right: KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'),
+		left: KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')
+	};
+
+	if (dir === player_one_dir)
+		return ;
+	player_one_dir = dir;
+	global_socket.send(JSON.stringify({
+		type: 'player_direction',
+		payload: dir
+	}));
+	const direction = (dir.left ? -1 : 0) + (dir.right ? 1 : 0);
+	store.commit('pong/set_player_direction', {id: inversed() ? 0 : 1, direction: direction});
+}
 
 const setup = (/** @type {WebSocket} */ socket) => {
 	global_socket = socket;
 
 	socket.onopen = () => {
-		console.log('[WS] socket connected');
 		ws_connected.value = true;
 	};
 	socket.onclose = (e) => {
-		console.log('[WS] socket closed');
 		ws_connected.value = false;
 		if (!e.wasClean)
 			error.value = true;
-		console.log(e)
 	};
 	socket.onerror = (e) => {
-		console.log('[WS] socket error');
 		error.value = true;
-		console.log(e)
+		console.log(e);
 	}
 	socket.onmessage = (e) => {
 		const event = JSON.parse(e.data);
@@ -142,26 +142,29 @@ const setup = (/** @type {WebSocket} */ socket) => {
 					x: -state.ball.velocity.x,
 					y: -state.ball.velocity.y,
 				};
-				state.paddle_1.position = {
-					x: -state.paddle_1.position.x,
-					y: -state.paddle_1.position.y
+				state.paddles[0].position = {
+					x: -state.paddles[0].position.x,
+					y: -state.paddles[0].position.y
 				};
-				state.paddle_2.position = {
-					x: -state.paddle_2.position.x,
-					y: -state.paddle_2.position.y
+				state.paddles[1].position = {
+					x: -state.paddles[1].position.x,
+					y: -state.paddles[1].position.y
 				};
 			}
-			game.value.setters.ball(state.ball.position, state.ball.velocity);
-			game.value.setters.paddle_1(state.paddle_1.position);
-			game.value.setters.paddle_2(state.paddle_2.position);
+			game.value.forceUpdate({
+				ball: state.ball,
+				paddles: [
+					state.paddles[0],
+					state.paddles[1]
+				]
+			});
 		} else if (event.type === 'score') {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
 		} else if (event.type === 'counter_start') {
-			console.log('hehe boi')
-			game.value.setCounterActive(true)
+			game.value.onCountdownStart();
 		} else if (event.type === 'counter_stop') {
-			game.value.setCounterActive(false)
+			game.value.onCountdownStop();
 		} else if (event.type === 'winner') {
 			const winner_id = event.winner_id;
 			const has_won = store.getters.userId == winner_id;

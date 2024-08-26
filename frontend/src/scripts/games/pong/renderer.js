@@ -5,6 +5,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import store from '@store';
+import { DEFAULT_SCENE_STATE } from './model';
+import { config } from '@assets/game/pong/render_config.json'
 
 class ColorMaterial extends THREE.MeshStandardMaterial {
 	constructor(p, color) {
@@ -24,61 +26,19 @@ class ColorMaterial extends THREE.MeshStandardMaterial {
 }
 
 const FOV = 75;
+const ASPECT_RATIO = 16. / 9.;
 const ZNEAR = 0.1;
 const ZFAR = 1000;
 
-const assets = {
-	ball: {
-		texture: '/ressources/texture/cyberSphere.png',
-		radius: 1
-	},
-	paddle: {
-		texture: '/ressources/texture/cyberPaddle.png',
-		width: 1.6,
-		height: 1,
-		depth: 7
-	},
-	map: {
-		model: store.getters.selectedMapPath,
-		scale: 20
-	},
-	lights: {
-		ambient: {
-			color: 0xf0f0f0
-		},
-		directional: {
-			color: 0xffffff,
-			intensity: 1,
-			/** Direction has to be normalized !!! */
-			direction: {
-				x: 5,
-				y: 10,
-				z: 5
-			}
-		}
-	},
-	camera: {
-		position: {
-			x: 60,
-			y: 5,
-			z: 0
-		},
-		lookat: {
-			x: 0,
-			y: -20,
-			z: 0
-		}
-	}
-};
-
 export default class PongRenderer {
-	#canvas;
 	#canvas_container;
 
 	#renderer;
 	#render_pass;
 	#bloom_pass;
 	#composer;
+
+	#resizer;
 
 	#camera;
 	#scene;
@@ -114,33 +74,33 @@ export default class PongRenderer {
 				canvas: canvas.value
 			};
 			
-			this.#canvas = canvas;
+			const width = canvas_container.value.clientWidth;
+			const height = canvas_container.value.clientHeight;
+
 			this.#canvas_container = canvas_container;
 			this.#renderer = new THREE.WebGLRenderer(renderer_config);
-			const setup_resize = () => {
-				window.addEventListener('resize', this.onWindowResize, false);
-			}
-			this.#renderer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight, true);
-			setup_resize();
+			this.#renderer.setSize(width, height, true);
 			this.#composer = new EffectComposer(this.#renderer);
 			this.#render_pass = new RenderPass(this.#scene, this.#camera);
 			this.#bloom_pass = new UnrealBloomPass(
-				// HACK: Will be fixed when the game canvas becomes responsive
-				new THREE.Vector2(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight),
+				new THREE.Vector2(width, height),
 				0.2,  // strength
 				0.2,  // radius
 				0.1   // threshold
 			);
 			this.#composer.addPass(this.#render_pass);
 			this.#composer.addPass(this.#bloom_pass);
+			this.#resizer = window.addEventListener(
+				'resize', this.#onWindowResize, false
+			);
 		};
 
 		const load_textures = () => {
 			const loader = new THREE.TextureLoader();
 			const filter = (t) => t.minFilter = THREE.LinearFilter;
 
-			this.#textures.ball = loader.load(assets.ball.texture, filter);
-			this.#textures.paddle = loader.load(assets.paddle.texture, filter);
+			this.#textures.ball = loader.load(config.ball.texture, filter);
+			this.#textures.paddle = loader.load(config.paddle.texture, filter);
 		};
 
 		const load_materials = () => {
@@ -158,16 +118,16 @@ export default class PongRenderer {
 				const SIZE = 30;
 
 				this.#objects.ball = new THREE.Mesh(
-					new THREE.SphereGeometry(assets.ball.radius, SIZE, SIZE),
+					new THREE.SphereGeometry(config.ball.radius, SIZE, SIZE),
 					this.#materials.neon
 				);
 			};
 
 			const load_paddles = () => {
 				const paddle_geometry = new THREE.BoxGeometry(
-					assets.paddle.width,
-					assets.paddle.height,
-					assets.paddle.depth,
+					config.paddle.width,
+					config.paddle.height,
+					config.paddle.depth,
 				);
 
 				this.#objects.paddle_1 = new THREE.Mesh(
@@ -187,18 +147,24 @@ export default class PongRenderer {
 				};
 
 				const on_loaded = (model) => {
-					const SCALE = assets.map.scale;
+					const SCALE = config.map.scale;
 
 					this.#objects.map = model.scene;
 					this.#objects.map.traverse(apply_color_material);
 					this.#objects.map.scale.set(SCALE, SCALE, SCALE);
+					this.#objects.map.position.set(
+						config.map.position.x,
+						config.map.position.y,
+						config.map.position.z
+					);
 					this.#scene.add(this.#objects.map);
 				};
 
 				const map = new GLTFLoader();
+				const map_file = store.getters.selectedMapPath;
 
 				map.setDRACOLoader(new DRACOLoader());
-				map.load(assets.map.model, on_loaded, undefined, undefined);
+				map.load(map_file, on_loaded, undefined, undefined);
 			};
 
 			load_map();
@@ -208,20 +174,20 @@ export default class PongRenderer {
 
 		const load_lights = () => {
 			this.#objects.lights.ambient = new THREE.AmbientLight(
-				assets.lights.ambient.color
+				config.lights.ambient.color
 			);
 			this.#objects.lights.directional = new THREE.DirectionalLight(
-				assets.lights.directional.color,
-				assets.lights.directional.intensity
+				config.lights.directional.color,
+				config.lights.directional.intensity
 			);
 		}
 
 		const setup = () => {
 			const setup_lights = () => {
 				this.#objects.lights.directional.position.set(
-					assets.lights.directional.direction.x,
-					assets.lights.directional.direction.y,
-					assets.lights.directional.direction.z
+					config.lights.directional.direction.x,
+					config.lights.directional.direction.y,
+					config.lights.directional.direction.z
 				);
 				this.#objects.lights.directional.position.normalize();
 				this.#scene.add(this.#objects.lights.ambient);
@@ -239,14 +205,14 @@ export default class PongRenderer {
 
 			const setup_camera = () => {
 				this.#camera.position.set(
-					assets.camera.position.x,
-					assets.camera.position.y,
-					assets.camera.position.z
+					config.camera.position.x,
+					config.camera.position.y,
+					config.camera.position.z
 				);
 				this.#camera.lookAt(new THREE.Vector3(
-					assets.camera.lookat.x,
-					assets.camera.lookat.y,
-					assets.camera.lookat.z
+					config.camera.lookat.x,
+					config.camera.lookat.y,
+					config.camera.lookat.z
 				));
 			};
 
@@ -256,8 +222,15 @@ export default class PongRenderer {
 			setup_camera();
 		};
 
-		this.#camera = new THREE.PerspectiveCamera(FOV, 16 / 9, ZNEAR, ZFAR);
+		const aspect_ratio_dims = config.camera.aspect_ratio;
+
 		this.#scene = new THREE.Scene();
+		this.#camera = new THREE.PerspectiveCamera(
+			config.camera.fov,
+			aspect_ratio_dims.width / aspect_ratio_dims.height,
+			config.camera.znear,
+			config.camera.zfar
+		);
 		create_composer();
 		load_textures();
 		load_materials();
@@ -266,46 +239,24 @@ export default class PongRenderer {
 		setup();
 	}
 
-	updateState = (
-		ball={
-			position: {x: 0, y: 0}
-		},
-		paddle1={
-			position: {x: 0, y: 0}
-		},
-		paddle2={
-			position: {x: 0, y: 0}
-		}
-	) => {
-		const update_ball = () => {
-			const { x, y } = ball.position;
+	updateState = (state=DEFAULT_SCENE_STATE) => {
+		const set = (self, state) =>
+			self.position.set(state.position.x, 0, state.position.y);
 
-			this.#objects.ball.position.set(x, -19, y);
-		};
-
-		const update_paddle_1 = () => {
-			const { x, y } = paddle1.position;
-			
-			this.#objects.paddle_1.position.set(x, -19, y);
-		};
-		
-		const update_paddle_2 = () => {
-			const { x, y } = paddle2.position;
-
-			this.#objects.paddle_2.position.set(x, -19, y);
-		};
-
-		update_ball();
-		update_paddle_1();
-		update_paddle_2();
+		set(this.#objects.ball, state.ball);
+		set(this.#objects.paddle_1, state.paddles[0]);
+		set(this.#objects.paddle_2, state.paddles[1]);
 	}
 
-	onWindowResize = () => {
-		console.log("canvas container client : ", this.#canvas_container.value.clientWidth + "x" + this.#canvas_container.value.clientHeight);
-		this.#renderer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight, true);
-		this.#composer.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
-		this.#render_pass.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
-		this.#bloom_pass.setSize(this.#canvas_container.value.clientWidth, this.#canvas_container.value.clientHeight);
+	#onWindowResize = () => {
+		const canvas_container = this.#canvas_container.value;
+		const width = canvas_container.clientWidth;
+		const height = canvas_container.clientHeight;
+
+		this.#renderer.setSize(width, height, true);
+		this.#composer.setSize(width, height);
+		this.#render_pass.setSize(width, height);
+		this.#bloom_pass.setSize(width, height);
 	};
 
 	render() {
@@ -313,7 +264,7 @@ export default class PongRenderer {
 	}
 
 	cleanup = () => {
-		window.removeEventListener('resize', this.onWindowResize);
+		window.removeEventListener('resize', this.#onWindowResize);
 		if (this.#objects.ball.geometry)
 			this.#objects.ball.geometry.dispose();
 		if (this.#objects.paddle_1.geometry)

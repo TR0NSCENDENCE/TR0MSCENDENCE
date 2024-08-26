@@ -13,11 +13,9 @@ const is_active = ref(false);
 let timer = undefined;
 
 function start() {
-	console.log('start')
 	is_active.value = true;
 	setTimeout(
 		() => {
-			console.log('end')
 			emits('finished');
 			is_active.value = false;
 			timer = undefined;

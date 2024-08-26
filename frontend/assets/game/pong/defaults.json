@@ -1,0 +1,21 @@
+{
+	"defaults": {
+		"game": {
+			"win_score": 3
+		},
+		"scene": {
+			"wall_distance": 19.0,
+			"paddle_distance": 35.0
+		},
+		"paddle": {
+			"size": 8.0,
+			"velocity": 37.5,
+			"speedup_factor": 1.03
+		},
+		"ball": {
+			"radius": 1.0,
+			"speedup_factor": 1.1,
+			"velocity": 22.5
+		}
+	}
+}

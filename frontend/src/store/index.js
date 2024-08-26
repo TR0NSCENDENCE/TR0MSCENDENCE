@@ -3,6 +3,7 @@ import axios from 'axios';
 import { axiosInstance } from '@utils/api';
 import audio from './modules/audio';
 import { connectToWebsocket } from '@utils/ws';
+import pong from './modules/pong';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -120,6 +121,7 @@ const API_PORT = import.meta.env.DEV ? `:${import.meta.env.VITE_API_PORT}` : win
 export default createStore({
 	modules: {
 		audio,
+		pong,
 	},
 	state: {
 		onlineTrackerWs: undefined,

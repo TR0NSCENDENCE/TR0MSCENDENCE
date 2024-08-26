@@ -16,15 +16,23 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import Counter321 from '@components/Counter321.vue';
-import PongLogic from '@scripts/games/pong/logic';
+import PongController from '@scripts/games/pong/controller';
 import PongRenderer from '@scripts/games/pong/renderer';
 import store from '@store';
+import PongModel from '@scripts/games/pong/model';
+import { Direction } from '@scripts/games/pong/utils';
 
-const emits = defineEmits(['onUpdateRequested']);
+const emits = defineEmits([
+	'onUpdateRequested'
+]);
+const props = defineProps([
+	'enable_simulation'
+])
 
 const game = {
-	logic: new PongLogic(),
-	renderer: undefined
+	/** @type {PongModel} */ model: undefined,
+	/** @type {PongController} */ controller: undefined,
+	/** @type {PongRenderer} */ renderer: undefined
 };
 
 const counter = ref(null);
@@ -33,11 +41,19 @@ const canvas_container = ref(null);
 
 let animation_frame_handle = undefined;
 
-function animate() {
-	emits('onUpdateRequested')
-	game.logic.step();
-	game.renderer.render();
+const animate = () => {
+	game.controller.step();
 	animation_frame_handle = requestAnimationFrame(animate);
+}
+
+const setupController = () => {
+	const controller = game.controller;
+
+	controller.onUpdateRequested = () => emits('onUpdateRequested');
+	controller.onCountdownStart = () => counter.value.start();
+	controller.onCountdownStop = () => counter.value.stop();
+	controller.onPlayerOneInputRequested = () => Direction.None;
+	controller.onPlayerTwoInputRequested = () => Direction.None;
 }
 
 onMounted(() => {
@@ -46,7 +62,13 @@ onMounted(() => {
 		canvas_container,
 		store.getters.theme
 	);
-	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
+	game.model = new PongModel();
+	game.controller = new PongController(
+		game.model,
+		game.renderer,
+		props.enable_simulation ?? true
+	);
+	setupController();
 	animation_frame_handle = requestAnimationFrame(animate);
 });
 
@@ -55,21 +77,13 @@ onUnmounted(() => {
 		cancelAnimationFrame(animation_frame_handle);
 	if (game.renderer)
 		game.renderer.cleanup();
-})
+});
 
 defineExpose({
-	setCounterActive: (active) => {
-		if (active)
-			counter.value.start();
-		else
-			counter.value.stop();
-	},
-	setters: {
-		ball: game.logic.setBall,
-		paddle_1: game.logic.setPaddle1,
-		paddle_2: game.logic.setPaddle2
-	}
-})
+	onCountdownStart: () => counter.value.start(),
+	onCountdownStop: () => counter.value.stop(),
+	forceUpdate: (data) => game.model.forceUpdate(data)
+});
 
 </script>
 

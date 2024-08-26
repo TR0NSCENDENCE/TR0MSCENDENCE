@@ -1,7 +1,5 @@
-class KeyboardManager
-{
-	constructor()
-	{
+class KeyboardManager {
+	constructor() {
 		this.keys = {}
 		window.addEventListener('keydown', (event) => {
 			this.keys[event.key] = true;
@@ -11,10 +9,9 @@ class KeyboardManager
 		});
 	}
 
-	isKeyDown(key)
-	{
-		return (this.keys[key]);
+	isKeyDown = (key) => {
+		return (this.keys[key] ?? false);
 	}
 }
 
-export let KEYBOARD = new KeyboardManager()
+export const KEYBOARD = new KeyboardManager()
