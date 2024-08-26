@@ -133,7 +133,7 @@ const router = createRouter({
 			name: 'MiniGameView',
 			component: MiniGameView,
 			meta: {
-				title: 'tron - mini game',
+				title: 'pacman - mini game',
 			}
 		},
 		{
