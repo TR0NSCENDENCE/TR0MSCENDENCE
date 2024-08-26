@@ -4,14 +4,19 @@
 			<TranscendenceLogo />
 		</router-link>
 		<div class="sub-header">
-			<div v-if="store.getters.isAuthenticated" @click="logout">
-				<h1
-					class="header-box signIn signIn-link"
-					>
-					logout
-				</h1>
+			<div v-if="store.getters.isAuthenticated" class="sub-header-link">
+				<div class="signIn-link" @click="logout">
+					<h1 class="header-box signIn">
+						logout
+					</h1>
+				</div>
+				<div class="signIn-link" @click="router.push('/profile')">
+					<h1 class="header-box signIn">
+						my profile ({{ store.getters.authUser }})
+					</h1>
+				</div>
 			</div>
-			<div v-else class="sub-header">
+			<div v-else class="sub-header-link">
 				<router-link to="/login" class="signIn-link">
 					<h1 class="header-box signIn">login</h1>
 				</router-link>
@@ -19,7 +24,9 @@
 					<h1 class="header-box signIn">register</h1>
 				</router-link>
 			</div>
-			<h1 class="header-box title">{{ title }}</h1>
+			<div class="transcendence-title">
+				<h1 class="header-box title">{{ title }}</h1>
+			</div>
 		</div>
 	</nav>
 </template>
@@ -58,21 +65,39 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+h1 {
+	margin: 1vmin;
+}
+
 .header {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	text-align: center;
+	height: fit-content;
 	width: 100%;
 }
 
+.transcendence-title {
+	flex: 1 1 0;
+}
+
 .sub-header {
+	flex: 1 1 0;
+	display: flex;
+	font-size: 1vw;
+	/* @media screen and (max-width: 600px) {
+		font-size: 1.5vmin;
+	}
+	@media screen and (min-width: 801px) {
+		font-size: 2vmin;
+	} */
+}
+
+.sub-header-link {
 	display: flex;
 	justify-content: space-between;
-	width: 100%;
-	padding: 0 2%;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
+	width: fit-content;
 }
 
 .header-box {
@@ -81,9 +106,9 @@ onUnmounted(() => {
 	border: 0.15em solid var(--glow-color);
 	border-radius: 0.45em;
 	background: none;
-	perspective: 2em;
+	white-space: nowrap;
+	perspective: 1em;
 	font-family: "SpaceTron", sans-serif;
-	font-size: calc(12 * var(--size-factor));
 	font-weight: 900;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
@@ -124,22 +149,11 @@ onUnmounted(() => {
 	animation: none;
 }
 
-.signIn:hover .glowing-txt {
-	color: rgba(0, 0, 0, 0.8);
-	animation: none;
-}
-
-.signIn:hover .faulty-letter {
-	color: rgba(0, 0, 0, 0.8);
-	animation: none;
-	text-shadow: none;
-	opacity: 1;
-}
-
 .signIn {
 	flex: 1 0 40%;
 	text-align: center;
-	margin-right: 1em;
+	margin-right: 1vw;
+	margin-left: 1vw;
 	letter-spacing: 0.1em;
 }
 
@@ -153,7 +167,6 @@ onUnmounted(() => {
 }
 
 .title {
-	flex: 1 0 60%;
 	text-align: right;
 	letter-spacing: 0.6em;
 }

@@ -1,91 +1,50 @@
 <template>
-	<h1 id="match_found">match found :</h1>
-	<div id="match_found_p1">
-		<div class="player1">
-			{{ player1 }}
+	<div id="match_found">
+		<h1 id="match_found_label">match found :</h1>
+		<UserViewer :userdata="player1"/>
+		<div class="versus">
+			<div class="letter" id="letter_V">v</div>
+			<div class="letter" id="letter_S">s</div>
 		</div>
-	</div>
-	<div class="versus">
-		<div class="letter" id="letter_V">v</div>
-		<div class="letter" id="letter_S">s</div>
-	</div>
-	<div id="match_found_p2">
-		<div class="player2">
-			{{ player2 }}
-		</div>
+		<UserViewer :userdata="player2"/>
 	</div>
 </template>
 
 <script setup>
+import UserViewer from './UserViewer.vue';
+
 const props = defineProps([ 'player1', 'player2' ]);
 </script>
 
 <style scoped>
 #match_found_p1, #match_found_p2 {
-	color: var(--glow-color);
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-	display: flex;
+
+	/* animation: fadeIn 2s forwards; */
+}
+
+#match_found_label {
 	font-size: 5vh;
-	font-weight: bold;
-	position: relative;
-	height: 80%;
-	width: 100%;
+}
+
+#match_found {
+	color: var(--glow-color);
+	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
 	letter-spacing: 0.1em;
-	opacity: 0;
-	animation: fadeIn 2s forwards;
-}
-
-h1 {
-	color: var(--glow-color);
-	margin-top: 10vh;
-	text-align: center;
-	font-size: 6vh;
-	font-weight: bolder;
-	letter-spacing: 0.2em;
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-	position: relative;
-	transform: translateY(-10vh);
-}
-
-.player1 {
-	position: absolute;
-	top: -110%;
-	left: 20%;
-}
-
-.player2 {
-	position: absolute;
-	top: -10%;
-	right: 20%;
-}
-
-.versus {
-	color: var(--glow-color);
-	text-align: center;
-	font-size: 6vh;
-	font-weight: bolder;
-	letter-spacing: 0.2em;
-	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
-	position: relative;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	transform: translateY(-10vh);
-}
-
-.letter {
-	position: relative;
-	font-size: 4rem;
 	font-weight: bold;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 #letter_V {
+	margin-top: 100%;
+	font-size: 5vh;
 	animation: moveToCenterV 2s forwards;
 }
 
 #letter_S {
+	margin-bottom: 100%;
+	font-size: 5vh;
 	animation: moveToCenterS 2s forwards;
 }
 

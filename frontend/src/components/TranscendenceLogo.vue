@@ -8,15 +8,15 @@
 <style scoped>
 
 .logo-container {
-	width: 8vh;
-	height: 8vh;
+	width: 8vmin;
+	height: 8vmin;
 	border-radius: 50%;
 	overflow: hidden;
-	margin: 10px;
+	margin: 1vw;
 	-webkit-box-shadow: inset 0px 0px 1.75em 0px var(--glow-color), 0px 0px 1.75vh 0px var(--glow-color);
 	-moz-box-shadow: inset 0px 0px 1.75em 0px var(--glow-color), 0px 0px 1.75vh 0px var(--glow-color);
 	box-shadow: inset 0px 0px 1.75em 0px var(--glow-color), 0px 0px 1.75vh 0px var(--glow-color);
-	border: 0.25vh solid var(--glow-color);
+	border: 0.25vw solid var(--glow-color);
 	perspective: 2em;
 	display: flex;
 	justify-content: center;

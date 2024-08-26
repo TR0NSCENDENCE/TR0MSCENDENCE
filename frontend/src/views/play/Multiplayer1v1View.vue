@@ -1,31 +1,198 @@
 <template>
-	<p v-if="store.getters.isAuthenticated" style="color: white;">Indev</p>
-	<div id="must-logged" v-else>
-		<h1>You must be logged to play online.</h1>
-		<GlowingButton class="go-back-button small-button" :text="'go back'" :dest="'/play'"/>
+	<div>
+		<div v-if="store.getters.isAuthenticated">
+			<div v-if="error" style="display: flex; flex-direction: column; align-items: center;">
+				<h1> A server error occured... </h1>
+				<GlowingButton
+					text="main menu"
+					dest="/"
+					/>
+			</div>
+			<div v-else-if="winner">
+				<MatchWon
+					:winner="winner"
+					:loser="loser"
+					/>
+			</div>
+			<div v-else-if="ws_connected">
+				<div v-if="game_running">
+					<GameOponentsBar
+						:player_1="players[0]"
+						:player_2="players[1]"
+						/>
+					<PongGame
+						ref="game"
+						@onUpdateRequested="update"
+						/>
+				</div>
+			</div>
+			<h1 v-else> Waiting for connection... </h1>
+		</div>
+		<div v-else id="must-logged">
+			<h1> You must be logged to play online. </h1>
+			<GlowingButton
+				class="go-back-button small-button"
+				text="go back"
+				dest="/play"
+				/>
+		</div>
 	</div>
 </template>
 
 <script setup>
+import PongGame from '@components/PongGame.vue';
 import GlowingButton from '@components/GlowingButton.vue';
 import store from '@store';
-import { onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute } from 'vue-router'
-import utils from '@utils/index';
+import { connectToWebsocket } from '@utils/ws';
+import router from '@router/index';
+import { KEYBOARD } from '@scripts/KeyboardManager';
+import { axiosInstance } from '@utils/api';
+import GameOponentsBar from '@components/GameOponentsBar.vue';
+import MatchWon from './MatchWon.vue';
 
-let global_socket = undefined;
+let /** @type {WebSocket} */ global_socket = undefined;
+let p1 = undefined;
+const game = ref(null);
+const error = ref(false);
+const ws_connected = ref(false);
+const game_running = ref(true);
+
+const default_player = {
+	score: 0,
+	user: {
+		username: undefined,
+		user_profile: {
+			get_thumbnail: undefined,
+		},
+	},
+};
+
+const players = ref([
+	// structuredClone to avoid referencing
+	structuredClone(default_player),
+	structuredClone(default_player)
+]);
+const winner = ref(null);
+const loser = ref(null);
+
+// const VELOCITY = 0.4;
 
 const route = useRoute();
+const UUID = route.params.uuid;
+const inversed = () => p1 === parseInt(store.getters.userId);
 
-onMounted(() => {
-	utils.connectToWebsocket(`ws/gameinstance/${route.params.uuid}/`,
-		(/** @type {WebSocket} */ socket) => {
-			global_socket = socket;
-			socket.onopen = (e) => console.log('[WS] socket connected');
-			socket.onclose = (e) => console.log('[WS] socket closed');
-			socket.onmessage = (e) => console.log(JSON.parse(e.data));
-		},
-		(error) => console.log(error)
+let last_dir = {
+	right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
+	left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+};
+
+const update = () => {
+	if (ws_connected.value)
+	{
+		const dir = {
+			right: (KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d')) ?? false,
+			left: (KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')) ?? false
+		};
+		if (dir === last_dir)
+			return ;
+		last_dir = dir;
+		global_socket.send(JSON.stringify({
+			type: 'player_direction',
+			payload: dir
+		}));
+	}
+};
+
+const setup = (/** @type {WebSocket} */ socket) => {
+	global_socket = socket;
+
+	socket.onopen = () => {
+		console.log('[WS] socket connected');
+		ws_connected.value = true;
+	};
+	socket.onclose = (e) => {
+		console.log('[WS] socket closed');
+		ws_connected.value = false;
+		if (!e.wasClean)
+			error.value = true;
+		console.log(e)
+	};
+	socket.onerror = (e) => {
+		console.log('[WS] socket error');
+		error.value = true;
+		console.log(e)
+	}
+	socket.onmessage = (e) => {
+		const event = JSON.parse(e.data);
+
+		if (!game.value)
+			return ;
+
+		if (event.type === 'sync') {
+			let state = event.state;
+
+			if (inversed()) {
+				state.ball.position = {
+					x: -state.ball.position.x,
+					y: -state.ball.position.y,
+				};
+				state.ball.velocity = {
+					x: -state.ball.velocity.x,
+					y: -state.ball.velocity.y,
+				};
+				state.paddle_1.position = {
+					x: -state.paddle_1.position.x,
+					y: -state.paddle_1.position.y
+				};
+				state.paddle_2.position = {
+					x: -state.paddle_2.position.x,
+					y: -state.paddle_2.position.y
+				};
+			}
+			game.value.setters.ball(state.ball.position, state.ball.velocity);
+			game.value.setters.paddle_1(state.paddle_1.position);
+			game.value.setters.paddle_2(state.paddle_2.position);
+		} else if (event.type === 'score') {
+			players.value[0].score = event.scores.p1;
+			players.value[1].score = event.scores.p2;
+		} else if (event.type === 'counter_start') {
+			console.log('hehe boi')
+			game.value.setCounterActive(true)
+		} else if (event.type === 'counter_stop') {
+			game.value.setCounterActive(false)
+		} else if (event.type === 'winner') {
+			const winner_id = event.winner_id;
+			const has_won = store.getters.userId == winner_id;
+			const winner_index = has_won ^ inversed() ? 1 : 0;
+
+			winner.value = players.value[winner_index].user.username;
+			loser.value = players.value[1 - winner_index].user.username;
+			game_running.value = false;
+			if (route.query.redirect)
+				setTimeout(() => router.push(route.query.redirect), 4000);
+		}
+	}
+};
+
+onMounted(async () => {
+	try {
+		const response = await axiosInstance.get(`gameinstance/${UUID}/`);
+		players.value[0].user = response.data.player_one;
+		players.value[1].user = response.data.player_two;
+		p1 = response.data.player_one.pk;
+	} catch (e) {
+		console.log(e);
+		error.value = true;
+		return ;
+	}
+	connectToWebsocket(`ws/gameinstance/${UUID}/`,
+		setup,
+		(error) => {
+			router.push('/');
+			console.log(error)
+		}
 	);
 });
 
@@ -37,15 +204,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-#must-logged
-{
+
+#must-logged {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
 }
 
-h1
-{
+h1 {
 	color: var(--glow-color);
 	margin-top: 10vh;
 	text-align: center;

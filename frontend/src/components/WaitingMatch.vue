@@ -1,16 +1,16 @@
 <template>
 	<h1>
-		waiting for a match<span class="dots"></span>
+		waiting for a {{ match_type }}<span class="dots"></span>
 	</h1>
 	<div id="waiting_match">
 		<GlowingButton :text="'cancel matchmaking'" :dest="'/'" />
-		<GlowingButton :text="'Match Found View'" :dest="'/play/match_found'" />
-		<GlowingButton :text="'Match Won View'" :dest="'/play/match_won'" />
 	</div>
 </template>
 
 <script setup>
 import GlowingButton from '@components/GlowingButton.vue';
+
+const props = defineProps(['match_type']);
 </script>
 
 <style scoped>

@@ -41,9 +41,9 @@
 <script setup>
 import GlowingButton from '@/components/GlowingButton.vue'
 import { ref } from 'vue';
-import utils from '@utils';
 import router from '@router/index';
 import store from '@store';
+import { axiosInstance } from '@utils/api';
 
 const email = ref(null);
 const username = ref(null);
@@ -65,18 +65,19 @@ async function register() {
 		password: password.value.value,
 		repassword: repassword.value.value,
 	};
-	utils.makeApiQuery('/register/', 'post', payload,
-		async (result) => {
+	axiosInstance.post('/register/', payload).then(
+		async (response) => {
 			await store.dispatch('authentificate', payload);
 			router.push('/');
-		},
+		}
+	).catch(
 		(error) => {
 			if (!error.response)
 				return ;
 			for (var prop in error_txt.value)
 				error_txt.value[prop] = (error.response.data[prop] ?? '')[0] ?? '';
 		}
-	)
+	);
 }
 </script>
 

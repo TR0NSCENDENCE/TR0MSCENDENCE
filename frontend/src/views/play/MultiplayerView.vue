@@ -1,40 +1,51 @@
 <template>
 	<div>
-		<WaitingMatch v-if="store.getters.isAuthenticated && !found"/>
-		<div v-else-if="found">
-			<Counter321
-				:active="found"
-				@finished="() => router.push(`multiplayer/${uuid}`)"
-				@toggle="(value) => found = value"/>
-			<MatchFound :player1="player1" :player2="player2"/>
+		<div v-if="store.getters.isAuthenticated">
+			<WaitingMatch :match_type="'1v1'" v-if="!found"/>
+			<MatchFound v-else
+				:player1="player1"
+				:player2="player2"
+				/>
 		</div>
-		<div id="must-logged" v-else>
-			<h1>You must be logged to play online.</h1>
-			<GlowingButton class="go-back-button small-button" :text="'go back'" @click="() => router.go(-1)"/>
+		<div v-else
+			id="must-logged"
+			>
+			<h1> You must be logged to play online. </h1>
+			<GlowingButton
+				class="go-back-button small-button"
+				text="go back"
+				@click="() => router.go(-1)"
+				/>
 		</div>
 	</div>
 </template>
 
 <script setup>
-import Counter321 from '@components/Counter321.vue';
 import GlowingButton from '@components/GlowingButton.vue';
 import MatchFound from '@components/MatchFound.vue';
 import WaitingMatch from '@components/WaitingMatch.vue';
-import utils, { makeAuthApiQuery } from '@utils/index';
 import router from '@router/index';
 import { ref, onMounted, onUnmounted } from 'vue';
 import store from '@store';
+import { connectToWebsocket } from '@utils/ws';
+import { axiosInstance } from '@utils/api';
+
+const defaultUser = {
+	user_profile: {
+		get_thumbnail: '',
+	}
+}
 
 const found = ref(false);
-const player1 = ref('');
-const player2 = ref('');
-const uuid = ref(undefined);
+const player1 = ref(defaultUser);
+const player2 = ref(defaultUser);
 
 let global_socket = undefined;
 
 onMounted(() => {
-	if (store.getters.isAuthenticated)
-	utils.connectToWebsocket('ws/matchmaking/1v1/',
+	if (!store.getters.isAuthenticated)
+		return ;
+	connectToWebsocket('ws/matchmaking/1v1/',
 		(/** @type {WebSocket} */ socket) => {
 			global_socket = socket;
 			socket.onopen = (e) => console.log('[WS] socket connected');
@@ -44,16 +55,16 @@ onMounted(() => {
 				if (data.type != 'found')
 					return ;
 				socket.close();
-				uuid.value = data.uuid;
-				found.value = true;
-				makeAuthApiQuery('gameinstance/' + uuid.value + '/', 'GET', null,
-					(result) => {
-						console.log(result.data);
-						player1.value = result.data.player_one.username;
-						player2.value = result.data.player_two.username;
-					},
-					(error) => console.log(error)
-				)
+				const uuid = data.uuid;
+				axiosInstance.get(`gameinstance/${uuid}/`).then(
+					(response) => {
+						console.log(response.data);
+						player1.value = response.data.player_one;
+						player2.value = response.data.player_two;
+						found.value = true;
+					}
+				);
+				setTimeout(() => router.push(`multiplayer/${uuid}`), 3000);
 			};
 		},
 		(error) => console.log(error)

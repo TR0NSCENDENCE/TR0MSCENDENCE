@@ -28,8 +28,8 @@ const winOrLose = ref(0);
 const time = ref('0');
 
 const gameStat = {
-    score:  0,
-    time: 0,
+	score:  0,
+	time: 0,
 	status: 'lose',
 	mode: '',
 };
@@ -41,14 +41,14 @@ function updateData(newScore, newlives, newTime) {
 }
 
 function saveData(score, time, winOrLose) {
-    gameStat.score = score;
-    gameStat.time = time;
-    gameStat.status = winOrLose === 2 ? 'win' : 'lose';
+	gameStat.score = score;
+	gameStat.time = time;
+	gameStat.status = winOrLose === 2 ? 'win' : 'lose';
 	gameStat.mode = '1v1';
 
-    let data = JSON.parse(localStorage.getItem('stats')) || [];
-    data.push(gameStat);
-    localStorage.setItem('stats', JSON.stringify(data));
+	let data = JSON.parse(localStorage.getItem('stats')) || [];
+	data.push(gameStat);
+	localStorage.setItem('stats', JSON.stringify(data));
 }
 
 

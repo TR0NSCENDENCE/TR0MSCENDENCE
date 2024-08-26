@@ -17,27 +17,27 @@ const props = defineProps([ 'name', 'nickname', 'src', 'alt' ]);
 
 <style scoped>
 .portrait-container {
-	margin: 5px;
+	margin: 0.5vh;
 	text-align: center;
+	--size-factor: (0.00188323 * 70vw);
+	font-size: calc(8 * var(--size-factor));
 }
 
 .portrait {
-	width: 200px;
-	height: 280px;
+	width: 10vw;
+	height: 28vh;
 	display: block;
 	margin: 0 auto;
-	border: 0.1em solid rgb(255, 0, 0, 0.3);
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
 	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
 	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);
-	border-radius: 0.45em;
 }
 
 .name {
-	margin-top: 10px;
+	margin-top: 1vh;
 	font-size: 1.2em;
 	color: var(--glow-color);
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);

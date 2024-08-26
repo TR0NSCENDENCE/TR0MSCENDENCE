@@ -1,6 +1,6 @@
 <template>
 	<div class="history">
-        <h1 class="history"></h1>
+		<h1 class="history"></h1>
 		<table>
 			<thead>
 				<tr>
@@ -38,7 +38,7 @@ function getStats() {
 	}));
 }
 
-const history = getStats('history');
+const history = getStats();
 
 </script>
 

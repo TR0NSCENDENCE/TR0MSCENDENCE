@@ -9,6 +9,7 @@ import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
 import MultiplayerView from '@/views/play/MultiplayerView.vue'
 import Multiplayer1v1View from '@/views/play/Multiplayer1v1View.vue'
+import TournamentMatchmakingView from '@/views/play/TournamentMatchmakingView.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 /* ************************************************************************** */
 
@@ -18,7 +19,6 @@ import Pacman1v1 from '@/views/minigame/Pacman1v1.vue'
 import PacmanSolo from '@/views/minigame/PacmanSolo.vue'
 import GameHistory from '@/views/minigame/GameHistory.vue'
 /* ************************************************************************** */
-
 import SettingsView from '@/views/SettingsView.vue'
 /* ************************************************************************** */
 import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
@@ -30,7 +30,7 @@ import CreditsView from '@/views/settings/CreditsView.vue'
 import LeaderboardView from '@/views/LeaderboardView.vue'
 import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
-import OtherProfileView from '@/views/OtherProfileView.vue'
+import SearchProfileView from '@/views/SearchProfileView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import MatchWon from '@/views/play/MatchWon.vue'
@@ -104,6 +104,14 @@ const router = createRouter({
 		},
 		{
 			path: '/play/tournament',
+			name: 'TournamentMatchmakingView',
+			component: TournamentMatchmakingView,
+			meta: {
+				title: 'tournament matchmaking',
+			}
+		},
+		{
+			path: '/play/tournament/:uuid',
 			name: 'TournamentView',
 			component: TournamentView,
 			meta: {
@@ -159,6 +167,14 @@ const router = createRouter({
 			}
 		},
 		{
+			path: '/searchprofile',
+			name: 'SearchProfileView',
+			component: SearchProfileView,
+			meta: {
+				title: 'search profile'
+			}
+		},
+		{
 			path: '/profile/:id',
 			name: 'ProfileView',
 			component: ProfileView,
@@ -204,14 +220,6 @@ const router = createRouter({
 			component: CreditsView,
 			meta: {
 				title: 'credit$'
-			}
-		},
-		{
-			path: '/player_profile',
-			name: 'OtherProfileView',
-			component: OtherProfileView,
-			meta: {
-				title: 'player profile'
 			}
 		},
 		{

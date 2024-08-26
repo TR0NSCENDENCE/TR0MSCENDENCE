@@ -1,35 +1,51 @@
-import { makeAuthApiQuery } from '@utils';
-import { createStore } from 'vuex'
+import { createStore } from 'vuex';
 import axios from 'axios';
+import { axiosInstance } from '@utils/api';
+import audio from './modules/audio';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
 
+function parseJwt (token) {
+	var base64Url = token.split('.')[1];
+	var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+	var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+		return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+	}).join(''));
+
+	return JSON.parse(jsonPayload);
+}
+
+async function updateProfile(context) {
+	axiosInstance.get('/me/').then(
+		(response) => {
+			const payload = {
+				authUser: response.data.username,
+				isAuthenticated: true,
+			};
+			context.commit('setAuthUser', payload);
+		}
+	).catch((error) => context.dispatch('deauthentificate'));
+}
+
 async function authentificate(context, { username, password }) {
 	let result = undefined;
-	let _ = await axios
+	let _ = await axiosInstance
 		.post(context.state.endpoints.obtainJWT, {
 			username: username,
 			password: password
 		})
 		.then((response) => {
-			context.commit('updateToken', response.data.access);
+			context.commit('updateAccessToken', response.data.access);
+			context.commit('updateRefreshToken', response.data.refresh);
 			// Even though the authentication returned a user object that can be
 			// decoded, we fetch it again. This way we aren't super dependant on
 			// JWT and can plug in something else.
-			makeAuthApiQuery(
-				'/me/', 'get', {},
-				(response) => {
-					const payload = {
-						authUser: response.data.username,
-						isAuthenticated: true,
-					};
-					context.commit('setAuthUser', payload);
-				},
-				(error) => {
-					result = error;
-				}
-			);
+
+			const ID = parseJwt(response.data.access).user_id;
+			context.commit('setUserID', ID);
+
+			context.dispatch('updateProfile');
 		}).catch((error) => {
 			result = error;
 		});
@@ -41,8 +57,9 @@ function deauthentificate(context) {
 		authUser: undefined,
 		isAuthenticated: false,
 	}
-	context.commit('removeToken');
 	context.commit('setAuthUser', payload);
+	context.commit('removeToken');
+	context.commit('setUserID', undefined);
 }
 
 const theme_colors = {
@@ -51,25 +68,34 @@ const theme_colors = {
 		b_color: 'hsl(120, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-240deg) contrast(180%) brightness(1.2)',
 		mesh_color: '#00ff00',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-285deg) contrast(180%) brightness(1.2)',
 	},
 	red: {
 		color: 'hsl(0, 100%, 59%)',
 		b_color: 'hsl(0, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-35deg) contrast(180%) brightness(1.2)',
-		mesh_color: '#ff0000'
+		mesh_color: '#ff0000',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-30deg) contrast(180%) brightness(1.2)',
 	},
 	yellow: {
 		color: 'hsl( 60, 100%, 50%)',
 		b_color: 'hsl( 90, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(35deg) contrast(100%) brightness(1.8)',
-		mesh_color: '#ffff00'
+		mesh_color: '#ffff00',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(35deg) contrast(100%) brightness(1.8)',
 	},
 	blue: {
 		color: 'hsl(180, 90%,  50%)',
 		b_color: 'hsl(180, 100%, 7%)',
 		logo_color: 'sepia(100%) saturate(1000%) hue-rotate(-210deg) contrast(120%) brightness(1.8)',
-		mesh_color: '#00ffff'
+		mesh_color: '#00ffff',
+		image_color: 'sepia(100%) saturate(1000%) hue-rotate(-210deg) contrast(120%) brightness(1.8)',
 	},
+}
+
+const map_selector = {
+	map1: '/ressources/map_scene/TronStadiumUltimo.glb',
+	map2: '/ressources/map_scene/TronscendenceMap2.glb'
 }
 
 function changeTheme(theme) {
@@ -79,6 +105,7 @@ function changeTheme(theme) {
 	document.documentElement.style.setProperty('--background-color', color_set.b_color);
 	document.documentElement.style.setProperty('--logo-filter', color_set.logo_color);
 	document.documentElement.style.setProperty('--mesh-color', color_set.mesh_color);
+	document.documentElement.style.setProperty('--image-filter', color_set.image_color);
 }
 
 function loadTheme() {
@@ -89,33 +116,50 @@ function loadTheme() {
 }
 
 export default createStore({
+	modules: {
+		audio,
+	},
 	state: {
 		authUser: localStorage.getItem('authUser') ?? {},
+		userId: localStorage.getItem('userId'),
 		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),
-		jwt: localStorage.getItem('token') ?? null,
+		accessToken: localStorage.getItem('accessToken') ?? null,
+		refreshToken: localStorage.getItem('refreshToken') ?? null,
 		selected_theme: loadTheme(),
+		selected_map: localStorage.getItem('selected_map') ?? 'map1',
+		map_selector: map_selector,
 		endpoints: {
-			obtainJWT:  import.meta.env.VITE_API_BASE_URL + '/token/',
-			refreshJWT: import.meta.env.VITE_API_BASE_URL + "/refresh_token/",
+			obtainJWT:  '/token/',
+			refreshJWT: "/token/refresh/",
 			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
-		},
+		}
 	},
 	mutations: {
+		setUserID(state, id) {
+			localStorage.setItem('userId', id);
+			state.userId = id;
+		},
 		setAuthUser(state, { authUser, isAuthenticated }) {
 			localStorage.setItem('authUser', authUser);
 			localStorage.setItem('isAuthenticated', JSON.stringify(isAuthenticated));
 			state.authUser = authUser;
 			state.isAuthenticated = isAuthenticated;
 		},
-		updateToken(state, newToken) {
+		updateRefreshToken(state, newToken) {
+			localStorage.setItem('refreshToken', newToken);
+			state.refreshToken = newToken;
+		},
+		updateAccessToken(state, newToken) {
 			// TODO: For security purposes, take localStorage out of the project.
-			localStorage.setItem('token', newToken);
-			state.jwt = newToken;
+			localStorage.setItem('accessToken', newToken);
+			state.accessToken = newToken;
 		},
 		removeToken(state) {
 			// TODO: For security purposes, take localStorage out of the project.
-			localStorage.removeItem('token');
-			state.jwt = null;
+			localStorage.removeItem('accessToken');
+			localStorage.removeItem('refreshToken');
+			state.accessToken = null;
+			state.refreshToken = null;
 		},
 		changeSelectedTheme(state, theme) {
 			if (theme === 'red'
@@ -127,13 +171,29 @@ export default createStore({
 				state.selected_theme = theme;
 				changeTheme(theme);
 			}
+		},
+		changeSelectedMap(state, map) {
+			if (map === 'map1' || map === 'map2') {
+				localStorage.setItem('selected_map', map);
+				state.selected_map = map;
+			}
 		}
 	},
 	actions: {
+		updateProfile: updateProfile,
 		authentificate: authentificate,
 		deauthentificate: deauthentificate
 	},
 	getters: {
+		userId(state) {
+			return (state.userId);
+		},
+		accessToken(state) {
+			return (state.accessToken);
+		},
+		refreshToken(state) {
+			return (state.refreshToken);
+		},
 		isAuthenticated(state) {
 			return (state.isAuthenticated);
 		},
@@ -142,6 +202,14 @@ export default createStore({
 		},
 		selectedTheme(state) {
 			return (state.selected_theme);
+		},
+		selectedMapPath(state) {
+			return state.map_selector[state.selected_map];
+		},
+		theme(state) {
+			const style = document.documentElement.style;
+
+			return (style.getPropertyValue('--glow-color'));
 		}
 	}
 });

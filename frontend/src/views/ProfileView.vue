@@ -1,46 +1,15 @@
 <template>
-	<Suspense>
-		<ProfileViewer v-if="exist" :data="data"/>
-		<div id="not-exist" v-else>
-			<h1>User requested does not exist.</h1>
-			<GlowingButton class="go-back-button small-button" :text="'go back'" :dest="'/'"/>
-		</div>
-		<template #fallback>
-		</template>
-	</Suspense>
+	<div>
+		<ProfileViewer :pk="userId"/>
+	</div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router';
-import utils from '@utils'
-import GlowingButton from '@components/GlowingButton.vue';
 import ProfileViewer from '@components/ProfileViewer.vue';
-import store from '@store';
 
 const route = useRoute();
-
 const userId = route.params.id;
-const exist = ref(true);
-
-const data = ref({});
-
-async function getMyProfile() {
-	return new Promise((resolve, reject) => {
-		utils.makeAuthApiQuery('/user/' + userId + '/', 'GET', {},
-			(result) => data.value = result.data,
-			(error) => {
-				console.log(error);
-				exist.value = false;
-			}
-		);
-	})
-}
-
-onMounted(async () => {
-	if (store.getters.isAuthenticated)
-		await getMyProfile();
-});
 </script>
 
 <style scoped>

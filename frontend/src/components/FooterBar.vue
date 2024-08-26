@@ -1,6 +1,7 @@
 <template>
 	<nav class="footer">
 		<h1 class="title">ft_transcendence</h1>
+		<AudioPlayer />
 		<router-link to="/">
 			<TranscendenceLogo />
 		</router-link>
@@ -9,6 +10,7 @@
 
 <script setup>
 import TranscendenceLogo from '@components/TranscendenceLogo.vue';
+import AudioPlayer from './AudioPlayer.vue';
 </script>
 
 <style scoped>
@@ -17,6 +19,7 @@ import TranscendenceLogo from '@components/TranscendenceLogo.vue';
 	align-items: center;
 	justify-content: center;
 }
+
 .title {
 	flex: 1;
 	color: var(--glow-color);
@@ -28,8 +31,7 @@ import TranscendenceLogo from '@components/TranscendenceLogo.vue';
 	text-align: begin;
 	letter-spacing: 0.6em;
 	font-family: "SpaceTron", sans-serif;
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(12 * var(--size-factor));
+	font-size: 1vw;
 	font-weight: 900;
 	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
 		0px 0px 0.5em 0px var(--glow-color);

@@ -1,86 +1,75 @@
 <template>
 	<div class="pong_game">
-		<div class="pong_game_header">
-			<h1 class="pong_game_player">
-				player 1: {{ players[0].name }} <br>
-				<h3 class="pong_game_commands">commands: 'w + s'</h3>
-			</h1>
-			<h1 class="pong_game_score_header">
-				score: {{ players[0].score }} - {{ players[1].score }}
-			</h1>
-			<h1 class="pong_game_player">
-				player 2: {{ players[1].name }} <br>
-				<h3 class="pong_game_commands">commands: '↑ + ↓'</h3>
-			</h1>
+		<div class="pong_game_container">
+			<Counter321 ref="counter"/>
+			<div id="canvas_container" ref="canvas_container">
+				<canvas
+					id="pong_game_canvas"
+					ref="pong_game_canvas"
+					>
+				</canvas>
+			</div>
 		</div>
-		<div>
-			<Counter321 :active="counter_is_active" @finished="resumeGame"
-				@toggle="(value) => counter_is_active = value" />
-			<div class="pong_game_container" ref="pong_game_container"></div>
-		</div>
-		<PauseOverlay v-if="pause_is_active" @resume="resumeGame" />
 	</div>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import * as THREE from 'three';
-import { Game } from '@scripts/GameInit.js';
 import Counter321 from '@components/Counter321.vue';
-import PauseOverlay from '@components/PauseOverlay.vue'
+import PongLogic from '@scripts/games/pong/logic';
+import PongRenderer from '@scripts/games/pong/renderer';
+import store from '@store';
 
-let renderer = undefined;
-let game = undefined;
+const emits = defineEmits(['onUpdateRequested']);
 
-const props = defineProps(['config'])
+const game = {
+	logic: new PongLogic(),
+	renderer: undefined
+};
 
-const counter_is_active = ref(false);
-const pong_game_container = ref(null);
-let pause_is_active = ref(false);
+const counter = ref(null);
+const pong_game_canvas = ref(null);
+const canvas_container = ref(null);
 
-const players = ref([
-	{
-		name: 'tintin',
-		score: 0
-	},
-	{
-		name: 'milou',
-		score: 0
-	}
-]);
+let animation_frame_handle = undefined;
 
 function animate() {
-	if (!game.isGamePaused()) {
-		game.update();
-		players.value[0].score = game.getScore1();
-		players.value[1].score = game.getScore2();
-	}
-	game.render();
-	requestAnimationFrame(animate);
+	emits('onUpdateRequested')
+	game.logic.step();
+	game.renderer.render();
+	animation_frame_handle = requestAnimationFrame(animate);
 }
 
 onMounted(() => {
-	renderer = new THREE.WebGLRenderer({ antialias: true });
-	renderer.setSize(window.innerWidth * 0.9, window.innerHeight * 0.9);
-	pong_game_container.value.appendChild(renderer.domElement);
-	game = new Game(counter_is_active, () => pause_is_active.value = true, () => pause_is_active.value = false, props.config, renderer);
-	game.countdown();
-	requestAnimationFrame(animate);
+	game.renderer = new PongRenderer(
+		pong_game_canvas,
+		canvas_container,
+		store.getters.theme
+	);
+	game.logic.setCallbackUpdateFinished(game.renderer.updateState);
+	animation_frame_handle = requestAnimationFrame(animate);
 });
 
 onUnmounted(() => {
-	if (renderer !== undefined)
-		renderer.dispose();
+	if (animation_frame_handle)
+		cancelAnimationFrame(animation_frame_handle);
+	if (game.renderer)
+		game.renderer.cleanup();
 })
 
-function resumeGame() {
-	if (game) {
-		counter_is_active.value = false;  // Hide the overlay
-		game.resumeGame();
-	} else {
-		console.error('Game is not initialized');
+defineExpose({
+	setCounterActive: (active) => {
+		if (active)
+			counter.value.start();
+		else
+			counter.value.stop();
+	},
+	setters: {
+		ball: game.logic.setBall,
+		paddle_1: game.logic.setPaddle1,
+		paddle_2: game.logic.setPaddle2
 	}
-}
+})
 
 </script>
 
@@ -92,17 +81,35 @@ function resumeGame() {
 	font-style: normal;
 }
 
+#canvas_container {
+	width: 100vmin;
+	/* (100/16) * 9 */
+	height: 56.25vmin;
+}
+
+.pong_game {
+	height: 100%;
+	width: 100%;
+}
+
 .pong_game_header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	padding: 10px;
 	color: var(--glow-color);
-	height: 10vh;
+	height: 10%;
+	width: 100%;
 	font-family: 'SpaceTron', sans-serif;
 }
 
 .pong_game_container {
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+.pong_game_canvas_container {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -114,10 +121,6 @@ function resumeGame() {
 	text-align: center;
 	padding: 10px;
 }
-
-/* .pong_game_container {
-	border: 2px solid red;
-} */
 
 .pong_game_commands {
 	font-size: 0.5em;

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status
+from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status, filters
 from .serializers import *
 from .models import User, UserProfile
 from .permissions import IsOwnerOrReadOnly
@@ -14,15 +14,29 @@ class UserRegistrationView(views.APIView):
         serializer.save()
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class UserView(generics.RetrieveAPIView,
-                generics.UpdateAPIView):
+class UserView(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = UserSerializer
+
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    filter_backends = [filters.SearchFilter]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    serializer_class = UserSerializer
+    search_fields = ['username']
+
+class UserProfileUpdateView(generics.UpdateAPIView):
+    queryset = UserProfile.objects.all()
+    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = UserProfileUpdateSerializer
+    lookup_field = 'user__pk'
+
+class UserUpdateView(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [IsOwnerOrReadOnly]
-
-    def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
-            return UserSerializer
-        return UserSerializer
+    serializer_class = UserSerializer
+    lookup_field = 'pk'
 
 class MyUserView(views.APIView):
     def get(self, request, format=None):

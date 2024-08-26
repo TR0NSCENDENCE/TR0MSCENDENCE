@@ -6,19 +6,17 @@
 					<th>Rank</th>
 					<th>Name</th>
 					<th>Winrate</th>
-					<th>Rating</th>
+					<th>Winned</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(player, index) in players" :key="player.id">
-					<td>#{{ index + 1 }}</td>
+				<tr v-for="(player) in players" :key="player.id">
+					<td>#{{ player.rank }}</td>
 					<td>
-						<router-link :to="{ name: 'OtherProfileView' }" class="link">
-							{{ player.name }}
-						</router-link>
+							{{ player.username }}
 					</td>
-					<td>{{ player.winrate }}%</td>
-					<td>{{ player.score }} elo</td>
+					<td>{{ Math.round(player.win_rate) }}%</td>
+					<td>{{ player.num_wins }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -26,33 +24,34 @@
 </template>
 
 <script setup>
-const players = [
-	{ id: 1, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 2, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 3, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 4, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 5, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 6, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 7, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 8, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 9, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 10, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 11, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 12, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 13, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 14, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 15, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 16, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 17, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 18, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 19, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 20, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 21, name: 'Charlie', winrate: 75, score: 1300 },
-	{ id: 22, name: 'Alice', winrate: 92, score: 1500 },
-	{ id: 23, name: 'Bob', winrate: 86, score: 1400 },
-	{ id: 24, name: 'Charlie', winrate: 75, score: 1300 },
-	// Exemple naze pour l'instant ici mais va falloir afficher l'entierete du tableau avec iterateur ou variable
-];
+import { axiosInstance } from '@utils/api';
+import { onMounted, ref } from 'vue';
+
+const players = ref([]);
+
+const next = ref(null);
+const prev = ref(null);
+const curpage = ref(0);
+const totalpage = ref(0);
+
+function _updatePlayerList(url) {
+	axiosInstance.get(url).then(
+		(response) => {
+			curpage.value = new URL(response.request.responseURL).searchParams.get('page') || 1
+			totalpage.value = Math.ceil(response.data.count / 5);
+			next.value = response.data.next;
+			prev.value = response.data.previous
+			players.value = response.data.results;
+		}
+	);
+}
+
+function updatePlayerList() {
+	_updatePlayerList(`/leaderboard/`);
+}
+
+onMounted(updatePlayerList);
+
 </script>
 
 <style scoped>
