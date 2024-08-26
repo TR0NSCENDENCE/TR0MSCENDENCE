@@ -47,7 +47,7 @@ class GameState():
         self.__has_round_ended = True
         self.__players = [ Player(Side.ONE), Player(Side.TWO) ]
         self.__ball = Ball()
-        self.__reset_game_state()
+        self.__loser_id = 1
 
     def player_connect(self, player: User, consumer):
         if self.__instance.player_one == player:
@@ -150,12 +150,13 @@ class GameState():
             await asyncio.sleep(SECONDS_TO_WAIT / PULL_RATE)
         await self.__players_send_json({'type': 'counter_stop'})
 
-    def __reset_game_state(self, loser_id=1):
+    def __reset_game_state(self):
         for player in self.__players:
             player.reset()
-        self.__ball.reset(loser_id)
+        self.__ball.reset((Side.ONE, Side.TWO)[self.__loser_id])
 
     def __round_end(self, loser_id):
+        self.__loser_id = loser_id
         winner_player = self.__players[1 - loser_id]
         winner_player.increase_score()
         if winner_player.get_score() == DEFAULTS['game']['win_score']:

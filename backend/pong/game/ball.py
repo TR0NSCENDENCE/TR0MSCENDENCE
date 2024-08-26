@@ -15,7 +15,6 @@ class Ball():
 
     def __init__(self):
         self.__radius = DEFAULTS['ball']['radius']
-        self.reset(Side.TWO)
 
     def reset(self, side: Side):
         angle = DEFAULTS['ball']['reset_angle_bounds']
