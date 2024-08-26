@@ -8,8 +8,10 @@ from users.models import User
 def send_otp_mail(otpinstance: OTPInstance):
     subject = '[TR0NSCENDENCE][' + otpinstance.user.username + '] OTP code'
 
-    print('OTP:', otpinstance.otp)
-    print('USER:', otpinstance.user)
+
+    if settings.DEBUG:
+        print('OTP:', otpinstance.otp)
+        print('USER:', otpinstance.user)
 
     html_content = 'This is your 4 digits OTP code : <strong>' + str(otpinstance.otp) + '</strong>'
     message = EmailMultiAlternatives(subject, 'This is your 4 digits OTP code : ' + str(otpinstance.otp), None, [otpinstance.user.email])

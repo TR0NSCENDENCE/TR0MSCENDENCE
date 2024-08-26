@@ -10,7 +10,8 @@ def send_activation_mail(instance: User):
     subject = '[TR0NSCENDENCE][' + instance.username + '] Activation email'
     activation_url = settings.ORIGIN_HOSTNAME + '/activation/' + str(instance.activation_uuid)
 
-    print('activate: ', activation_url)
+    if not settings.DEBUG:
+        print('activate: ', activation_url)
 
     html_content = 'To activate your account, click <a href="' + activation_url +'">here</a> !'
     message = EmailMultiAlternatives(subject, 'To activate your account go to : ' + activation_url, None, [instance.email])
