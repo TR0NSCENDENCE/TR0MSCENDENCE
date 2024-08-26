@@ -1,9 +1,10 @@
 from django.shortcuts import render
 from rest_framework import permissions, mixins, viewsets, generics, response, request, views, status, filters
 from .serializers import *
-from .models import User, UserProfile
+from .models import User, UserProfile, FriendRequest
 from .permissions import IsOwnerOrReadOnly
 from otp.models import OTPInstance
+from rest_framework import exceptions
 
 class UserRegistrationView(views.APIView):
     permission_classes = [permissions.AllowAny]
@@ -79,3 +80,80 @@ class MyUserPacmanDataView(views.APIView):
         user_profile.pacman_data = request.data
         user_profile.save()
         return response.Response(status=200)
+
+class UserSendFriendRequestView(views.APIView):
+    def post(self, request, pk, format=None):
+        from_user = request.user
+        try:
+            to_user = User.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound(detail='User not found')
+        if request.user.user_profile.friends.filter(pk=pk).exists():
+            raise exceptions.APIException(detail='This user is already your friend')
+
+        if from_user == to_user:
+            raise exceptions.APIException(detail='You cant request you as friend')
+        friend_request, created = FriendRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
+        if created:
+            return response.Response(status=status.HTTP_200_OK)
+        else:
+            raise exceptions.APIException(detail='Friend request was already send')
+
+class UserAcceptFriendRequestView(views.APIView):
+    def post(self, request, request_id, format=None):
+        try:
+            friend_request = FriendRequest.objects.get(id=request_id)
+        except FriendRequest.DoesNotExist:
+            raise exceptions.NotFound(detail='Friend request not found')
+        if friend_request.to_user == request.user:
+            friend_request.to_user.user_profile.friends.add(friend_request.from_user)
+            friend_request.from_user.user_profile.friends.add(friend_request.to_user)
+            friend_request.delete()
+            return response.Response(status=status.HTTP_200_OK)
+        else:
+            raise exceptions.PermissionDenied(detail='You are not the receiver of the friend request')
+
+class UserRejectFriendRequestView(views.APIView):
+    def delete(self, request, request_id, format=None):
+        try:
+            friend_request = FriendRequest.objects.get(id=request_id)
+        except FriendRequest.DoesNotExist:
+            raise exceptions.NotFound(detail='Friend request not found')
+        if friend_request.to_user == request.user:
+            friend_request.delete()
+            return response.Response(status=status.HTTP_200_OK)
+        else:
+            raise exceptions.PermissionDenied(detail='You are not the receiver of the friend request')
+
+class UserRemoveFriendView(views.APIView):
+    def delete(self, request, pk, format=None):
+        try:
+            friend = request.user.user_profile.friends.get(pk=pk)
+            request.user.user_profile.friends.remove(friend)
+            friend.user_profile.friends.remove(request.user)
+        except User.DoesNotExist:
+            raise exceptions.NotFound(detail='You cant remove friend if you are not friend...')
+        return response.Response(status=200)
+        # try:
+        #     to_user = User.objects.get(pk=pk)
+        # except:
+        #     raise exceptions.NotFound(detail='User not found')
+        # if from_user == to_user:
+        #     raise exceptions.APIException(detail='You cant request you as friend')
+        # friend_request, created = FriendRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
+        # if created:
+        #     return response.Response(status=status.HTTP_200_OK)
+        # else:
+        #     raise exceptions.APIException(detail='Friend request was already send')
+
+class UserReceivedFriendRequestListView(generics.ListAPIView):
+    serializer_class = FriendRequestSerializer
+
+    def get_queryset(self):
+        return FriendRequest.objects.all().filter(to_user=self.request.user)
+
+class UserFriendListView(generics.ListAPIView):
+    serializer_class = UserFriendSerializer
+
+    def get_queryset(self):
+        return self.request.user.user_profile.friends.all()

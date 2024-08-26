@@ -2,6 +2,7 @@ import { createStore } from 'vuex';
 import axios from 'axios';
 import { axiosInstance } from '@utils/api';
 import audio from './modules/audio';
+import { connectToWebsocket } from '@utils/ws';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -25,6 +26,16 @@ async function updateProfile(context) {
 					isAuthenticated: true,
 				};
 				context.commit('setAuthUser', payload);
+				if (!context.state.onlineTrackerWs) {
+					connectToWebsocket('ws/onlinetracker/',
+						(/** @type {WebSocket} */ websocket) => {
+							context.state.onlineTrackerWs = websocket;
+							websocket.onerror = (e) => console.log(e)
+							websocket.onopen = () => console.debug('[OnlineTracker] open')
+							websocket.onclose = () => console.debug('[OnlineTracker] close')
+						}
+					)
+				}
 			}
 		).catch((error) => context.dispatch('deauthentificate')); // Overkill but dont touch lol
 	}
@@ -110,6 +121,7 @@ export default createStore({
 		audio,
 	},
 	state: {
+		onlineTrackerWs: undefined,
 		authUser: localStorage.getItem('authUser') ?? {},
 		userId: localStorage.getItem('userId'),
 		isAuthenticated: JSON.parse(localStorage.getItem('isAuthenticated') ?? 'false'),

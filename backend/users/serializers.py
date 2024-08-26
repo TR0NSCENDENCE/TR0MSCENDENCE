@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate, get_user_model
-from .models import User, UserProfile
+from .models import User, UserProfile, FriendRequest
 from django.utils.translation import gettext_lazy as _
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from uuid import uuid4
@@ -10,6 +10,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['get_thumbnail']
+
+class UserProfileFriendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['get_thumbnail', 'online_status']
 
 class UserLoginSerializer(serializers.Serializer):
     username = serializers.CharField(validators=[User.username_validator], max_length=16)
@@ -110,3 +115,21 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'username', 'user_profile', 'pk', 'num_wins', 'num_played', 'win_rate', 'rank']
         read_only_fields = ['user_profile', 'pk']
+
+class UserFriendSerializer(serializers.ModelSerializer):
+    user_profile = UserProfileFriendSerializer()
+
+    # Used in LoaderboardListView
+    num_wins = serializers.IntegerField(required=False, read_only=True)
+    num_played = serializers.IntegerField(required=False, read_only=True)
+    win_rate = serializers.FloatField(required=False, read_only=True)
+    rank = serializers.IntegerField(required=False, read_only=True)
+    class Meta:
+        model = User
+        fields = ['email', 'username', 'user_profile', 'pk', 'num_wins', 'num_played', 'win_rate', 'rank']
+        read_only_fields = ['user_profile', 'pk']
+
+class FriendRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FriendRequest
+        fields = ['from_user', 'to_user', 'id']

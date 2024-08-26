@@ -39,11 +39,16 @@ class User(AbstractUser):
 def get_default_pacman_data():
     return {}
 
+class FriendRequest(models.Model):
+    from_user = models.ForeignKey(User, related_name='from_user', on_delete=models.CASCADE)
+    to_user = models.ForeignKey(User, related_name='to_user', on_delete=models.CASCADE)
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name="user_profile")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    friends = models.ManyToManyField(User)
+    friends = models.ManyToManyField(User, blank=True)
+    online_status = models.BooleanField(default=False)
     profile_picture = models.ImageField(default='default.jpg', upload_to="profile_pictures/", blank=True)
     thumbnail = models.ImageField(upload_to='profile_pictures/thumbnail/', blank=True, null=True)
     pacman_data = models.JSONField(default=get_default_pacman_data)

@@ -4,3 +4,4 @@ from .models import *
 
 admin.site.register(User, UserAdmin)
 admin.site.register(UserProfile)
+admin.site.register(FriendRequest)

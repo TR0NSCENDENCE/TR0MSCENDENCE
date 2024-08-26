@@ -1,7 +1,7 @@
 <template>
 	<div>
-		<router-link class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank" v-if="userdata">
-			<p id="username">{{ userdata.username + (store.getters.userId == userdata.pk ? ' (me)' : '') }}</p>
+		<router-link :class="{user_offline: userdata.user_profile.online_status === false, user_online: userdata.user_profile.online_status === true}" class="userviewer" v-bind:to="`/profile/${userdata.pk}`" target="_blank" v-if="userdata">
+			<p id="username" >{{ userdata.username + (store.getters.userId == userdata.pk ? ' (me)' : '') }}</p>
 			<img class="user-pp" :src="userdata.user_profile.get_thumbnail" width="50"/>
 		</router-link>
 		<router-link class="userviewer" v-bind:to="`/profile/${_userdata.pk}`" target="_blank" v-else>
@@ -57,6 +57,10 @@ if (!props.userdata) {
 		0px 0px 0.5em 0px var(--glow-color);
 	animation: border-flicker 7s linear infinite;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
+}
+
+.user_offline {
+	--glow-color: grey;
 }
 
 #username {

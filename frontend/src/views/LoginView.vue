@@ -54,7 +54,6 @@ async function checkOtp() {
 	}
 	try {
 		const response = await axiosInstance.post(`/token/otp/${otp_uuid.value}/`, payload);
-		console.log(response.data);
 		store.dispatch('authentificate', response.data);
 		router.push('/');
 	} catch (e) {

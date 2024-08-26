@@ -32,6 +32,7 @@ import LeaderboardView from '@/views/LeaderboardView.vue'
 import MyProfileView from '@/views/MyProfileView.vue'
 import ProfileView from '@/views/ProfileView.vue'
 import SearchProfileView from '@/views/SearchProfileView.vue'
+import FriendsView from '@/views/FriendsView.vue'
 import LoginView from '@/views/LoginView.vue'
 import RegisterView from '@/views/RegisterView.vue'
 import MatchWon from '@/views/play/MatchWon.vue'
@@ -173,6 +174,14 @@ const router = createRouter({
 			component: MyProfileView,
 			meta: {
 				title: 'my profile'
+			}
+		},
+		{
+			path: '/friends',
+			name: 'FriendsView',
+			component: FriendsView,
+			meta: {
+				title: 'my friends'
 			}
 		},
 		{

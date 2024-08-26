@@ -15,6 +15,12 @@
 					<p>{{ error_txt.email }}</p>
 					<GlowingButton class="fit-content" @click="newEmail()" :text="'update email'"/>
 				</div>
+				<div id="friend-status">
+					<div v-if="store.getters.userId != pk">
+						<GlowingButton :text="'Invite'" @click="sendFriendRequest()"/>
+						<p v-if="request_info">{{ request_info }}</p>
+					</div>
+				</div>
 			</div>
 			<div id="profile-picture-container">
 				<img id="profile-picture" :src="userdata.user_profile.get_thumbnail"/>
@@ -83,6 +89,8 @@ const error_txt = ref({
 	username: '',
 });
 
+const request_info = ref(undefined);
+
 function handleError(err) {
 	for (var prop in error_txt.value)
 		error_txt.value[prop] = (err.response.data[prop] ?? '')[0] ?? '';
@@ -112,6 +120,16 @@ const tournaments_page = ref({
 	curpage: 0,
 	totalpage: 0
 });
+
+function sendFriendRequest() {
+	axiosInstance.post(`/user/${props.pk}/send-request/`).then(
+		() => {
+			request_info.value = 'Invited';
+		}
+	).catch(
+		(e) => request_info.value = e.response.data.detail
+	);
+}
 
 function loadNewProfilePicture() {
 	file_picker.value.click();
