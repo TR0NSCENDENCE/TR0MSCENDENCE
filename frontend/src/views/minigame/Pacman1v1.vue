@@ -21,6 +21,8 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import PacmanWin from '@components/PacmanWin.vue';
 import PacmanGameOver from '@components/PacmanGameOver.vue';
+import store from '@store';
+import { axiosInstance } from '@utils/api';
 
 const score = ref(0);
 const lives = ref(3);
@@ -40,17 +42,38 @@ function updateData(newScore, newlives, newTime) {
 	time.value = newTime;
 }
 
-function saveData(score, time, winOrLose) {
-	gameStat.score = score;
-	gameStat.time = time;
-	gameStat.status = winOrLose === 2 ? 'win' : 'lose';
-	gameStat.mode = '1v1';
+function _saveUserData() {
+	axiosInstance.get('/me/pacman-data/').then(
+		(res) => {
+			let data = res.data;
+			if (!data.pacman_data)
+				data.pacman_data = [];
+			data.pacman_data.push(gameStat);
+			axiosInstance.put('/me/pacman-data/', data).catch(
+				(e) => console.log(e)
+			)
+		}
+	).catch(
+		(e) => console.log(e)
+	)
+}
 
+function _saveLocalData() {
 	let data = JSON.parse(localStorage.getItem('stats')) || [];
 	data.push(gameStat);
 	localStorage.setItem('stats', JSON.stringify(data));
 }
 
+function saveData(score, time, winOrLose) {
+	gameStat.score = score;
+	gameStat.time = time;
+	gameStat.status = winOrLose === 2 ? 'win' : 'lose';
+	gameStat.mode = '1v1';
+	if (store.getters.isAuthenticated)
+		_saveUserData();
+	else
+		_saveLocalData();
+}
 
 function initializeCanvas() {
 	const canvas = gameCanvas.value;

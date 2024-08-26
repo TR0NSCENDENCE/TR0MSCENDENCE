@@ -23,14 +23,19 @@
 </template>
 
 <script setup>
+import store from '@store';
+import { axiosInstance } from '@utils/api';
+import { onMounted, ref } from 'vue';
 
-function getStats() {
+const history = ref([]);
+
+async function _getLocalStats() {
 	const jsonData = localStorage.getItem('stats');
 	const statsArray = JSON.parse(jsonData) || [];
 
 	const lastFiveGames = statsArray.slice(-5).reverse();
 
-	return lastFiveGames.map(history => ({
+	history.value = lastFiveGames.map(history => ({
 		score: history.score,
 		time: history.time,
 		mode: history.mode,
@@ -38,7 +43,37 @@ function getStats() {
 	}));
 }
 
-const history = getStats();
+async function _getUserStats() {
+	try {
+		const response = await axiosInstance.get('/me/pacman-data/');
+
+		const statsArray = response.data.pacman_data || [];
+		const lastFiveGames = statsArray.slice(-5).reverse();
+	
+		history.value = lastFiveGames.map(history => ({
+			score: history.score,
+			time: history.time,
+			mode: history.mode,
+			status: history.status,
+		}));
+	} catch (e) {
+		console.log(e);
+	}
+
+}
+
+async function getStats() {
+	try {
+		if (!store.getters.isAuthenticated)
+			await _getLocalStats();
+		else
+			await _getUserStats();
+	} catch (e) {
+		console.log(e);
+	}
+}
+
+onMounted(getStats);
 
 </script>
 

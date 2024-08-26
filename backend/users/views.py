@@ -41,3 +41,12 @@ class UserUpdateView(generics.UpdateAPIView):
 class MyUserView(views.APIView):
     def get(self, request, format=None):
         return response.Response(UserSerializer(request.user).data)
+
+class MyUserPacmanDataView(views.APIView):
+    def get(self, request, format=None):
+        return response.Response(UserProfile.objects.get(user=request.user).pacman_data)
+    def put(self, request, format=None):
+        user_profile = request.user.user_profile
+        user_profile.pacman_data = request.data
+        user_profile.save()
+        return response.Response(status=200)
