@@ -15,7 +15,7 @@
 				<GlowingButton style="width: 15vw;height: 5vh;" v-if="next" @click="_updateUserList(next)" :text="'next'"/>
 			</div>
 		</div>
-		<button @click="bomb()">bomb</button>
+		<!-- <button @click="bomb()">bomb</button> -->
 	</div>
 </template>
 
