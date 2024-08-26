@@ -539,14 +539,14 @@ function chaseBehaviorClyde(ghost, directions, target) {
 
 	if (Math.abs(ghost.target.y - ghost.position.y) < 4 * BLOCK_SIZE
 		&& Math.abs(ghost.target.x - ghost.position.x) < 4 * BLOCK_SIZE) {
-		if (ghost.target.y < ghost.position.y && directions.includes('up'))
-			ghost.currentDir = 'up';
-		else if (ghost.target.y > ghost.position.y && directions.includes('down'))
+		if (ghost.target.y < ghost.position.y && directions.includes('down'))
 			ghost.currentDir = 'down';
-		else if (ghost.target.x < ghost.position.x && directions.includes('left'))
-			ghost.currentDir = 'left';
-		else if (ghost.target.x > ghost.position.x && directions.includes('right'))
+		else if (ghost.target.y > ghost.position.y && directions.includes('up'))
+			ghost.currentDir = 'up';
+		else if (ghost.target.x < ghost.position.x && directions.includes('right'))
 			ghost.currentDir = 'right';
+		else if (ghost.target.x > ghost.position.x && directions.includes('left'))
+			ghost.currentDir = 'left';
 		else
 			ghost.currentDir = directions[randDir];
 	}
@@ -774,9 +774,9 @@ function animate(checkWin, updateData) {
 	const now = Date.now();
 	const elapsed = now - then;
 
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	if (elapsed > fpsInterval) {
 		then = now - (elapsed % fpsInterval);
-		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 		if (keys.w.pressed && lastKey === 'w')
 			playerMouvement('w', 0, -Pacman.speed);
