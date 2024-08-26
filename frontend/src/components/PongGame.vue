@@ -102,6 +102,14 @@ defineExpose({
 	width: 100vmin;
 	/* (100/16) * 9 */
 	height: 56.25vmin;
+	border: solid 0.25em var(--glow-color);
+	border-radius: 0.45em;
+	-webkit-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	-moz-box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
+	box-shadow: inset 0px 0px 0.5em 0px var(--glow-color),
+		0px 0px 0.5em 0px var(--glow-color);
 }
 
 .pong_game {

@@ -84,9 +84,9 @@ export default class PongRenderer {
 			this.#render_pass = new RenderPass(this.#scene, this.#camera);
 			this.#bloom_pass = new UnrealBloomPass(
 				new THREE.Vector2(width, height),
-				0.2,  // strength
-				0.2,  // radius
-				0.1   // threshold
+				0.4,  // strength
+				0.5,  // radius
+				0.4   // threshold
 			);
 			this.#composer.addPass(this.#render_pass);
 			this.#composer.addPass(this.#bloom_pass);

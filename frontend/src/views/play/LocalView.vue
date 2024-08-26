@@ -54,8 +54,8 @@ const updatePlayer = (id, left, right) => {
 }
 
 const onUpdateRequested = () => {
-	updatePlayer(0, 'a', 'd');
-	updatePlayer(1, 'ArrowLeft', 'ArrowRight');
+	updatePlayer(1, 's', 'w');
+	updatePlayer(0, 'ArrowDown', 'ArrowUp');
 	const scores = game.value.getScores();
 	users.value[0].score = scores[0];
 	users.value[1].score = scores[1];

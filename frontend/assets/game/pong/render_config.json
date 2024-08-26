@@ -54,11 +54,9 @@
 	},
 	"config_local": {
 		"ball": {
-			"texture": "/ressources/texture/cyberSphere.png",
 			"radius": 1
 		},
 		"paddle": {
-			"texture": "/ressources/texture/cyberPaddle.png",
 			"width": 1.6,
 			"height": 1,
 			"depth": 7
@@ -94,13 +92,13 @@
 			"znear": 0.1,
 			"zfar": 1000,
 			"position": {
-				"x": 60,
-				"y": 24,
-				"z": 0
+				"x": 0,
+				"y": 35,
+				"z": 5
 			},
 			"lookat": {
-				"x": 0,
-				"y": -1,
+				"x": 0.001,
+				"y": -20,
 				"z": 0
 			}
 		}
