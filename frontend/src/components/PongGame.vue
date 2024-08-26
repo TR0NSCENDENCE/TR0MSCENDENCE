@@ -26,8 +26,7 @@ const emits = defineEmits([
 	'onUpdateRequested'
 ]);
 const props = defineProps([
-	'onPlayerOneInputRequested',
-	'onPlayerTwoInputRequested'
+	'enable_simulation'
 ])
 
 const game = {
@@ -36,50 +35,25 @@ const game = {
 	/** @type {PongRenderer} */ renderer: undefined
 };
 
-game.model = new PongModel();
-game.controller = new PongController(game.model);
-
 const counter = ref(null);
 const pong_game_canvas = ref(null);
 const canvas_container = ref(null);
 
 let animation_frame_handle = undefined;
 
-function animate() {
-	emits('onUpdateRequested')
+const animate = () => {
 	game.controller.step();
-	game.renderer.render();
 	animation_frame_handle = requestAnimationFrame(animate);
 }
 
-const get_state = () => {
-	return ({
-		ball: game.model.getBall(),
-		paddles: [
-			game.model.getPaddle1(),
-			game.model.getPaddle2()
-		]
-	});
-}
-
 const setupController = () => {
-	const model = game.model;
 	const controller = game.controller;
-	const renderer = game.renderer;
 
-	controller.onUpdateFinished = () => renderer.updateState(get_state());
+	controller.onUpdateRequested = () => emits('onUpdateRequested');
 	controller.onCountdownStart = () => counter.value.start();
 	controller.onCountdownStop = () => counter.value.stop();
-	controller.onPlayerOneInputRequested = props.onPlayerOneInputRequested ?? Direction.None;
-	controller.onPlayerTwoInputRequested = props.onPlayerTwoInputRequested ?? Direction.None;
-	controller.onResetRequested = model.reset;
-	controller.onBallRequested = model.getBall;
-	controller.onPaddle1Requested = model.getPaddle1;
-	controller.onPaddle2Requested = model.getPaddle2;
-	controller.onBallUpdated = model.setBall;
-	controller.onPaddle1Updated = model.setPaddle1;
-	controller.onPaddle2Updated = model.setPaddle2;
-	controller.onElapsedTimeRequested = model.getElapsedTime;
+	controller.onPlayerOneInputRequested = () => Direction.None;
+	controller.onPlayerTwoInputRequested = () => Direction.None;
 }
 
 onMounted(() => {
@@ -87,6 +61,12 @@ onMounted(() => {
 		pong_game_canvas,
 		canvas_container,
 		store.getters.theme
+	);
+	game.model = new PongModel();
+	game.controller = new PongController(
+		game.model,
+		game.renderer,
+		props.enable_simulation ?? true
 	);
 	setupController();
 	animation_frame_handle = requestAnimationFrame(animate);
@@ -97,17 +77,12 @@ onUnmounted(() => {
 		cancelAnimationFrame(animation_frame_handle);
 	if (game.renderer)
 		game.renderer.cleanup();
-})
+});
 
 defineExpose({
-	setCounterActive: (active) => {
-		// if (active)
-		// 	counter.value.start();
-		// else
-		// 	counter.value.stop();
-	},
-	forceUpdate: game.model.forceUpdate
-})
+	onResetRequested: () => game.controller.start_round(),
+	forceUpdate: (data) => game.model.forceUpdate(data)
+});
 
 </script>
 

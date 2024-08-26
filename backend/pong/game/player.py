@@ -85,7 +85,8 @@ class Player():
             'position': {
                 'x': self.__position[0],
                 'y': self.__position[1]
-            }
+            },
+            'speed': self.__velocity
         })
 
     def connect(self, user, consumer):

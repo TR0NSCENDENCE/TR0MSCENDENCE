@@ -2,6 +2,7 @@ import { createStore } from 'vuex';
 import axios from 'axios';
 import { axiosInstance } from '@utils/api';
 import audio from './modules/audio';
+import pong from './modules/pong';
 
 axios.defaults.xsrfCookieName = "csrftoken";
 axios.defaults.xsrfHeaderName = "X-CSRFToken";
@@ -109,6 +110,7 @@ function loadTheme() {
 export default createStore({
 	modules: {
 		audio,
+		pong,
 	},
 	state: {
 		authUser: localStorage.getItem('authUser') ?? {},

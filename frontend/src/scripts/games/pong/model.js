@@ -1,4 +1,4 @@
-const PADDLE_DISTANCE = 35;
+import {defaults} from '@assets/game/pong/defaults.json'
 
 export const DEFAULT_SCENE_STATE = Object.freeze({
 	ball: {
@@ -9,20 +9,23 @@ export const DEFAULT_SCENE_STATE = Object.freeze({
 		velocity: {
 			x: 0,
 			y: 0
-		}
+		},
+		speed: defaults.ball.velocity
 	},
 	paddles: [
 		{
 			position: {
-				x: -PADDLE_DISTANCE,
+				x: defaults.scene.paddle_distance,
 				y: 0
-			}
+			},
+			speed: defaults.paddle.velocity
 		},
 		{
 			position: {
-				x: PADDLE_DISTANCE,
+				x: -defaults.scene.paddle_distance,
 				y: 0
-			}
+			},
+			speed: defaults.paddle.velocity
 		}
 	]
 })
@@ -56,51 +59,52 @@ export default class PongModel {
 	}
 
 	reset = () => {
-		console.log('model "reset"');
 		this.#ball = structuredClone(DEFAULT_SCENE_STATE.ball);
 		this.#paddles = structuredClone(DEFAULT_SCENE_STATE.paddles);
 	}
 
-	setBall = (position, velocity) => {
-		console.log('model "setBall"');
+	setBall = ({position, velocity, speed}) => {
 		this.#ball.position = position;
 		this.#ball.velocity = velocity;
+		this.#ball.speed = speed;
 	}
 
-	setPaddle1 = (position) => {
-		console.log('model "setPaddle1"');
+	setPaddle1 = ({position, speed}) => {
 		this.#paddles[0].position = position;
+		this.#paddles[0].speed = speed
 	}
 
-	setPaddle2 = (position) => {
-		console.log('model "setPaddle2"');
+	setPaddle2 = ({position, speed}) => {
 		this.#paddles[1].position = position;
+		this.#paddles[1].speed = speed
 	}
 
 	forceUpdate = (state=DEFAULT_SCENE_STATE) => {
-		console.log('model "forceUpdate"');
-		this.setBall(state.ball.position, state.ball.velocity);
-		this.setPaddle1(state.paddles[0].position);
-		this.setPaddle2(state.paddles[1].position);
+		this.setBall(state.ball);
+		this.setPaddle1(state.paddles[0]);
+		this.setPaddle2(state.paddles[1]);
 		this.getElapsedTime();
 	}
 
 	getBall = () => {
 		return ({
 			position: this.#ball.position,
-			velocity: this.#ball.velocity
+			velocity: this.#ball.velocity,
+			speed: this.#ball.speed
 		});
 	}
 
 	getPaddle1 = () => {
 		return ({
-			position: this.#paddles[0].position
+			position: this.#paddles[0].position,
+			speed: this.#paddles[0].speed
 		});
 	}
 
 	getPaddle2 = () => {
 		return ({
-			position: this.#paddles[1].position
+			position: this.#paddles[1].position,
+			speed: this.#paddles[1].speed
 		});
 	}
 

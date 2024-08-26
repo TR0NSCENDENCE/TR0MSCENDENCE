@@ -22,7 +22,7 @@
 						/>
 					<PongGame
 						ref="game"
-						@onUpdateRequested="update"
+						@onUpdateRequested="onUpdateRequested"
 						/>
 				</div>
 			</div>
@@ -81,26 +81,32 @@ const route = useRoute();
 const UUID = route.params.uuid;
 const inversed = () => p1 === parseInt(store.getters.userId);
 
-let last_dir = {
-	right: KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'),
-	left: KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')
+let player_one_dir = {
+	right: false,
+	left: false
 };
 
-const update = () => {
-	if (!ws_connected.value)
-		return ;
+let player_two_dir = {
+	right: false,
+	left: false
+};
+
+const onUpdateRequested = () => {
 	const dir = {
 		right: KEYBOARD.isKeyDown('ArrowRight') || KEYBOARD.isKeyDown('d'),
 		left: KEYBOARD.isKeyDown('ArrowLeft') || KEYBOARD.isKeyDown('a')
 	};
-	if (dir === last_dir)
+
+	if (dir === player_one_dir)
 		return ;
-	last_dir = dir;
+	player_one_dir = dir;
 	global_socket.send(JSON.stringify({
 		type: 'player_direction',
 		payload: dir
 	}));
-};
+	const direction = (dir.left ? -1 : 0) + (dir.right ? 1 : 0);
+	store.commit('pong/set_player_direction', {id: inversed() ? 0 : 1, direction: direction});
+}
 
 const setup = (/** @type {WebSocket} */ socket) => {
 	global_socket = socket;
@@ -155,10 +161,12 @@ const setup = (/** @type {WebSocket} */ socket) => {
 			players.value[0].score = event.scores.p1;
 			players.value[1].score = event.scores.p2;
 		} else if (event.type === 'counter_start') {
-			game.value.setCounterActive(true)
-		} else if (event.type === 'counter_stop') {
-			game.value.setCounterActive(false)
-		} else if (event.type === 'winner') {
+			game.value.onResetRequested();
+		}
+		// else if (event.type === 'counter_stop') {
+		// 	game.value.setCounterActive(false)
+		// }
+		else if (event.type === 'winner') {
 			const winner_id = event.winner_id;
 			const has_won = store.getters.userId == winner_id;
 			const winner_index = has_won ^ inversed() ? 1 : 0;
