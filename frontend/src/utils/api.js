@@ -14,24 +14,22 @@ const setupInstance = () => {
 	axiosInstance.interceptors.request.use(
 		(config) => {
 			const token = store.getters.accessToken;
-			config.baseURL = store.state.endpoints.baseUrl;
+			config.baseURL = store.getters.endpointsBaseURL;
 			if (token) {
 				config.headers['Authorization'] = `Bearer ${token}`
 				config.withCredentials = true;
 			} else {
 				config.withCredentials = false;
 			}
-			return config;
+			return (config);
 		},
-		(error) => {
-			return Promise.reject(error);
-		}
+		(error) => Promise.reject(error)
 	)
 	axiosInstance.interceptors.response.use(
-		(res) => {return res},
+		(res) => res,
 		async (err) => {
 			if (!store.getters.accessToken)
-				return Promise.reject(err);
+				return (Promise.reject(err));
 			const originalConfig = err.config;
 			console.log();
 			if (err.response && err.response.status === 401 && !originalConfig._retry && originalConfig.url !== store.state.endpoints.refreshJWT) {
@@ -44,14 +42,14 @@ const setupInstance = () => {
 
 					store.commit('updateAccessToken', access);
 
-					return axiosInstance(originalConfig);
+					return (axiosInstance(originalConfig));
 				} catch (_error) {
-					return Promise.reject(_error);
+					return (Promise.reject(_error));
 				}
 			} else if (originalConfig.url === store.state.endpoints.refreshJWT) {
 				store.dispatch('deauthentificate');
 			}
-			return Promise.reject(err);
+			return (Promise.reject(err));
 		}
 	)
 }

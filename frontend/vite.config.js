@@ -18,5 +18,8 @@ export default defineConfig({
 			'@utils': fileURLToPath(new URL('./src/utils', import.meta.url)),
 			'@': fileURLToPath(new URL('./src', import.meta.url)),
 		}
-	}
+	},
+	build: {
+		chunkSizeWarningLimit: 1600,
+	},
 })

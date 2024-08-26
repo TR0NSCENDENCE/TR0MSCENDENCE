@@ -1,53 +1,57 @@
 # Builder
 FROM	python:3.11.4-slim-buster AS django
 
-WORKDIR	/usr/src/app
-
-ENV		PYTHONDONTWRITEBYTECODE 1
-ENV		PYTHONUNBUFFERED 1
+ENV		PYTHONDONTWRITEBYTECODE=1
+ENV		PYTHONUNBUFFERED=1
+ENV		DEBCONF_NOWARNINGS=yes
+ENV		PATH=/home/builder/.local/bin:$PATH
 
 RUN		apt-get update &&								\
 		apt-get install -y --no-install-recommends gcc
 
-RUN		pip install --upgrade pip
-COPY	. /usr/src/app/
+RUN		addgroup --system builder &&		\
+		adduser --system --group builder
 
-COPY	./requirements.txt .
-RUN		pip wheel							\
-			--no-cache-dir					\
-			--no-deps						\
-			--wheel-dir /usr/src/app/wheels	\
-			-r requirements.txt
+WORKDIR	/home/builder/app/
+
+COPY	./ ./
+
+RUN		chown -R builder:builder ./
+USER	builder
+
+RUN		pip install --upgrade pip
+RUN		pip wheel					\
+			--no-cache-dir			\
+			--no-deps				\
+			--wheel-dir ./wheels/	\
+			-r ./requirements.txt
 
 # Final
 FROM	python:3.11.4-slim-buster
 
-RUN		mkdir -p /home/app
+ENV		DEBCONF_NOWARNINGS=yes
+ENV		PATH=/home/app/.local/bin:$PATH
+
+RUN		apt-get update &&									\
+		apt-get install -y --no-install-recommends netcat
 
 RUN		addgroup --system app &&		\
 		adduser --system --group app
 
-ENV		HOME=/home/app
-ENV		APP_HOME=/home/app/web
-RUN		mkdir $APP_HOME
-RUN		mkdir $APP_HOME/staticfiles
-RUN		mkdir $APP_HOME/mediafiles
-WORKDIR	$APP_HOME
+WORKDIR	/home/app/web
 
-RUN		apt-get update &&									\
-		apt-get install -y --no-install-recommends netcat
-COPY	--from=django /usr/src/app/wheels /wheels
-COPY	--from=django /usr/src/app/requirements.txt .
-RUN		pip install --upgrade pip
-RUN		pip install --no-cache /wheels/*
+RUN		mkdir ./staticfiles/
+RUN		mkdir ./mediafiles/
 
-COPY	./entrypoint.prod.sh .
-RUN		chmod +x  $APP_HOME/entrypoint.prod.sh
+COPY	./ ./
+COPY	--from=django /home/builder/app/wheels/ ./wheels/
+COPY	--from=django /home/builder/app/requirements.txt ./
 
-COPY	. $APP_HOME
-
-RUN		chown -R app:app $APP_HOME
-
+RUN		chown -R app:app /home/app/
+RUN		chmod +x ./entrypoint.prod.sh
 USER	app
 
-ENTRYPOINT [ "/home/app/web/entrypoint.prod.sh" ]
+RUN		pip install --upgrade pip
+RUN		pip install --no-cache ./wheels/*
+
+ENTRYPOINT [ "./entrypoint.prod.sh" ]

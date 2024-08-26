@@ -115,6 +115,8 @@ function loadTheme() {
 	return (theme);
 }
 
+const API_PORT = import.meta.env.DEV ? `:${import.meta.env.VITE_API_PORT}` : window.location.port;
+
 export default createStore({
 	modules: {
 		audio,
@@ -131,7 +133,6 @@ export default createStore({
 		endpoints: {
 			obtainJWT:  '/token/',
 			refreshJWT: "/token/refresh/",
-			baseUrl: import.meta.env.VITE_API_BASE_URL + "/",
 		}
 	},
 	mutations: {
@@ -210,6 +211,15 @@ export default createStore({
 			const style = document.documentElement.style;
 
 			return (style.getPropertyValue('--glow-color'));
+		},
+		endpointsBaseURL(state) {
+			const protocol = window.location.protocol
+				? `${window.location.protocol}//`
+				: '';
+			const hostname = window.location.hostname;
+			const api_base_url = `${import.meta.env.VITE_API_BASE_URL}/`;
+
+			return (`${protocol}${hostname}${API_PORT}${api_base_url}`)
 		}
 	}
 });

@@ -1,20 +1,26 @@
 FROM	python:3.11.4-slim-buster
 
-WORKDIR	/usr/src/app
+ENV		PYTHONDONTWRITEBYTECODE=1
+ENV		PYTHONUNBUFFERED=1
+ENV		DEBCONF_NOWARNINGS=yes
+ENV		PATH=/home/app/.local/bin:$PATH
 
-ENV		PYTHONDONTWRITEBYTECODE 1
-ENV		PYTHONUNBUFFERED 1
-
-RUN		apt-get update &&	\
+RUN		apt-get update &&			\
 		apt-get install -y netcat
 
+RUN		addgroup --system app &&		\
+		adduser --system --group app
+
+WORKDIR	/home/app/
+
+COPY	./ ./
+
+RUN		chown -R app:app ./
+USER	app
+
 RUN		pip install --upgrade pip
-COPY	./requirements.txt .
-RUN		pip install -r requirements.txt
+RUN		pip install -r ./requirements.txt
 
-COPY	./entrypoint.dev.sh .
-RUN		chmod +x /usr/src/app/entrypoint.dev.sh
+RUN		chmod +x ./entrypoint.dev.sh
 
-COPY	. .
-
-ENTRYPOINT	[ "/usr/src/app/entrypoint.dev.sh" ]
+ENTRYPOINT	[ "./entrypoint.dev.sh" ]

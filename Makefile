@@ -13,46 +13,69 @@ else
 $(error "$(BUILD_MODE)" is not a valid build mode.)
 endif
 
+COMPOSE				:=	docker-compose										\
+						--project-name aalms-tr0nscendence-$(BUILD_MODE)	\
+						-f $(COMPOSE_FILE)
+
 # Checks for the user executing the Makefile:
 # - If they needs root privilege
 # - If so, if they have root privilege.
 ifneq ($(shell whoami),root)
 	ifneq ($(shell docker ps 2>&1 >/dev/null | grep 'permission denied'),)
 		ifeq ($(shell sudo -n true 2>&1),)
-SUDO				:=	sudo
+COMPOSE				:=	sudo $(COMPOSE)
 		else
 $(error You must acquire root privileges)
 		endif
 	endif
 endif
 
+ifdef NO_PRETTY
+COMPOSE				:=	DOCKER_BUILDKIT=0 $(COMPOSE)
+endif
+
 all: run
 
 # If the docker is already launched, don't rebuilt it.
 # If you want to rebuilt it, use the `build` rule.
-ifeq ($(shell $(SUDO) docker-compose -f $(COMPOSE_FILE) ps --services),)
+ifeq ($(shell $(COMPOSE) ps --services),)
 run: build
 else
 run:
 endif
-	@ $(SUDO) docker-compose -f $(COMPOSE_FILE) up -d
+	@$(COMPOSE) up -d
 
 build:
-	@ $(SUDO) docker-compose -f $(COMPOSE_FILE) build
+	@$(COMPOSE) build
 
 build-nocache:
-	@ $(SUDO) docker-compose -f $(COMPOSE_FILE) build --no-cache
+	@$(COMPOSE) build --no-cache
 
 down:
-	@ $(SUDO) docker-compose -f $(COMPOSE_FILE) down
+	@$(COMPOSE) down
 
 down-volumes:
-	@ $(SUDO) docker-compose -f $(COMPOSE_FILE) down -v
+	@$(COMPOSE) down -v
 
 re: down run
 
-rebuild: down build run
+rebuild:		\
+		down	\
+		build	\
+		run
 
-rebuild-nocache: down-volumes build-nocache run
+rebuild-nocache:		\
+		down-volumes	\
+		build-nocache	\
+		run
 
-.PHONY: all run build build-nocache down down-volumes re rebuild rebuild-nocache
+.PHONY:				\
+	all				\
+	run				\
+	build			\
+	build-nocache	\
+	down			\
+	down-volumes	\
+	re				\
+	rebuild			\
+	rebuild-nocache
