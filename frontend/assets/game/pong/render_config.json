@@ -1,5 +1,5 @@
 {
-	"config": {
+	"config_multiplayer": {
 		"ball": {
 			"texture": "/ressources/texture/cyberSphere.png",
 			"radius": 1
@@ -48,6 +48,57 @@
 			"lookat": {
 				"x": 0,
 				"y": -1,
+				"z": 0
+			}
+		}
+	},
+	"config_local": {
+		"ball": {
+			"radius": 1
+		},
+		"paddle": {
+			"width": 1.6,
+			"height": 1,
+			"depth": 7
+		},
+		"map": {
+			"scale": 20,
+			"position": {
+				"x": 0,
+				"y": 19,
+				"z": 0
+			}
+		},
+		"lights": {
+			"ambient": {
+				"color": "0xf0f0f0"
+			},
+			"directional": {
+				"color": "0xffffff",
+				"intensity": 1,
+				"direction": {
+					"x": 1,
+					"y": 2,
+					"z": 1
+				}
+			}
+		},
+		"camera": {
+			"fov": 75,
+			"aspect_ratio": {
+				"width": 16,
+				"height": 9
+			},
+			"znear": 0.1,
+			"zfar": 1000,
+			"position": {
+				"x": 0,
+				"y": 35,
+				"z": 5
+			},
+			"lookat": {
+				"x": 0.001,
+				"y": -20,
 				"z": 0
 			}
 		}
