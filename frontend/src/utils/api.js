@@ -31,7 +31,6 @@ const setupInstance = () => {
 			if (!store.getters.accessToken)
 				return (Promise.reject(err));
 			const originalConfig = err.config;
-			console.log();
 			if (err.response && err.response.status === 401 && !originalConfig._retry && originalConfig.url !== store.state.endpoints.refreshJWT) {
 				originalConfig._retry = true;
 				try {
