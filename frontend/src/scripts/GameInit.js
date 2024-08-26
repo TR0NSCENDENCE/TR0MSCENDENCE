@@ -131,21 +131,6 @@ export class Game {
 				: this.pauseGame();
 		});
 
-
-		// const backgroundTexture = this.textureLoader.load(utils.loadAsset('landscape/zizi.jpg'));
-		// const backgroundMaterial = new MeshStandardMaterial({ 
-		// 	map: backgroundTexture,
-		// 	color: new THREE.Color(0x000000),
-		// 	emissive: new THREE.Color(0xff0000), //new THREE.Color(getCssVariableValue('--mesh-color')),
-		// 	emissiveIntensity: 1.0
-		// });
-		// const backgroundGeometry = new THREE.PlaneGeometry(750, 333);
-		// const backgroundMesh = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
-
-		// backgroundMesh.position.x = -200;
-		// backgroundMesh.rotation.y = Math.PI / 2;
-		// this.scene.add(backgroundMesh);
-
 		// Post-processing for neon effect
 		this.composer = new EffectComposer(renderer);
 		const renderPass = new RenderPass(this.scene, this.camera);
