@@ -21,9 +21,10 @@
 						:player_2="players[1]"
 						/>
 					<PongGame
-						ref="game"
+						:render_config="config_multiplayer"
 						:enable_simulation="false"
 						@onUpdateRequested="onUpdateRequested"
+						ref="game"
 						/>
 				</div>
 			</div>
@@ -41,6 +42,7 @@
 </template>
 
 <script setup>
+import { config_multiplayer } from '@assets/game/pong/render_config.json'
 import PongGame from '@components/PongGame.vue';
 import GlowingButton from '@components/GlowingButton.vue';
 import store from '@store';

@@ -1,12 +1,12 @@
 <template>
 	<div class="pong_game_header">
 		<h1>player 1:</h1>
-		<UserViewer :userdata="player_1.user"/>
+		<UserViewer v-if="player_1.user" :userdata="player_1.user"/>
 		<h1 class="pong_game_score_header">
 			score: {{ player_1.score }} - {{ player_2.score }}
 		</h1>
 		<h1>player 2:</h1>
-		<UserViewer :userdata="player_2.user"/>
+		<UserViewer v-if="player_2.user" :userdata="player_2.user"/>
 	</div>
 </template>
 

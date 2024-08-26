@@ -6,7 +6,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import store from '@store';
 import { DEFAULT_SCENE_STATE } from './model';
-import { config } from '@assets/game/pong/render_config.json'
 
 class ColorMaterial extends THREE.MeshStandardMaterial {
 	constructor(p, color) {
@@ -64,6 +63,7 @@ export default class PongRenderer {
 	};
 
 	constructor(
+		config,
 		canvas,
 		canvas_container,
 		theme_color

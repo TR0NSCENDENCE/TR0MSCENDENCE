@@ -137,6 +137,8 @@ export default class PongModel {
 	getLoserId = () => this.#loser_id;
 	isFinished = () => this.#finished;
 
+	getScores = () => [ this.#scores[0], this.#scores[1] ];
+
 	getElapsedTime = () => {
 		if (this.#timer === undefined) {
 			this.#timer = new Timer();

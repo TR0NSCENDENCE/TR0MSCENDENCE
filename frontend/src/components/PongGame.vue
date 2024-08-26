@@ -26,6 +26,7 @@ const emits = defineEmits([
 	'onUpdateRequested'
 ]);
 const props = defineProps([
+	'render_config',
 	'enable_simulation'
 ])
 
@@ -58,6 +59,7 @@ const setupController = () => {
 
 onMounted(() => {
 	game.renderer = new PongRenderer(
+		props.render_config,
 		pong_game_canvas,
 		canvas_container,
 		store.getters.theme
@@ -82,6 +84,7 @@ onUnmounted(() => {
 defineExpose({
 	onCountdownStart: () => counter.value.start(),
 	onCountdownStop: () => counter.value.stop(),
+	getScores: () => game.model.getScores(),
 	forceUpdate: (data) => game.model.forceUpdate(data)
 });
 
