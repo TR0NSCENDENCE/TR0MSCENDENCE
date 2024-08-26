@@ -1,6 +1,6 @@
 <template>
 	<div id="register_page">
-		<div v-if="!success">
+		<div v-on:keypress.enter="register" v-if="!success">
 			<form @submit.prevent="submitForm">
 				<div class="form-group">
 					<div class="label-error-group">
