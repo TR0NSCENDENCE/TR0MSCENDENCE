@@ -17,39 +17,27 @@ function parseJwt (token) {
 }
 
 async function updateProfile(context) {
-	axiosInstance.get('/me/').then(
-		(response) => {
-			const payload = {
-				authUser: response.data.username,
-				isAuthenticated: true,
-			};
-			context.commit('setAuthUser', payload);
-		}
-	).catch((error) => context.dispatch('deauthentificate'));
+	if (context.state.refreshToken) {
+		axiosInstance.get('/me/').then(
+			(response) => {
+				const payload = {
+					authUser: response.data.username,
+					isAuthenticated: true,
+				};
+				context.commit('setAuthUser', payload);
+			}
+		).catch((error) => context.dispatch('deauthentificate')); // Overkill but dont touch lol
+	}
 }
 
-async function authentificate(context, { username, password }) {
-	let result = undefined;
-	let _ = await axiosInstance
-		.post(context.state.endpoints.obtainJWT, {
-			username: username,
-			password: password
-		})
-		.then((response) => {
-			context.commit('updateAccessToken', response.data.access);
-			context.commit('updateRefreshToken', response.data.refresh);
-			// Even though the authentication returned a user object that can be
-			// decoded, we fetch it again. This way we aren't super dependant on
-			// JWT and can plug in something else.
+async function authentificate(context, { access, refresh }) {
+	context.commit('updateAccessToken', access);
+	context.commit('updateRefreshToken', refresh);
 
-			const ID = parseJwt(response.data.access).user_id;
-			context.commit('setUserID', ID);
+	const ID = parseJwt(access).user_id;
+	context.commit('setUserID', ID);
 
-			context.dispatch('updateProfile');
-		}).catch((error) => {
-			result = error;
-		});
-	return (result);
+	context.dispatch('updateProfile');
 }
 
 function deauthentificate(context) {

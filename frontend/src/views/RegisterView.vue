@@ -1,40 +1,46 @@
 <template>
 	<div id="register_page">
-		<form @submit.prevent="submitForm">
-			<div class="form-group">
-				<div class="label-error-group">
-					<label for="email">email:</label>
-					<p class="error-detail">{{ error_txt.email }}</p>
+		<div v-if="!success">
+			<form @submit.prevent="submitForm">
+				<div class="form-group">
+					<div class="label-error-group">
+						<label for="email">email:</label>
+						<p class="error-detail">{{ error_txt.email }}</p>
+					</div>
+					<input type="email" id="email" ref="email">
 				</div>
-				<input type="email" id="email" ref="email">
-			</div>
-			<div class="form-group">
-				<div class="label-error-group">
-					<label for="username">login:</label>
-					<p class="error-detail">{{ error_txt.username }}</p>
+				<div class="form-group">
+					<div class="label-error-group">
+						<label for="username">login:</label>
+						<p class="error-detail">{{ error_txt.username }}</p>
+					</div>
+					<input type="text" id="username" ref="username">
 				</div>
-				<input type="text" id="username" ref="username">
-			</div>
-			<div class="form-group">
-				<div class="label-error-group">
-					<label for="password">password:</label>
-					<p class="error-detail">{{ error_txt.password }}</p>
+				<div class="form-group">
+					<div class="label-error-group">
+						<label for="password">password:</label>
+						<p class="error-detail">{{ error_txt.password }}</p>
+					</div>
+					<input type="password" id="password" ref="password">
 				</div>
-				<input type="password" id="password" ref="password">
-			</div>
-			<div class="form-group">
-				<div class="label-error-group">
-					<label for="repassword">retype password:</label>
-					<p class="error-detail">{{ error_txt.repassword }}</p>
+				<div class="form-group">
+					<div class="label-error-group">
+						<label for="repassword">retype password:</label>
+						<p class="error-detail">{{ error_txt.repassword }}</p>
+					</div>
+					<input type="password" id="repassword" ref="repassword">
 				</div>
-				<input type="password" id="repassword" ref="repassword">
-			</div>
-			<div class="button-group">
-				<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register" />
-			</div>
-		</form>
+				<div class="button-group">
+					<GlowingButton class="small-button" :type="'submit'" :text="'register'" @click="register" />
+				</div>
+			</form>
+		</div>
+		<div v-else>
+			<h1>
+				Your account was successfuly created<br>You need to activate it, check your mails ({{ register_email }})
+			</h1>
+		</div>
 		<GlowingButton class="go-back-button small-button" :text="'go back home'" :dest="'/'" />
-		<p v-if="exists">Incorrect Username or Password, Try again</p>
 	</div>
 </template>
 
@@ -46,9 +52,11 @@ import store from '@store';
 import { axiosInstance } from '@utils/api';
 
 const email = ref(null);
+const register_email = ref('');
 const username = ref(null);
 const password = ref(null);
 const repassword = ref(null);
+const success = ref(false);
 
 const error_txt = ref({
 	email: '',
@@ -67,8 +75,8 @@ async function register() {
 	};
 	axiosInstance.post('/register/', payload).then(
 		async (response) => {
-			await store.dispatch('authentificate', payload);
-			router.push('/');
+			success.value = true;
+			register_email.value = payload.email;
 		}
 	).catch(
 		(error) => {
@@ -88,15 +96,19 @@ async function register() {
 	justify-content: center;
 	align-items: center;
 	color: var(--glow-color);
-	--size-factor: (0.00188323 * 70vw);
-	font-size: calc(8 * var(--size-factor));
+	font-size: 3vmin;
+}
+
+h1 {
+	font-size: 2vmin;
+	text-align: center;
 }
 
 #email, #username {
 	font-family: 'Orbitron';
 }
 
-.form-group {
+.form-group, h1 {
 	margin-bottom: 2vh;
 	width: 100%;
 	text-shadow: 0 0 0.125em hsl(0 0% 100% / 0.3), 0 0 0.45em var(--glow-color);
@@ -142,7 +154,6 @@ async function register() {
 .button-group .small-button:last-child {
 	margin-right: 0;
 }
-
 
 form {
 	width: 50vh;

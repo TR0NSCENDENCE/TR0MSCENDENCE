@@ -10,6 +10,7 @@ then
 fi
 
 python manage.py makemigrations users --no-input
+python manage.py makemigrations otp --no-input
 python manage.py makemigrations pong --no-input
 python manage.py makemigrations --no-input
 python manage.py migrate --no-input

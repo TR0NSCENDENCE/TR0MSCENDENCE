@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.validators import RegexValidator
 from .managers import UserManager
 from io import BytesIO
 from PIL import Image
@@ -14,6 +15,8 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
 
     username_validator = UnicodeUsernameValidator()
+
+    activation_uuid = models.UUIDField(unique=True, default=uuid4)
 
     username = models.CharField(
         _("username"),
