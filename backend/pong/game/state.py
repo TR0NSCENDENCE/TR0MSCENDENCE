@@ -175,6 +175,7 @@ class GameState():
         #   - If none has a score of 3, the last one connected
         #   - If no one is left, the one with the highest score
         #   - If they also have the same score, it's a tie
+        score_delta = self.__players[0].get_score() - self.__players[1].get_score()
         winner_player =                                                     \
             self.__players[0] if self.__players[0].get_score() == 3 else    \
             self.__players[1] if self.__players[1].get_score() == 3 else    \
