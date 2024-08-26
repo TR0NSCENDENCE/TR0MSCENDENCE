@@ -86,12 +86,6 @@ h1 {
 	flex: 1 1 0;
 	display: flex;
 	font-size: 1vw;
-	/* @media screen and (max-width: 600px) {
-		font-size: 1.5vmin;
-	}
-	@media screen and (min-width: 801px) {
-		font-size: 2vmin;
-	} */
 }
 
 .sub-header-link {

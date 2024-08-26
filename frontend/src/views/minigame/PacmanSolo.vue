@@ -68,7 +68,7 @@ function saveData(score, time, winOrLose) {
 	gameStat.score = score;
 	gameStat.time = time;
 	gameStat.status = winOrLose === 2 ? 'win' : 'lose';
-	gameStat.mode = '1v1';
+	gameStat.mode = 'solo';
 	if (store.getters.isAuthenticated)
 		_saveUserData();
 	else
