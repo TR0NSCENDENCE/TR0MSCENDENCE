@@ -8,6 +8,11 @@ defaults.paddle.max_position = defaults.scene.wall_distance - defaults.paddle.si
 defaults.ball.reset_angle_bounds = Math.atan2(defaults.scene.paddle_distance, defaults.scene.wall_distance);
 defaults.ball.reset_angle_range = 2. * defaults.ball.reset_angle_bounds - Math.PI
 
+const Side = Object.freeze({
+	ONE: 0,
+	TWO: 1
+});
+
 export default class PongController {
 	#has_round_ended = true;
 	#countdown_active = false;
@@ -47,9 +52,23 @@ export default class PongController {
 		this.onCountdownStart();
 	}
 
-	start_round = () => {
+	#reset_ball = (side) => {
+		const ball = this.#model.getBall();
+		let angle = defaults.ball.reset_angle_bounds;
+
+		angle += Math.random() * defaults.ball.reset_angle_range;
+		if (side === Side.TWO)
+			angle += Math.PI;
+		ball.speed = defaults.ball.velocity;
+		ball.velocity.x = Math.cos(angle);
+		ball.velocity.y = Math.sin(angle);
+		this.#model.setBall(ball);
+	}
+
+	start_round = (loser_side=Side.TWO) => {
 		this.onResetRequested(); // TODO: needed ?
 		this.#model.reset();
+		this.#reset_ball(loser_side);
 		this.#renderer.updateState({
 			ball: this.#model.getBall(),
 			paddles: [
@@ -76,13 +95,36 @@ export default class PongController {
 		updatePaddlePosition({position, speed});
 	}
 
+	#ball_update_position = (ball, step) => {
+		ball.position.x += ball.velocity.x * step;
+		ball.position.y += ball.velocity.y * step;
+	}
+
+	#ball_wall_collision = (ball) => {
+		const bounds = defaults.scene.wall_distance - defaults.ball.radius;
+
+		if (Math.abs(ball.position.y) < bounds)
+			return;
+		ball.position.y = Math.sign(ball.position.y) * (2 * bounds - Math.abs(ball.position.y));
+		ball.velocity.y = -ball.velocity.y
+	}
+
 	#update_ball = (delta) => {
-		// let remaining_distance = 
+		let ball = this.#model.getBall();
+		let remaining_distance = ball.speed * delta;
+
+		while (remaining_distance > 0) {
+			let step = Math.min(remaining_distance, 1);
+			remaining_distance -= step;
+			this.#ball_update_position(ball, step);
+			this.#ball_wall_collision(ball);
+		}
 	}
 
 	#handle_physics = (delta) => {
 		this.#update_paddle(delta, 0, this.#model.getPaddle1, this.#model.setPaddle1);
 		this.#update_paddle(delta, 1, this.#model.getPaddle2, this.#model.setPaddle2);
+		this.#update_ball(delta);
 	}
 
 	#render = () => {
