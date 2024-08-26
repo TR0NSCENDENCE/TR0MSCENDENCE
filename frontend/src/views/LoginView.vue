@@ -54,8 +54,9 @@ async function checkOtp() {
 	}
 	try {
 		const response = await axiosInstance.post(`/token/otp/${otp_uuid.value}/`, payload);
-		store.dispatch('authentificate', response.data);
-		router.push('/');
+		store.dispatch('authentificate', response.data).then(
+			() => router.push('/')
+		);
 	} catch (e) {
 		if (e.response) {
 			if (typeof e.response.data.remaining_tries !== 'undefined') {

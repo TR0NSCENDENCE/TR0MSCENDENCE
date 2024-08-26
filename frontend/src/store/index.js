@@ -19,25 +19,26 @@ function parseJwt (token) {
 
 async function updateProfile(context) {
 	if (context.state.refreshToken) {
-		axiosInstance.get('/me/').then(
-			(response) => {
-				const payload = {
-					authUser: response.data.username,
-					isAuthenticated: true,
-				};
-				context.commit('setAuthUser', payload);
-				if (!context.state.onlineTrackerWs) {
-					connectToWebsocket('ws/onlinetracker/',
-						(/** @type {WebSocket} */ websocket) => {
-							context.state.onlineTrackerWs = websocket;
-							websocket.onerror = (e) => console.log(e)
-							websocket.onopen = () => console.debug('[OnlineTracker] open')
-							websocket.onclose = () => console.debug('[OnlineTracker] close')
-						}
-					)
-				}
+		try {
+			const response = await axiosInstance.get('/me/');
+			const payload = {
+				authUser: response.data.username,
+				isAuthenticated: true,
+			};
+			context.commit('setAuthUser', payload);
+			if (!context.state.onlineTrackerWs) {
+				connectToWebsocket('ws/onlinetracker/',
+					(/** @type {WebSocket} */ websocket) => {
+						context.state.onlineTrackerWs = websocket;
+						websocket.onerror = (e) => console.log(e)
+						websocket.onopen = () => console.debug('[OnlineTracker] open')
+						websocket.onclose = () => console.debug('[OnlineTracker] close')
+					}
+				)
 			}
-		).catch((error) => context.dispatch('deauthentificate')); // Overkill but dont touch lol
+		} catch(error) {
+			context.dispatch('deauthentificate'); // Overkill but dont touch lol
+		}
 	}
 }
 
@@ -48,7 +49,7 @@ async function authentificate(context, { access, refresh }) {
 	const ID = parseJwt(access).user_id;
 	context.commit('setUserID', ID);
 
-	context.dispatch('updateProfile');
+	await context.dispatch('updateProfile');
 }
 
 function deauthentificate(context) {

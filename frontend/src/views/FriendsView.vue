@@ -58,9 +58,13 @@ const requests_page = ref({
 async function removeFriend(pk) {
 	try {
 		await axiosInstance.delete(`/user/${pk}/remove-friend/`);
+	} catch (e) {
+		console.log(e); // already removed
+	}
+	try {
 		await updateFriendsList();
 	} catch (e) {
-		console.log(e);
+		console.log(e); // the db was exploded
 	}
 }
 
