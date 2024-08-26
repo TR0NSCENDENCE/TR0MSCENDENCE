@@ -8,15 +8,9 @@ ENV		PATH=/home/app/.local/bin:$PATH
 RUN		apt-get update &&			\
 		apt-get install -y netcat
 
-RUN		addgroup --system app &&		\
-		adduser --system --group app
-
-WORKDIR	/home/app/
+WORKDIR	/home/app/backend
 
 COPY	./ ./
-
-RUN		chown -R app:app ./
-USER	app
 
 RUN		pip install --upgrade pip
 RUN		pip install -r ./requirements.txt
