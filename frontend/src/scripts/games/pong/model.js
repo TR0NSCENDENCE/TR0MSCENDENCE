@@ -1,4 +1,5 @@
 import {defaults} from '@assets/game/pong/defaults.json'
+import { Side } from './utils';
 
 export const DEFAULT_SCENE_STATE = Object.freeze({
 	ball: {
@@ -53,14 +54,35 @@ export default class PongModel {
 	#paddles;
 	#timer;
 
+	#scores;
+	#finished;
+	#loser_id;
+
 	constructor() {
 		this.#timer = undefined;
-		this.reset()
+		this.#scores = [0, -1];
+		this.#finished = false;
+		this.#loser_id = Side.ONE;
+		this.#reset()
+		this.onRestart = (loser_id) => {};
+		this.#ball.position.x = defaults.scene.paddle_distance;
+		this.#ball.position.y = defaults.scene.wall_distance;
 	}
 
-	reset = () => {
+	#reset_ball = () => {
+		let angle = defaults.ball.reset_angle_bounds;
+
+		angle += Math.random() * defaults.ball.reset_angle_range;
+		if (this.#loser_id === Side.TWO)
+			angle += Math.PI;
+		this.#ball.velocity.x = Math.cos(angle);
+		this.#ball.velocity.y = Math.sin(angle);
+	}
+
+	#reset = () => {
 		this.#ball = structuredClone(DEFAULT_SCENE_STATE.ball);
 		this.#paddles = structuredClone(DEFAULT_SCENE_STATE.paddles);
+		this.#reset_ball();
 	}
 
 	setBall = ({position, velocity, speed}) => {
@@ -69,20 +91,26 @@ export default class PongModel {
 		this.#ball.speed = speed;
 	}
 
-	setPaddle1 = ({position, speed}) => {
-		this.#paddles[0].position = position;
-		this.#paddles[0].speed = speed
+	setPaddle = (id, {position, speed}) => {
+		console.assert(id === 0 || id ===1);
+		this.#paddles[id].position.x = position.x;
+		this.#paddles[id].position.y = position.y;
+		this.#paddles[id].speed = speed
 	}
 
-	setPaddle2 = ({position, speed}) => {
-		this.#paddles[1].position = position;
-		this.#paddles[1].speed = speed
+	setLoser = (id) => {
+		console.assert(id === 0 || id ===1);
+		this.#loser_id = id;
+		this.#scores[1 - id] += 1;
+		this.#finished = this.#scores[1 - id] == defaults.game.win_score;
+		this.#reset();
+		this.onRestart(this.#loser_id);
 	}
 
 	forceUpdate = (state=DEFAULT_SCENE_STATE) => {
 		this.setBall(state.ball);
-		this.setPaddle1(state.paddles[0]);
-		this.setPaddle2(state.paddles[1]);
+		this.setPaddle(0, state.paddles[0]);
+		this.setPaddle(1, state.paddles[1]);
 		this.getElapsedTime();
 	}
 
@@ -94,19 +122,20 @@ export default class PongModel {
 		});
 	}
 
-	getPaddle1 = () => {
+	getPaddle = (id) => {
+		console.assert(id === 0 || id === 1);
+		const paddle = this.#paddles[id];
 		return ({
-			position: this.#paddles[0].position,
-			speed: this.#paddles[0].speed
+			position: {
+				x: paddle.position.x,
+				y: paddle.position.y,
+			},
+			speed: paddle.speed
 		});
 	}
 
-	getPaddle2 = () => {
-		return ({
-			position: this.#paddles[1].position,
-			speed: this.#paddles[1].speed
-		});
-	}
+	getLoserId = () => this.#loser_id;
+	isFinished = () => this.#finished;
 
 	getElapsedTime = () => {
 		if (this.#timer === undefined) {

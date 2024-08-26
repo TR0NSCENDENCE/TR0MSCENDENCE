@@ -4,6 +4,11 @@ export const Direction = Object.freeze({
 	NONE: 0
 });
 
+export const Side = Object.freeze({
+	ONE: 0,
+	TWO: 1
+});
+
 export const integer_as_direction = (integer) => {
 	if (integer > 0)
 		return (Direction.RIGHT);

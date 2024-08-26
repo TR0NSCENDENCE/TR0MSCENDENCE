@@ -50,7 +50,9 @@ const setupController = () => {
 	const controller = game.controller;
 
 	controller.onUpdateRequested = () => emits('onUpdateRequested');
-	controller.onCountdownStart = () => counter.value.start();
+	controller.onCountdownStart = () => {
+		counter.value.start()
+	}
 	controller.onCountdownStop = () => counter.value.stop();
 	controller.onPlayerOneInputRequested = () => Direction.None;
 	controller.onPlayerTwoInputRequested = () => Direction.None;

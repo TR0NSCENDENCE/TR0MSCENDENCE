@@ -24,6 +24,10 @@ export default class PongController {
 
 	#simulation_enabled;
 
+	#finished;
+	#loser_id;
+	#scores;
+
 	constructor(
 		/** @type {PongModel} */ model,
 		/** @type {PongRenderer} */ renderer,
@@ -38,12 +42,14 @@ export default class PongController {
 		this.onPlayerOneInputRequested = () => Direction.NONE;
 		this.onPlayerTwoInputRequested = () => Direction.NONE;
 		this.onResetRequested = () => {};
+		this.#model.onRestart = this.#start_round;
 	}
 
 	#start_countdown = () => {
 		this.#countdown_active = true;
 		setTimeout(
 			() => {
+				this.#model.getElapsedTime();
 				this.#countdown_active = false
 				this.onCountdownStop();
 			},
@@ -52,34 +58,11 @@ export default class PongController {
 		this.onCountdownStart();
 	}
 
-	#reset_ball = (side) => {
-		const ball = this.#model.getBall();
-		let angle = defaults.ball.reset_angle_bounds;
-
-		angle += Math.random() * defaults.ball.reset_angle_range;
-		if (side === Side.TWO)
-			angle += Math.PI;
-		ball.speed = defaults.ball.velocity;
-		ball.velocity.x = Math.cos(angle);
-		ball.velocity.y = Math.sin(angle);
-		this.#model.setBall(ball);
-	}
-
-	start_round = (loser_side=Side.TWO) => {
-		this.onResetRequested(); // TODO: needed ?
-		this.#model.reset();
-		this.#reset_ball(loser_side);
-		this.#renderer.updateState({
-			ball: this.#model.getBall(),
-			paddles: [
-				this.#model.getPaddle1(),
-				this.#model.getPaddle2(),
-			]
-		});
+	#start_round = (loser_side) => {
 		this.#start_countdown();
 	}
 
-	#update_paddle = (delta, id, getPaddlePosition, updatePaddlePosition) => {
+	#update_paddle = (delta, id) => {
 		const can_move = (position) => {
 			const half_padd = defaults.paddle.size / 2.;
 			const limit = defaults.scene.wall_distance - half_padd;
@@ -87,12 +70,12 @@ export default class PongController {
 		}
 
 		const direction = store.getters['pong/player_direction'](id);
-		const {position, speed} = getPaddlePosition();
+		const {position, speed} = this.#model.getPaddle(id);
 
 		position.y -= direction * speed * delta;
 		if (!can_move(position.y))
 			position.y = Math.sign(position.y) * defaults.paddle.max_position;
-		updatePaddlePosition({position, speed});
+		this.#model.setPaddle(id, {position, speed});
 	}
 
 	#ball_update_position = (ball, step) => {
@@ -109,7 +92,7 @@ export default class PongController {
 		ball.velocity.y = -ball.velocity.y
 	}
 
-	#update_ball = (delta) => {
+	#update_ball = (delta, onLose) => {
 		let ball = this.#model.getBall();
 		let remaining_distance = ball.speed * delta;
 
@@ -118,21 +101,65 @@ export default class PongController {
 			remaining_distance -= step;
 			this.#ball_update_position(ball, step);
 			this.#ball_wall_collision(ball);
+			const loser_id = this.#paddle_collision();
+			if (loser_id !== undefined) {
+				onLose(loser_id);
+				remaining_distance = 0;
+			}
 		}
 	}
 
+	#paddle_physics = (ball, id) => {
+		const collides = (position, paddle) => {
+			const delta = Math.abs(paddle - position)
+			return (delta <= defaults.paddle.size / 2.);
+		}
+
+		const {position, speed} = this.#model.getPaddle(id);
+
+		if (!collides(ball.position.y, position.y))
+			return (true);
+
+		let new_position = defaults.scene.paddle_distance;
+		new_position -= defaults.ball.radius;
+		ball.position.x = Math.sign(ball.position.x) * new_position;
+
+		let angle = Math.atan2(defaults.paddle.size / 2., position.y - ball.position.y);
+		angle -= Math.PI / 2.;
+		if (position.x > 0)
+			angle = Math.PI - angle;
+
+		ball.speed *= defaults.ball.speedup_factor;
+		ball.velocity.x = Math.cos(angle);
+		ball.velocity.y = Math.sin(angle);
+
+		this.#model.setPaddle(id, {position, speed: speed * defaults.paddle.speedup_factor});
+		this.#model.setBall(ball);
+
+		return (false);
+	}
+
+	#paddle_collision = () => {
+		const ball = this.#model.getBall();
+
+		if (Math.abs(ball.position.x) < defaults.scene.paddle_distance - defaults.ball.radius)
+			return (undefined);
+		const player_id = ball.position.x > 0 ? 0 : 1;
+		return (this.#paddle_physics(ball, player_id) ? player_id : undefined);
+	}
+
 	#handle_physics = (delta) => {
-		this.#update_paddle(delta, 0, this.#model.getPaddle1, this.#model.setPaddle1);
-		this.#update_paddle(delta, 1, this.#model.getPaddle2, this.#model.setPaddle2);
-		this.#update_ball(delta);
+		this.#update_paddle(delta, 0);
+		this.#update_paddle(delta, 1);
+		this.#update_ball(delta, this.#model.setLoser);
 	}
 
 	#render = () => {
 		const state = {
 			ball: this.#model.getBall(),
 			paddles: [
-				this.#model.getPaddle1(),
-				this.#model.getPaddle2(),
+				this.#model.getPaddle(0),
+				this.#model.getPaddle(1)
 			]
 		};
 		this.#renderer.updateState(state);
@@ -140,15 +167,11 @@ export default class PongController {
 	}
 
 	step = () => {
-		this.#render()
-		if (this.#has_round_ended) {
-			this.#has_round_ended = false;
-			this.start_round()
-		}
 		if (this.#simulation_enabled && !this.#countdown_active) {
 			this.onUpdateRequested();
 			const delta = this.#model.getElapsedTime();
 			this.#handle_physics(delta);
 		}
+		this.#render()
 	}
 }
