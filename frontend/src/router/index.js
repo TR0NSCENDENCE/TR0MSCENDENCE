@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 import HomeView from '@/views/HomeView.vue'
 import UnknownView from '@/views/UnknownPageView.vue'
+
+import PlayView from '@/views/PlayView.vue'
 /* ************************************************************************** */
 import SoloView from '@/views/play/SoloView.vue'
 import LocalView from '@/views/play/LocalView.vue'
@@ -10,21 +12,27 @@ import Multiplayer1v1View from '@/views/play/Multiplayer1v1View.vue'
 import TournamentMatchmakingView from '@/views/play/TournamentMatchmakingView.vue'
 import TournamentView from '@/views/play/TournamentView.vue'
 /* ************************************************************************** */
-import PlayView from '@/views/PlayView.vue'
+
 import MiniGameView from '@/views/MiniGameView.vue'
-import LeaderboardView from '@/views/LeaderboardView.vue'
-import MyProfileView from '@/views/MyProfileView.vue'
-import ProfileView from '@/views/ProfileView.vue'
-import SearchProfileView from '@/views/SearchProfileView.vue'
+/* ************************************************************************** */
+import Pacman1v1 from '@/views/minigame/Pacman1v1.vue'
+import PacmanSolo from '@/views/minigame/PacmanSolo.vue'
+import GameHistory from '@/views/minigame/GameHistory.vue'
+/* ************************************************************************** */
 import SettingsView from '@/views/SettingsView.vue'
-import LoginView from '@/views/LoginView.vue'
-import RegisterView from '@/views/RegisterView.vue'
 /* ************************************************************************** */
 import SettingsAudioView from '@/views/settings/SettingsAudioView.vue'
 import SettingsColorView from '@/views/settings/SettingsColorView.vue'
 import SettingsGraphicsView from '@/views/settings/SettingsGraphicsView.vue'
 import CreditsView from '@/views/settings/CreditsView.vue'
 /* ************************************************************************** */
+
+import LeaderboardView from '@/views/LeaderboardView.vue'
+import MyProfileView from '@/views/MyProfileView.vue'
+import ProfileView from '@/views/ProfileView.vue'
+import SearchProfileView from '@/views/SearchProfileView.vue'
+import LoginView from '@/views/LoginView.vue'
+import RegisterView from '@/views/RegisterView.vue'
 import MatchWon from '@/views/play/MatchWon.vue'
 
 const router = createRouter({
@@ -116,6 +124,30 @@ const router = createRouter({
 			component: MiniGameView,
 			meta: {
 				title: 'tron - mini game',
+			}
+		},
+		{
+			path: '/minigame/solo',
+			name: 'PacmanSolo',
+			component: PacmanSolo,
+			meta: {
+				title: 'pacman - solo',
+			}
+		},
+		{
+			path: '/minigame/1v1',
+			name: 'Pacman1v1',
+			component: Pacman1v1,
+			meta: {
+				title: 'pacman - 1v1',
+			}
+		},
+		{
+			path: '/minigame/game_history',
+			name: 'GameHistory',
+			component: GameHistory,
+			meta: {
+				title: 'pacman - game history',
 			}
 		},
 		{
