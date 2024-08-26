@@ -1,5 +1,6 @@
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
+from django.conf import settings
 from .models import OTPInstance
 from django.core.mail import EmailMultiAlternatives
 from users.models import User
@@ -15,7 +16,8 @@ def send_otp_mail(otpinstance: OTPInstance):
     message.attach_alternative(html_content, 'text/html')
 
     try:
-        message.send()
+        if not settings.DEBUG:
+            message.send()
     except SMTPException:
         # Prevent account to be blocked
         instance.is_active = True

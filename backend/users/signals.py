@@ -17,7 +17,8 @@ def send_activation_mail(instance: User):
     message.attach_alternative(html_content, 'text/html')
 
     try:
-        message.send()
+        if not settings.DEBUG:
+            message.send()
     except SMTPException:
         # Prevent account to be blocked
         instance.is_active = True
