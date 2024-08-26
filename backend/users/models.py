@@ -14,9 +14,6 @@ from django.conf import settings
 class User(AbstractUser):
     email = models.EmailField(unique=True)
 
-    phone = models.CharField(max_length=10,unique=True, blank=True, null=True, validators=[RegexValidator(
-        regex=r"^\d{10}", message="Phone number must be 10 digits only.")])
-
     username_validator = UnicodeUsernameValidator()
 
     activation_uuid = models.UUIDField(unique=True, default=uuid4)

@@ -1,5 +1,7 @@
 from rest_framework import serializers
+from django.contrib.auth import authenticate, get_user_model
 from .models import User, UserProfile
+from django.utils.translation import gettext_lazy as _
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from uuid import uuid4
 import django.contrib.auth.password_validation as validators
@@ -8,6 +10,28 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['get_thumbnail']
+
+class UserLoginSerializer(serializers.Serializer):
+    username = serializers.CharField(validators=[User.username_validator], max_length=16)
+    password = serializers.CharField(
+        style={'input_type': 'password'},
+        trim_whitespace=False,
+        max_length=128)
+
+    def validate(self, data):
+        username = data.get('username')
+        password = data.get('password')
+
+        if username and password:
+            user = authenticate(request=self.context.get('request'), username=username, password=password)
+            if not user:
+                msg = _('Unable to log in with provided credentials.')
+                raise serializers.ValidationError(msg, code='authorization')
+        else:
+            msg = _('Must include "username" and "password".')
+            raise serializers.ValidationError(msg, code='authorization')
+        data['user'] = user
+        return data
 
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     profile_picture = serializers.ImageField()

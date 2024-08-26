@@ -92,8 +92,8 @@ MIDDLEWARE = [
 ]
 
 ANYMAIL = {
-    "MAILJET_API_KEY": "348c0441cc0b59a6c257c1fa4915390c",
-    "MAILJET_SECRET_KEY": "db4ec11cba8b542ee6ef9a4f6ec39146",
+    "MAILJET_API_KEY": str(os.environ.get('MAILJET_API_KEY')),
+    "MAILJET_SECRET_KEY": str(os.environ.get('MAILJET_SECRET_KEY')),
 }
 
 MAILJET_API_URL = "https://api.mailjet.com/v3.1/"

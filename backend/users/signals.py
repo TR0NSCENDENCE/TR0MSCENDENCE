@@ -17,8 +17,7 @@ def send_activation_mail(instance: User):
     message.attach_alternative(html_content, 'text/html')
 
     try:
-        pass
-        # message.send()
+        message.send()
     except SMTPException:
         # Prevent account to be blocked
         instance.is_active = True
@@ -30,5 +29,6 @@ def send_activation_mail(instance: User):
 def create_profile(sender, instance: User, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
-        send_activation_mail(instance)
+        if not instance.is_active:
+            send_activation_mail(instance)
     instance.user_profile.save()

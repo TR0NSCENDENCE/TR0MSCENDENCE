@@ -9,4 +9,5 @@ urlpatterns = [
     path('user/<int:pk>/update-cred/', UserUpdateView.as_view(), name='user-update-cred'),
     path('user/search/', UserListView.as_view(), name='user-search'),
     path('activation/<uuid:activation_uuid>/', UserActivationView.as_view(), name='account-activation'),
+    path('login/', UserLoginView.as_view(), name='login'),
 ]
